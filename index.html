@@ -52,6 +52,8 @@
     .single-card .hex-name { font-size: calc(2rem * var(--scale)); }
     .single-copy { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e6e2d8; text-align: left; }
     .swipe-hint { margin-top: 16px; color: #657168; font-size: calc(.82rem * var(--scale)); font-weight: 750; }
+    .study-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .study-nav button { min-height: 46px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 800; }
     .back-button { width: 100%; margin-top: 16px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
     .flash-card { padding: 18px 12px; text-align: center; }
     .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
@@ -188,8 +190,17 @@
       singleScreen.hidden = false;
       setActive('');
       const item = hexagrams[i];
-      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳核心原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話記憶</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
+      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳核心原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話記憶</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
       scrollTopNow();
+    }
+    function completeStudySwipe(endX, endY) {
+      if (touchStartX === null) return;
+      const deltaX = endX - touchStartX;
+      const deltaY = endY - touchStartY;
+      touchStartX = null;
+      touchStartY = null;
+      if (Math.abs(deltaX) < 55 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return;
+      openStudy(currentStudyIndex + (deltaX < 0 ? 1 : -1));
     }
     function shuffleDeck() {
       deck = Array.from({ length: 64 }, (_, i) => i);
@@ -241,18 +252,24 @@
     document.getElementById('picker-button').addEventListener('click', () => showPicker());
     document.getElementById('picker-grid').innerHTML = hexagrams.map((item, i) => `<button class="picker-item" type="button" data-index="${i}"><span class="hex-symbol">${item.symbol}</span><span class="picker-name">${item.name}</span><span class="picker-no">第 ${i + 1} 卦</span></button>`).join('');
     document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
+    singleScreen.addEventListener('touchstart', event => {
+      if (event.touches.length !== 1) return;
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+    }, { passive: true });
+    singleScreen.addEventListener('touchend', event => {
+      if (event.changedTouches.length !== 1) return;
+      completeStudySwipe(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+    }, { passive: true });
+    singleScreen.addEventListener('touchcancel', () => { touchStartX = null; touchStartY = null; }, { passive: true });
     singleScreen.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch') return;
       touchStartX = event.clientX;
       touchStartY = event.clientY;
     });
     singleScreen.addEventListener('pointerup', event => {
-      if (touchStartX === null) return;
-      const deltaX = event.clientX - touchStartX;
-      const deltaY = event.clientY - touchStartY;
-      touchStartX = null;
-      touchStartY = null;
-      if (Math.abs(deltaX) < 55 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return;
-      openStudy(currentStudyIndex + (deltaX < 0 ? 1 : -1));
+      if (event.pointerType === 'touch') return;
+      completeStudySwipe(event.clientX, event.clientY);
     });
     singleScreen.addEventListener('pointercancel', () => { touchStartX = null; touchStartY = null; });
     try { const saved = Number(localStorage.getItem('iching-scale')); if ([0,1,2].includes(saved)) scaleIndex = saved; } catch (_) {}
