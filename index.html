@@ -59,10 +59,11 @@
     .flash-card { padding: 18px 12px; text-align: center; }
     .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
     .flash-main .hex-symbol, .answer-cell .hex-symbol { display: block; margin: 18px auto 8px; }
+    .flash-main .hex-symbol { margin-top: 8px; margin-bottom: -18px; }
     .flash-main .hex-symbol { font-size: calc(10rem * var(--scale)); }
     .answer-cell .hex-symbol { font-size: calc(8rem * var(--scale)); }
     .flash-main .hex-name, .answer-cell .hex-name { font-size: calc(1.9rem * var(--scale)); font-weight: 850; color: var(--green); }
-    .flash-question { margin: 24px 0 14px; font-size: calc(1.25rem * var(--scale)); font-weight: 800; }
+    .flash-question { margin: 10px 0 9px; font-size: calc(1.25rem * var(--scale)); font-weight: 800; }
     .answer-toggle { min-height: 48px; padding: 10px 24px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 850; }
     .flash-answer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
     .flash-answer[hidden] { display: none; }
@@ -161,7 +162,20 @@
     function centerFlashElement(selector) {
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const element = document.querySelector(selector);
-        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        if (!element) return;
+        element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        setTimeout(() => {
+          const controls = document.querySelector('.controls');
+          const visibleTarget = selector === '.flash-main'
+            ? document.querySelector('.flash-main .hex-symbol')
+            : element;
+          if (!controls || !visibleTarget) return;
+          const safeTop = controls.getBoundingClientRect().bottom + 10;
+          const targetTop = visibleTarget.getBoundingClientRect().top;
+          if (targetTop < safeTop) {
+            window.scrollBy({ top: targetTop - safeTop, behavior: 'smooth' });
+          }
+        }, 450);
       }));
     }
     function setActive(mode) {
