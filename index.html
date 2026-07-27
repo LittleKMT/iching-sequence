@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f2c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="六十四卦">
+  <title>序卦傳・六十四卦記憶</title>
+  <style>
+    :root { --scale: 1; --green: #0b4f2c; --cream: #f5f1e8; --ink: #172019; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--cream); font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif; }
+    button { font: inherit; }
+    #page-top { position: absolute; top: 0; }
+    .shell { width: min(100%, 680px); margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) 12px calc(34px + env(safe-area-inset-bottom)); }
+    header { text-align: center; padding: 8px 4px 14px; }
+    h1 { margin: 0; color: var(--green); font-size: calc(1.75rem * var(--scale)); line-height: 1.25; }
+    .subtitle { margin: 6px 0 0; font-size: calc(.95rem * var(--scale)); color: #526056; }
+    .controls { position: sticky; top: 0; z-index: 20; margin: 0 -2px 16px; padding: 8px 2px; background: color-mix(in srgb, var(--cream) 94%, transparent); backdrop-filter: blur(10px); }
+    .control-row { display: grid; gap: 7px; margin-bottom: 7px; }
+    .control-row.four { grid-template-columns: repeat(4, 1fr); }
+    .control-row.three { grid-template-columns: repeat(3, 1fr); }
+    .control-row.one { grid-template-columns: 1fr; margin-bottom: 0; }
+    .control { min-width: 0; min-height: 44px; padding: 9px 4px; border: 1px solid #bdc6bd; border-radius: 12px; background: #fff; color: #1c2820; font-size: calc(.92rem * var(--scale)); font-weight: 750; box-shadow: 0 1px 2px #0000000c; }
+    .control:active { transform: translateY(1px); }
+    .control.active, .control.primary { color: #fff; border-color: var(--green); background: var(--green); }
+    .screen[hidden] { display: none !important; }
+    .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
+    .study-list { display: grid; gap: 12px; }
+    .study-card, .single-card, .flash-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
+    .study-card { display: grid; grid-template-columns: 94px 1fr; align-items: stretch; }
+    .study-head { display: grid; place-items: center; align-content: center; padding: 14px 8px; background: #edf4ee; }
+    .hex-symbol { font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; color: var(--green); line-height: .9; }
+    .study-head .hex-symbol { font-size: calc(4.8rem * var(--scale)); }
+    .ordinal { margin-top: 8px; color: #607064; font-size: calc(.74rem * var(--scale)); }
+    .study-body { min-width: 0; padding: 14px; }
+    .hex-name { margin: 0 0 8px; font-size: calc(1.45rem * var(--scale)); color: var(--green); }
+    .label { margin: 9px 0 2px; color: #6c766d; font-size: calc(.72rem * var(--scale)); font-weight: 800; letter-spacing: .08em; }
+    .text { margin: 0; font-size: calc(1.06rem * var(--scale)); line-height: 1.65; }
+    .plain[hidden] { display: none; }
+    .picker-intro { margin: 0 0 12px; text-align: center; font-size: calc(1rem * var(--scale)); line-height: 1.55; color: #526056; }
+    .picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; width: 100%; }
+    .picker-item { min-width: 0; padding: 12px 2px 10px; border: 1px solid #ccd5cc; border-radius: 15px; background: #fff; color: var(--green); text-align: center; overflow: hidden; }
+    .picker-item .hex-symbol { display: block; font-size: calc(4.7rem * var(--scale)); }
+    .picker-name { display: block; margin-top: 7px; font-size: calc(.98rem * var(--scale)); font-weight: 850; white-space: nowrap; }
+    .picker-no { display: block; margin-top: 2px; color: #718075; font-size: calc(.68rem * var(--scale)); }
+    .single-card { padding: 18px; text-align: center; }
+    .single-card .hex-symbol { font-size: calc(8.5rem * var(--scale)); }
+    .single-card .hex-name { font-size: calc(2rem * var(--scale)); }
+    .single-copy { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e6e2d8; text-align: left; }
+    .back-button { width: 100%; margin-top: 16px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
+    .flash-card { padding: 18px 12px; text-align: center; }
+    .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
+    .flash-main .hex-symbol, .answer-cell .hex-symbol { display: block; margin: 18px auto 8px; font-size: calc(8rem * var(--scale)); }
+    .flash-main .hex-name, .answer-cell .hex-name { font-size: calc(1.9rem * var(--scale)); font-weight: 850; color: var(--green); }
+    .flash-question { margin: 24px 0 14px; font-size: calc(1.25rem * var(--scale)); font-weight: 800; }
+    .answer-toggle { min-height: 48px; padding: 10px 24px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 850; }
+    .flash-answer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .flash-answer[hidden] { display: none; }
+    .answer-cell { min-width: 0; padding: 12px 2px; border-radius: 16px; background: #edf4ee; overflow: hidden; }
+    .answer-label { color: #617064; font-size: calc(.82rem * var(--scale)); font-weight: 750; }
+    .flash-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .flash-nav button, .reshuffle { min-height: 48px; border: 1px solid #b8c3ba; border-radius: 14px; background: #fff; font-size: calc(1rem * var(--scale)); font-weight: 800; }
+    .reshuffle { width: 100%; margin-top: 9px; color: #fff; border-color: var(--green); background: var(--green); }
+    .empty { padding: 30px; text-align: center; color: #68746a; }
+    @media (max-width: 370px) {
+      .shell { padding-left: 8px; padding-right: 8px; }
+      .control { font-size: calc(.82rem * var(--scale)); }
+      .study-card { grid-template-columns: 82px 1fr; }
+      .study-head .hex-symbol { font-size: calc(4.25rem * var(--scale)); }
+      .picker-grid { gap: 6px; }
+      .picker-item .hex-symbol { font-size: calc(4.25rem * var(--scale)); }
+      .flash-main .hex-symbol, .answer-cell .hex-symbol { font-size: calc(6.8rem * var(--scale)); }
+    }
+  </style>
+</head>
+<body>
+  <span id="page-top" aria-hidden="true"></span>
+  <main class="shell">
+    <header>
+      <h1>序卦傳・六十四卦記憶</h1>
+      <p class="subtitle">原文、白話與前後卦閃卡</p>
+    </header>
+
+    <nav class="controls" aria-label="學習工具">
+      <div class="control-row four">
+        <button class="control" data-mode="all">全部</button>
+        <button class="control" data-mode="upper">上經</button>
+        <button class="control" data-mode="lower">下經</button>
+        <button class="control" data-mode="flash">閃卡</button>
+      </div>
+      <div class="control-row three">
+        <button class="control" id="font-down" aria-label="縮小文字">A−</button>
+        <button class="control" id="font-reset">A 標準</button>
+        <button class="control" id="font-up" aria-label="放大文字">A＋</button>
+      </div>
+      <div class="control-row three">
+        <button class="control" id="plain-toggle">隱藏白話</button>
+        <button class="control" id="top-button">回頂端</button>
+        <button class="control" id="restart-button">重頭練習</button>
+      </div>
+      <div class="control-row one">
+        <button class="control primary" id="picker-button">64卦</button>
+      </div>
+    </nav>
+
+    <section id="list-screen" class="screen"></section>
+    <section id="picker-screen" class="screen" hidden>
+      <h2 class="section-title">六十四卦</h2>
+      <p class="picker-intro">點選任一卦，直接查看該卦的《序卦傳》核心原文與白話。</p>
+      <div id="picker-grid" class="picker-grid"></div>
+    </section>
+    <section id="single-screen" class="screen" hidden></section>
+    <section id="flash-screen" class="screen" hidden></section>
+  </main>
+
+  <script>
+    const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
+    const originals = [
+      '有天地。','有天地，然後萬物生焉。','萬物生焉。','物生必蒙。','物稚不可不養。','飲食必有訟。','訟必有眾起。','眾必有所比。','比必有所畜。','物畜然後有禮。','履而泰然後安。','物不可以終通。','物不可以終否。','與人同者物必歸焉。','有大者不可以盈。','有大而能謙必豫。','豫必有隨。','以喜隨人者必有事。','有事而後可大。','物大然後可觀。','可觀而後有所合。','物不可以苟合而已。','賁者飾也，致飾然後亨則盡矣。','物不可以終盡，剝窮上反下。','復則不妄矣。','有無妄然後可畜。','物畜然後可養。','不養則不可動。','物不可以終過。','陷必有所麗。',
+      '有天地然後有萬物，有萬物然後有男女，有男女然後有夫婦。','夫婦之道不可以不久。','物不可以久居其所。','物不可以終遯。','物不可以終壯。','晉者進也，進必有所傷。','傷於外者必反於家。','家道窮必乖。','睽者乖也，乖必有難。','物不可以終難。','解者緩也，緩必有所失。','損而不已必益。','益而不已必決。','夬者決也，決必有所遇。','姤者遇也，物相遇而後聚。','萃者聚也，聚而上者謂之升。','升而不已必困。','困乎上者必反下。','井道不可不革。','革物者莫若鼎。','主器者莫若長子。','震者動也，物不可以終動。','艮者止也，物不可以終止。','漸者進也，進必有所歸。','得其所歸者必大。','豐者大也，窮大者必失其居。','旅而無所容。','巽者入也，入而後說之。','兌者說也，說而後散之。','渙者離也，物不可以終離。','節而信之。','有其信者必行之。','有過物者必濟。','物不可窮也。'
+    ];
+    const plains = [
+      '乾為天，是六十四卦與天地秩序的開始。','坤為地；天地具備，萬物才開始產生。','天地相交，萬物開始萌生。','萬物初生，必然幼稚蒙昧。','幼小的事物必須養育。','有飲食需求，就容易發生爭奪。','爭訟發生，就會有眾人聚起。','眾人聚集，就會彼此親近依附。','彼此親近，就會有所蓄聚。','有了蓄積，才有禮節規範。','依禮而行，才能通泰安定。','事物不可能永遠通泰。','事物也不可能永遠閉塞。','與人同心，眾物自然歸附。','擁有很多，不可以自滿。','有成就又能謙虛，自然安樂。','安樂喜悅，就會有人跟隨。','喜悅地跟隨別人，必然會有事情發生。','有事需要處理，處理之後才能壯大。','事物壯大之後，才值得觀看。','有所觀察之後，才會有所結合。','事物不能只是隨便結合，還需要文飾。','文飾到了極點，就開始走向剝落。','事物不能永遠剝盡，剝到極點就會返回。','回復正道，就不會妄為。','不妄為，然後才能有所蓄積。','有了蓄積，然後才能養育。','不經養育，就不能有所行動。','事物不可能永遠過度。','陷入險境，就必須有所依附。',
+      '天地有萬物，萬物分男女，男女結為夫婦。','夫婦之道應當長久。','事物不能永遠停留在原處。','事物不能一直退避。','事物不能永遠只求壯盛，壯盛就要前進。','向前進展，難免有所受傷。','在外受到傷害，就會返回家中。','家道走到困窮，就容易產生分歧。','彼此分歧，就會產生困難。','困難不可能永遠持續。','困難解除而鬆緩，就容易有所損失。','損減到一定程度，就會轉而增加。','增加到一定程度，就必須有所決斷。','有所決斷之後，必然有所相遇。','事物相遇之後，就會聚集。','眾物聚集之後，就會向上發展。','不斷向上發展，終究會遇到困境。','在上面陷入困境，就會返回下方尋找根本。','井用久了需要整治革新。','要革新事物，沒有比鼎更具代表性。','主持重要器物與事業，莫若由長子承擔。','震就是動，但事物不能永遠不停地動。','艮就是停止，但事物也不能永遠停止。','逐漸前進，最後必有所歸宿。','得到歸宿之後，就會發展壯大。','盛大到了極點，反而容易失去安居之所。','旅居在外無所容身，就需要順勢進入。','順勢進入之後，彼此就能和悅。','喜悅之後，精神情緒就會舒散。','渙散分離不能一直持續，需要有所節制。','有了節制規範，才能建立信用。','有了誠信，就要付諸行動。','有所超越，事情才能有所完成。','事物不會真正窮盡，完成之後仍會繼續發展。'
+    ];
+    const hexagrams = names.map((name, i) => ({ name, symbol: String.fromCodePoint(0x4dc0 + i), original: originals[i], plain: plains[i] }));
+    if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64) throw new Error('六十四卦資料不完整');
+
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen'].map(id => document.getElementById(id));
+    const listScreen = document.getElementById('list-screen');
+    const pickerScreen = document.getElementById('picker-screen');
+    const singleScreen = document.getElementById('single-screen');
+    const flashScreen = document.getElementById('flash-screen');
+    let currentMode = 'all';
+    let showPlain = true;
+    let scaleIndex = 1;
+    const scales = [.86, 1, 1.18];
+    let deck = [];
+    let deckPosition = 0;
+
+    function hideScreens() { screens.forEach(screen => screen.hidden = true); }
+    function scrollTopNow() {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+    function setActive(mode) {
+      document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+      document.getElementById('picker-button').classList.toggle('active', mode === 'picker');
+    }
+    function studyMarkup(item, i) {
+      return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳核心原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話記憶</div><p class="text">${item.plain}</p></div></div></article>`;
+    }
+    function showList(mode, shouldScroll = true) {
+      currentMode = mode;
+      hideScreens();
+      listScreen.hidden = false;
+      setActive(mode);
+      const start = mode === 'lower' ? 30 : 0;
+      const end = mode === 'upper' ? 30 : 64;
+      const title = mode === 'upper' ? '上經・第一至三十卦' : mode === 'lower' ? '下經・第三十一至六十四卦' : '六十四卦原文與白話';
+      listScreen.innerHTML = `<h2 class="section-title">${title}</h2><div class="study-list">${hexagrams.slice(start, end).map((item, offset) => studyMarkup(item, start + offset)).join('')}</div>`;
+      if (shouldScroll) scrollTopNow();
+    }
+    function showPicker(shouldScroll = true) {
+      currentMode = 'picker';
+      hideScreens();
+      pickerScreen.hidden = false;
+      setActive('picker');
+      if (shouldScroll) scrollTopNow();
+    }
+    function openStudy(i) {
+      currentMode = 'single';
+      hideScreens();
+      singleScreen.hidden = false;
+      setActive('');
+      const item = hexagrams[i];
+      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳核心原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話記憶</div><p class="text">${item.plain}</p></div></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
+      scrollTopNow();
+    }
+    function shuffleDeck() {
+      deck = Array.from({ length: 64 }, (_, i) => i);
+      for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+      deckPosition = 0;
+    }
+    function showFlash(newDeck = false) {
+      currentMode = 'flash';
+      if (newDeck || deck.length === 0) shuffleDeck();
+      hideScreens();
+      flashScreen.hidden = false;
+      setActive('flash');
+      renderFlash();
+      scrollTopNow();
+    }
+    function renderFlash() {
+      const i = deck[deckPosition];
+      const prev = (i + 63) % 64;
+      const next = (i + 1) % 64;
+      flashScreen.innerHTML = `<article class="flash-card"><div class="flash-count">第 ${deckPosition + 1} / 64 題</div><div class="flash-main"><span class="hex-symbol">${hexagrams[i].symbol}</span><div class="hex-name">${hexagrams[i].name}</div></div><div class="flash-question">前一卦？　後一卦？</div><button class="answer-toggle" type="button" id="answer-toggle">顯示答案</button><div class="flash-answer" id="flash-answer" hidden><div class="answer-cell"><div class="answer-label">前一卦</div><span class="hex-symbol">${hexagrams[prev].symbol}</span><div class="hex-name">${hexagrams[prev].name}</div></div><div class="answer-cell"><div class="answer-label">後一卦</div><span class="hex-symbol">${hexagrams[next].symbol}</span><div class="hex-name">${hexagrams[next].name}</div></div></div><div class="flash-nav"><button type="button" id="flash-prev">← 上一題</button><button type="button" id="flash-next">下一題 →</button></div><button class="reshuffle" type="button" id="reshuffle">重新隨機開始</button></article>`;
+      document.getElementById('answer-toggle').addEventListener('click', () => {
+        const answer = document.getElementById('flash-answer');
+        answer.hidden = !answer.hidden;
+        document.getElementById('answer-toggle').textContent = answer.hidden ? '顯示答案' : '隱藏答案';
+      });
+      document.getElementById('flash-prev').addEventListener('click', () => { deckPosition = (deckPosition + 63) % 64; renderFlash(); });
+      document.getElementById('flash-next').addEventListener('click', () => { deckPosition = (deckPosition + 1) % 64; renderFlash(); });
+      document.getElementById('reshuffle').addEventListener('click', () => { shuffleDeck(); renderFlash(); });
+    }
+    function updatePlain() {
+      document.querySelectorAll('.plain').forEach(el => el.hidden = !showPlain);
+      document.getElementById('plain-toggle').textContent = showPlain ? '隱藏白話' : '顯示白話';
+    }
+    function updateScale() {
+      document.documentElement.style.setProperty('--scale', scales[scaleIndex]);
+      try { localStorage.setItem('iching-scale', String(scaleIndex)); } catch (_) {}
+    }
+
+    document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
+      const mode = button.dataset.mode;
+      if (mode === 'flash') showFlash(true); else showList(mode);
+    }));
+    document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
+    document.getElementById('font-reset').addEventListener('click', () => { scaleIndex = 1; updateScale(); });
+    document.getElementById('font-up').addEventListener('click', () => { scaleIndex = Math.min(scales.length - 1, scaleIndex + 1); updateScale(); });
+    document.getElementById('plain-toggle').addEventListener('click', () => { showPlain = !showPlain; updatePlain(); });
+    document.getElementById('top-button').addEventListener('click', scrollTopNow);
+    document.getElementById('restart-button').addEventListener('click', () => showFlash(true));
+    document.getElementById('picker-button').addEventListener('click', () => showPicker());
+    document.getElementById('picker-grid').innerHTML = hexagrams.map((item, i) => `<button class="picker-item" type="button" data-index="${i}"><span class="hex-symbol">${item.symbol}</span><span class="picker-name">${item.name}</span><span class="picker-no">第 ${i + 1} 卦</span></button>`).join('');
+    document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
+    try { const saved = Number(localStorage.getItem('iching-scale')); if ([0,1,2].includes(saved)) scaleIndex = saved; } catch (_) {}
+    updateScale();
+    updatePlain();
+    showList('all', false);
+  </script>
+</body>
+</html>
