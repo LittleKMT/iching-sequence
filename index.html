@@ -48,14 +48,16 @@
     .picker-item .hex-symbol { display: block; font-size: calc(7rem * var(--scale)); }
     .picker-name { display: block; margin-top: 7px; font-size: calc(.98rem * var(--scale)); font-weight: 850; white-space: nowrap; }
     .picker-no { display: block; margin-top: 2px; color: #718075; font-size: calc(.68rem * var(--scale)); }
-    .single-card { padding: 18px; text-align: center; touch-action: pan-y; }
-    .single-card .hex-symbol { font-size: calc(8.5rem * var(--scale)); }
-    .single-card .hex-name { font-size: calc(2rem * var(--scale)); }
-    .single-copy { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e6e2d8; text-align: left; }
-    .swipe-hint { margin-top: 16px; color: #657168; font-size: calc(.82rem * var(--scale)); font-weight: 750; }
+    .single-card { padding: 14px 16px; text-align: center; touch-action: pan-y; }
+    .single-card .hex-symbol { margin: 2px 0 -18px; font-size: calc(9.5rem * var(--scale)); font-weight: 800; -webkit-text-stroke: .6px currentColor; }
+    .single-card .hex-name { margin-bottom: 4px; font-size: calc(2rem * var(--scale)); }
+    .single-copy { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e6e2d8; text-align: left; }
+    .single-copy .label { margin-top: 6px; }
+    .single-copy .text { line-height: 1.45; }
+    .swipe-hint { margin-top: 10px; color: #657168; font-size: calc(.82rem * var(--scale)); font-weight: 750; }
     .study-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .study-nav button { min-height: 46px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 800; }
-    .back-button { width: 100%; margin-top: 16px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
+    .back-button { width: 100%; margin-top: 10px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
     .flash-card { padding: 18px 12px; text-align: center; }
     .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
     .flash-main .hex-symbol, .answer-cell .hex-symbol { display: block; margin: 18px auto 8px; }
@@ -178,6 +180,20 @@
         }, 450);
       }));
     }
+    function alignStudyCard() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const card = singleScreen.querySelector('.single-card');
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        setTimeout(() => {
+          const controls = document.querySelector('.controls');
+          if (!controls) return;
+          const safeTop = controls.getBoundingClientRect().bottom + 10;
+          const cardTop = card.getBoundingClientRect().top;
+          window.scrollBy({ top: cardTop - safeTop, behavior: 'smooth' });
+        }, 450);
+      }));
+    }
     function setActive(mode) {
       document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
       document.getElementById('picker-button').classList.toggle('active', mode === 'picker');
@@ -212,7 +228,7 @@
       setActive('');
       const item = hexagrams[i];
       singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳核心原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話記憶</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
-      scrollTopNow();
+      alignStudyCard();
     }
     function completeStudySwipe(endX, endY) {
       if (touchStartX === null) return;
