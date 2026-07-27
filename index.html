@@ -28,6 +28,7 @@
     .control:active { transform: translateY(1px); }
     .control.active, .control.primary { color: #fff; border-color: var(--green); background: var(--green); }
     .screen[hidden] { display: none !important; }
+    #flash-screen { padding-bottom: 45vh; }
     .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
@@ -157,6 +158,12 @@
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     }
+    function centerFlashElement(selector) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const element = document.querySelector(selector);
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }));
+    }
     function setActive(mode) {
       document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
       document.getElementById('picker-button').classList.toggle('active', mode === 'picker');
@@ -214,7 +221,6 @@
       flashScreen.hidden = false;
       setActive('flash');
       renderFlash();
-      scrollTopNow();
     }
     function renderFlash() {
       const i = deck[deckPosition];
@@ -225,10 +231,12 @@
         const answer = document.getElementById('flash-answer');
         answer.hidden = !answer.hidden;
         document.getElementById('answer-toggle').textContent = answer.hidden ? '顯示答案' : '隱藏答案';
+        centerFlashElement(answer.hidden ? '.flash-main' : '.flash-answer');
       });
       document.getElementById('flash-prev').addEventListener('click', () => { deckPosition = (deckPosition + 63) % 64; renderFlash(); });
       document.getElementById('flash-next').addEventListener('click', () => { deckPosition = (deckPosition + 1) % 64; renderFlash(); });
       document.getElementById('reshuffle').addEventListener('click', () => { shuffleDeck(); renderFlash(); });
+      centerFlashElement('.flash-main');
     }
     function updatePlain() {
       document.querySelectorAll('.plain').forEach(el => el.hidden = !showPlain);
