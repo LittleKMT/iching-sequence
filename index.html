@@ -80,14 +80,15 @@
     .order-intro { margin: 7px 0 4px; color: #526056; font-size: calc(.96rem * var(--scale)); line-height: 1.5; }
     .order-progress { min-height: 1.5em; margin: 12px 0 10px; color: #617064; font-size: calc(.9rem * var(--scale)); font-weight: 750; }
     .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .order-choice { position: relative; min-height: 64px; padding: 9px 38px 9px 8px; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-size: calc(1.28rem * var(--scale)); font-weight: 850; }
+    .order-choice { position: relative; min-height: 64px; padding: 9px 38px 9px 8px; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-weight: 850; overflow: hidden; }
     .order-choice.selected { color: #fff; border-color: var(--green); background: var(--green); }
+    .order-name { display: block; white-space: nowrap; font-size: calc(1.9rem * var(--scale)); line-height: 1; }
+    .order-name.single { font-size: calc(2.2rem * var(--scale)); }
     .order-number { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--green); font-size: .86rem; font-weight: 900; box-shadow: 0 1px 4px #0002; }
     .order-feedback { min-height: 3.2em; margin: 14px 0 2px; display: grid; place-items: center; color: #8b2727; font-size: calc(1rem * var(--scale)); font-weight: 800; line-height: 1.45; }
     .order-feedback.correct { color: var(--green); font-size: calc(1.12rem * var(--scale)); }
-    .order-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
-    .order-actions.two { grid-template-columns: 1fr 1fr; }
-    .order-actions button { min-height: 48px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
+    .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .order-actions button { min-height: 48px; padding: 8px 4px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; white-space: nowrap; }
     .order-actions .next-order { color: #fff; background: var(--green); }
     .empty { padding: 30px; text-align: center; color: #68746a; }
     @media (max-width: 370px) {
@@ -173,6 +174,7 @@
     let orderSequence = [];
     let orderChoices = [];
     let orderSelections = [];
+    let orderQuestionDeck = [];
     let touchStartX = null;
     let touchStartY = null;
 
@@ -279,18 +281,35 @@
       for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
       deckPosition = 0;
     }
+    function secureRandomInt(max) {
+      if (globalThis.crypto?.getRandomValues) {
+        const range = 0x100000000;
+        const limit = Math.floor(range / max) * max;
+        const value = new Uint32Array(1);
+        do { crypto.getRandomValues(value); } while (value[0] >= limit);
+        return value[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
     function shuffled(items) {
       const copy = [...items];
       for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = secureRandomInt(i + 1);
         [copy[i], copy[j]] = [copy[j], copy[i]];
       }
       if (copy.length > 1 && copy.every((item, i) => item === items[i])) copy.push(copy.shift());
       return copy;
     }
+    function refillOrderQuestionDeck() {
+      const questions = [];
+      for (let length = 3; length <= 5; length++) {
+        for (let start = 0; start <= 64 - length; start++) questions.push({ start, length });
+      }
+      orderQuestionDeck = shuffled(questions);
+    }
     function newOrderQuestion() {
-      const length = 3 + Math.floor(Math.random() * 3);
-      const start = Math.floor(Math.random() * (65 - length));
+      if (orderQuestionDeck.length === 0) refillOrderQuestionDeck();
+      const { start, length } = orderQuestionDeck.pop();
       orderSequence = Array.from({ length }, (_, i) => start + i);
       orderChoices = shuffled(orderSequence);
       orderSelections = [];
@@ -304,7 +323,7 @@
         : complete
           ? '順序不對，請取消後重新調整。'
           : orderSelections.length === 0 ? '依正確順序逐一點選' : '再點一次已選卦，即可取消並重新編號';
-      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">序卦傳排列</h2><p class="order-intro">請依六十四卦的正確次序點選</p><div class="order-progress">${progressText}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); return `<button class="order-choice${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}<span>${hexagrams[i].name}</span></button>`; }).join('')}</div><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions${correct ? ' two' : ''}"><button type="button" data-order-action="reset">重新本題</button>${correct ? '<button class="next-order" type="button" data-order-action="next">下一題</button>' : ''}</div></article>`;
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">序卦傳排列</h2><p class="order-intro">請依六十四卦的正確次序點選</p><div class="order-progress">${progressText}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const name = hexagrams[i].name; return `<button class="order-choice${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}<span class="order-name${name.length === 1 ? ' single' : ''}">${name}</span></button>`; }).join('')}</div><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></article>`;
     }
     function showOrder(newQuestion = true) {
       currentMode = 'order';
