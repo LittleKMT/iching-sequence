@@ -3,250 +3,135 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#143f63">
+  <meta name="theme-color" content="#123f61">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="京房納甲">
-  <title>京房納甲・六十四卦記憶</title>
+  <meta name="apple-mobile-web-app-title" content="六親持世">
+  <title>六十四卦・六親持世閃卡</title>
   <style>
-    :root { --scale: 1; --blue: #143f63; --pale: #edf4f8; --cream: #f6f2e9; --ink: #17212a; }
+    :root { --scale: 1; --blue: #123f61; --pale: #e9f3f8; --cream: #f6f2e9; --ink: #14202a; }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body { margin: 0; color: var(--ink); background: var(--cream); font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif; }
     button { font: inherit; }
-    .shell { width: min(100%, 680px); margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) 12px calc(32px + env(safe-area-inset-bottom)); }
-    header { padding: 8px 4px 12px; text-align: center; }
-    h1 { margin: 0; color: var(--blue); font-size: calc(1.65rem * var(--scale)); line-height: 1.25; }
-    .subtitle { margin: 5px 0 0; color: #596b78; font-size: calc(.9rem * var(--scale)); }
-    .controls { position: sticky; top: 0; z-index: 20; margin-bottom: 10px; padding: 4px 0; background: color-mix(in srgb, var(--cream) 94%, transparent); backdrop-filter: blur(10px); }
-    .control-row { display: grid; gap: 5px; margin-bottom: 4px; }
-    .control-row.three { grid-template-columns: repeat(3, 1fr); }
-    .control { min-height: 44px; padding: 8px 3px; border: 1px solid #b8c4cc; border-radius: 12px; background: #fff; color: #1e2d37; font-size: calc(.92rem * var(--scale)); font-weight: 800; }
+    .shell { width: min(100%, 620px); margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) 10px calc(30px + env(safe-area-inset-bottom)); }
+    header { padding: 6px 4px 10px; text-align: center; }
+    h1 { margin: 0; color: var(--blue); font-size: calc(1.6rem * var(--scale)); line-height: 1.2; }
+    .subtitle { margin: 4px 0 0; color: #62717a; font-size: calc(.9rem * var(--scale)); }
+    .controls { margin-bottom: 9px; padding: 4px 0; }
+    .control-row { display: grid; gap: 6px; margin-bottom: 5px; }
+    .control-row.two { grid-template-columns: 1fr 1fr; }
+    .control-row.three { grid-template-columns: repeat(3, 1fr); margin-bottom: 0; }
+    .control { min-height: 46px; padding: 8px 3px; border: 1px solid #b7c3cb; border-radius: 13px; color: #1c2b35; background: #fff; font-size: calc(.98rem * var(--scale)); font-weight: 850; }
     .control.active { color: #fff; border-color: var(--blue); background: var(--blue); }
     .screen[hidden] { display: none !important; }
-    .section-title { margin: 15px 0 5px; color: var(--blue); font-size: calc(1.3rem * var(--scale)); }
-    .intro { margin: 0 0 12px; color: #5c6b74; font-size: calc(.9rem * var(--scale)); line-height: 1.5; }
-    .picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    .picker-item { min-width: 0; padding: 10px 5px; border: 1px solid #cad4da; border-radius: 15px; background: #fff; color: var(--blue); }
-    .picker-name { display: block; margin-top: 7px; font-size: calc(1rem * var(--scale)); font-weight: 900; }
-    .picker-meta { display: block; margin-top: 2px; color: #6a7982; font-size: calc(.68rem * var(--scale)); }
-    .hex-lines { display: grid; gap: 8px; width: 176px; margin: 0 auto; }
-    .yao { display: flex; gap: 18px; height: 14px; }
+    .section-title { margin: 14px 0 5px; color: var(--blue); font-size: calc(1.35rem * var(--scale)); }
+    .intro { margin: 0 0 10px; color: #60707a; font-size: calc(.95rem * var(--scale)); line-height: 1.45; }
+    .picker-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .picker-item { min-width: 0; padding: 11px 4px 9px; border: 1px solid #c9d3d9; border-radius: 15px; color: var(--blue); background: #fff; }
+    .picker-name { display: block; margin-top: 7px; font-size: calc(1.12rem * var(--scale)); font-weight: 900; }
+    .picker-no { display: block; margin-top: 2px; color: #6c7a83; font-size: calc(.72rem * var(--scale)); }
+    .hex-lines { display: grid; gap: 8px; width: min(62vw, 220px); margin: 0 auto; color: var(--blue); }
+    .yao { display: flex; gap: 20px; height: 16px; }
     .yao span { display: block; flex: 1; border-radius: 1px; background: currentColor; }
-    .picker-hex { gap: 4px; width: 78px; }
+    .picker-hex { gap: 4px; width: 76px; }
     .picker-hex .yao { gap: 8px; height: 7px; }
-    .mini-hex { gap: 3px; width: 56px; }
-    .mini-hex .yao { gap: 6px; height: 5px; }
-    .detail-card, .flash-card { overflow: hidden; padding: 14px; border: 1px solid #d4d6d2; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; text-align: center; }
-    .detail-main { color: var(--blue); }
-    .detail-main .hex-lines { margin-top: 8px; }
-    .ordinal { color: #697780; font-size: calc(.8rem * var(--scale)); }
-    .hex-name { margin: 8px 0 2px; color: var(--blue); font-size: calc(2rem * var(--scale)); font-weight: 900; }
-    .core-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 5px 0 9px; }
-    .chip { padding: 4px 8px; border-radius: 999px; color: var(--blue); background: var(--pale); font-size: calc(.78rem * var(--scale)); font-weight: 800; }
-    .line-table { overflow: hidden; margin-top: 8px; border: 1px solid #d8e0e4; border-radius: 14px; text-align: left; }
-    .line-row { display: grid; grid-template-columns: 38px 58px minmax(68px, 1fr) 48px 38px; align-items: center; gap: 5px; min-height: 48px; padding: 6px 7px; border-top: 1px solid #e5eaed; font-size: calc(.82rem * var(--scale)); }
+    .card { overflow: hidden; padding: 14px 12px; border: 1px solid #d1d5d3; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; text-align: center; }
+    .ordinal { color: #6a7880; font-size: calc(.82rem * var(--scale)); }
+    .card .hex-lines { margin-top: 10px; }
+    .hex-name { margin: 8px 0 5px; color: var(--blue); font-size: calc(2.15rem * var(--scale)); font-weight: 950; }
+    .holding { margin: 8px 0 10px; padding: 9px 8px; border-radius: 13px; color: #fff; background: var(--blue); font-size: calc(1.45rem * var(--scale)); font-weight: 950; }
+    .line-table { overflow: hidden; margin-top: 8px; border: 1px solid #ced9df; border-radius: 14px; text-align: left; }
+    .line-row { display: grid; grid-template-columns: 2.7rem minmax(7.1rem, 1fr) 4.1rem 2.1rem; align-items: center; min-height: 52px; padding: 7px 9px; border-top: 1px solid #dfe7eb; font-size: calc(1.08rem * var(--scale)); }
     .line-row:first-child { border-top: 0; }
-    .line-no { color: #64727a; font-weight: 750; }
+    .line-row.world { background: var(--pale); }
+    .line-no { color: #5d6d76; font-weight: 800; }
     .najia { font-weight: 900; }
-    .relation { color: var(--blue); font-weight: 850; }
-    .position { justify-self: end; padding: 3px 5px; border-radius: 7px; color: #fff; background: var(--blue); font-weight: 850; }
+    .relation { color: var(--blue); font-weight: 950; }
+    .position { justify-self: end; min-width: 1.8rem; padding: 4px; border-radius: 8px; color: #fff; background: var(--blue); text-align: center; font-weight: 950; }
     .position:empty { background: transparent; }
-    .swipe-hint { margin: 10px 0 0; color: #64727a; font-size: calc(.8rem * var(--scale)); font-weight: 750; }
-    .study-nav, .flash-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .study-nav button, .flash-nav button, .answer-toggle, .back-button, .reshuffle { min-height: 46px; border: 1px solid #aebdc6; border-radius: 13px; background: #fff; color: var(--blue); font-weight: 850; }
-    .back-button, .reshuffle { width: 100%; margin-top: 9px; color: #fff; border-color: var(--blue); background: var(--blue); }
-    .palace-section { margin-bottom: 18px; }
-    .palace-title { margin: 12px 0 7px; color: var(--blue); font-size: calc(1.15rem * var(--scale)); }
-    .palace-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-    .palace-item { padding: 10px; border: 1px solid #ced8de; border-radius: 13px; background: #fff; text-align: left; }
-    .palace-item strong { color: var(--blue); }
-    .palace-item span { display: block; margin-top: 3px; color: #65747c; font-size: calc(.75rem * var(--scale)); }
-    #flash-screen { padding-bottom: 42vh; }
-    .flash-card .hex-lines { margin-top: 18px; color: var(--blue); }
-    .flash-question { margin: 12px 0 9px; font-size: calc(1.1rem * var(--scale)); font-weight: 850; }
-    .answer-toggle { padding: 8px 22px; }
-    .flash-answer { margin-top: 10px; padding: 12px; border-radius: 14px; background: var(--pale); color: var(--blue); }
+    .hint { margin: 9px 0 0; color: #66757d; font-size: calc(.84rem * var(--scale)); font-weight: 750; }
+    .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
+    .nav button, .answer-button, .back-button, .shuffle-button { min-height: 48px; border: 1px solid #abbac3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1rem * var(--scale)); font-weight: 900; }
+    .back-button, .shuffle-button { width: 100%; margin-top: 9px; color: #fff; border-color: var(--blue); background: var(--blue); }
+    .flash-question { margin: 8px 0 10px; font-size: calc(1.32rem * var(--scale)); font-weight: 950; }
+    .answer-button { padding: 8px 22px; }
     .flash-answer[hidden] { display: none; }
-    .answer-main { font-size: calc(1.15rem * var(--scale)); font-weight: 900; }
-    .answer-sub { margin-top: 5px; font-size: calc(.92rem * var(--scale)); font-weight: 750; }
+    .flash-answer { margin-top: 10px; }
+    #flash-screen { padding-bottom: 40vh; }
     @media (max-width: 370px) {
-      .shell { padding-left: 8px; padding-right: 8px; }
-      .control { font-size: calc(.82rem * var(--scale)); }
-      .picker-grid { gap: 6px; }
-      .line-row { grid-template-columns: 35px 54px minmax(62px, 1fr) 44px 35px; gap: 3px; padding-inline: 5px; }
+      .shell { padding-left: 7px; padding-right: 7px; }
+      .control { font-size: calc(.88rem * var(--scale)); }
+      .line-row { grid-template-columns: 2.55rem minmax(6.5rem, 1fr) 3.8rem 1.9rem; padding-inline: 6px; font-size: calc(1rem * var(--scale)); }
     }
   </style>
 </head>
 <body>
   <main class="shell">
     <header>
-      <h1>京房納甲・六十四卦記憶</h1>
-      <p class="subtitle">八宮・五行・世應・納甲・六親</p>
+      <h1>六十四卦・六親持世</h1>
+      <p class="subtitle">選卦學習｜隨機閃卡</p>
     </header>
     <nav class="controls" aria-label="學習工具">
-      <div class="control-row three">
-        <button class="control active" data-mode="picker">64卦</button>
-        <button class="control" data-mode="palaces">八宮</button>
-        <button class="control" data-mode="flash">閃卡</button>
+      <div class="control-row two">
+        <button class="control active" data-mode="picker">選卦學習</button>
+        <button class="control" data-mode="flash">隨機閃卡</button>
       </div>
       <div class="control-row three">
         <button class="control" id="smaller" aria-label="縮小文字">A−</button>
         <button class="control" id="normal">A 標準</button>
         <button class="control" id="larger" aria-label="放大文字">A＋</button>
       </div>
-      <div class="control-row three">
-        <button class="control" id="top-button">回頂端</button>
-        <button class="control" id="restart-button">重頭練習</button>
-        <button class="control" id="picker-button">回64卦</button>
-      </div>
     </nav>
     <section id="picker-screen" class="screen"></section>
-    <section id="palaces-screen" class="screen" hidden></section>
-    <section id="detail-screen" class="screen" hidden></section>
+    <section id="study-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
   </main>
   <script>
-    const trigramNames = { 7:'乾', 3:'兌', 5:'離', 1:'震', 6:'巽', 2:'坎', 4:'艮', 0:'坤' };
-    const palaceInfo = [
-      { trigram:7, palace:'乾', element:'金' }, { trigram:3, palace:'兌', element:'金' },
-      { trigram:5, palace:'離', element:'火' }, { trigram:1, palace:'震', element:'木' },
-      { trigram:6, palace:'巽', element:'木' }, { trigram:2, palace:'坎', element:'水' },
-      { trigram:4, palace:'艮', element:'土' }, { trigram:0, palace:'坤', element:'土' }
-    ];
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
     const bitsByKingWen = [63,0,17,34,23,58,2,16,55,59,7,56,61,47,4,8,25,38,3,48,41,37,32,1,57,39,33,30,18,45,28,14,60,15,40,5,53,43,20,10,35,49,31,62,24,6,26,22,29,46,9,36,52,11,13,44,54,27,50,19,51,12,21,42];
-    const stages = ['本宮','一世','二世','三世','四世','五世','遊魂','歸魂'];
+    const palaces = [{t:7,e:'金'},{t:3,e:'金'},{t:5,e:'火'},{t:1,e:'木'},{t:6,e:'木'},{t:2,e:'水'},{t:4,e:'土'},{t:0,e:'土'}];
     const masks = [0,1,3,7,15,31,23,16];
-    const worldLines = [6,1,2,3,4,5,4,3];
-    const responseLines = [3,4,5,6,1,2,1,6];
+    const worlds = [6,1,2,3,4,5,4,3];
+    const responses = [3,4,5,6,1,2,1,6];
     const najia = {
-      7:{ inner:['甲子','甲寅','甲辰'], outer:['壬午','壬申','壬戌'] },
-      0:{ inner:['乙未','乙巳','乙卯'], outer:['癸丑','癸亥','癸酉'] },
-      1:{ inner:['庚子','庚寅','庚辰'], outer:['庚午','庚申','庚戌'] },
-      6:{ inner:['辛丑','辛亥','辛酉'], outer:['辛未','辛巳','辛卯'] },
-      2:{ inner:['戊寅','戊辰','戊午'], outer:['戊申','戊戌','戊子'] },
-      5:{ inner:['己卯','己丑','己亥'], outer:['己酉','己未','己巳'] },
-      4:{ inner:['丙辰','丙午','丙申'], outer:['丙戌','丙子','丙寅'] },
-      3:{ inner:['丁巳','丁卯','丁丑'], outer:['丁亥','丁酉','丁未'] }
+      7:{i:['甲子','甲寅','甲辰'],o:['壬午','壬申','壬戌']},0:{i:['乙未','乙巳','乙卯'],o:['癸丑','癸亥','癸酉']},
+      1:{i:['庚子','庚寅','庚辰'],o:['庚午','庚申','庚戌']},6:{i:['辛丑','辛亥','辛酉'],o:['辛未','辛巳','辛卯']},
+      2:{i:['戊寅','戊辰','戊午'],o:['戊申','戊戌','戊子']},5:{i:['己卯','己丑','己亥'],o:['己酉','己未','己巳']},
+      4:{i:['丙辰','丙午','丙申'],o:['丙戌','丙子','丙寅']},3:{i:['丁巳','丁卯','丁丑'],o:['丁亥','丁酉','丁未']}
     };
-    const branchElements = { 子:'水',亥:'水',寅:'木',卯:'木',巳:'火',午:'火',申:'金',酉:'金',辰:'土',戌:'土',丑:'土',未:'土' };
-    const generates = { 木:'火',火:'土',土:'金',金:'水',水:'木' };
-    const controls = { 木:'土',土:'水',水:'火',火:'金',金:'木' };
-    function relation(palace, line) {
-      if (palace === line) return '兄弟';
-      if (generates[line] === palace) return '父母';
-      if (generates[palace] === line) return '子孫';
-      if (controls[line] === palace) return '官鬼';
-      return '妻財';
-    }
+    const branchElement = {子:'水',亥:'水',寅:'木',卯:'木',巳:'火',午:'火',申:'金',酉:'金',辰:'土',戌:'土',丑:'土',未:'土'};
+    const generates = {木:'火',火:'土',土:'金',金:'水',水:'木'};
+    const controls = {木:'土',土:'水',水:'火',火:'金',金:'木'};
+    function sixKin(palace,line) { if(palace===line)return'兄弟'; if(generates[line]===palace)return'父母'; if(generates[palace]===line)return'子孫'; if(controls[line]===palace)return'官鬼'; return'妻財'; }
     const palaceByBits = new Map();
-    palaceInfo.forEach(palace => masks.forEach((mask, stageIndex) => {
-      const base = palace.trigram | (palace.trigram << 3);
-      palaceByBits.set(base ^ mask, { ...palace, stageIndex, stage:stages[stageIndex], world:worldLines[stageIndex], response:responseLines[stageIndex] });
-    }));
-    const records = names.map((name, index) => {
-      const bits = bitsByKingWen[index];
-      const palace = palaceByBits.get(bits);
-      const lower = bits & 7;
-      const upper = (bits >> 3) & 7;
-      const assignments = [...najia[lower].inner, ...najia[upper].outer];
-      const lines = assignments.map((stemBranch, lineIndex) => {
-        const element = branchElements[stemBranch.slice(-1)];
-        return { line:lineIndex + 1, yang:Boolean(bits & (1 << lineIndex)), stemBranch, element, relation:relation(palace.element, element) };
-      });
-      return { index, name, bits, lower:trigramNames[lower], upper:trigramNames[upper], ...palace, lines };
+    palaces.forEach(p => masks.forEach((mask,i) => palaceByBits.set((p.t|(p.t<<3))^mask,{element:p.e,world:worlds[i],response:responses[i]})));
+    const records = names.map((name,index) => {
+      const bits=bitsByKingWen[index], palace=palaceByBits.get(bits), lower=bits&7, upper=(bits>>3)&7;
+      const assignments=[...najia[lower].i,...najia[upper].o];
+      const lines=assignments.map((stemBranch,i)=>{const element=branchElement[stemBranch.slice(-1)];return{line:i+1,stemBranch,element,kin:sixKin(palace.element,element)};});
+      return{index,name,bits,...palace,lines,holding:lines[palace.world-1].kin};
     });
-    if (records.length !== 64 || palaceByBits.size !== 64) throw new Error('京房八宮資料不完整');
+    if(records.length!==64||palaceByBits.size!==64)throw new Error('六十四卦資料不完整');
 
-    const screens = ['picker-screen','palaces-screen','detail-screen','flash-screen'].map(id => document.getElementById(id));
-    const pickerScreen = document.getElementById('picker-screen');
-    const palacesScreen = document.getElementById('palaces-screen');
-    const detailScreen = document.getElementById('detail-screen');
-    const flashScreen = document.getElementById('flash-screen');
-    const scales = [.86,1,1.16];
-    let scaleIndex = 1;
-    let currentMode = 'picker';
-    let currentIndex = 0;
-    let deck = [];
-    let deckPosition = 0;
-    let touchStartX = null;
-    let touchStartY = null;
-
-    function hideScreens() { screens.forEach(screen => screen.hidden = true); }
-    function setActive(mode) { document.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('active', button.dataset.mode === mode)); }
-    function scrollTopNow() { window.scrollTo(0,0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }
-    function hexMarkup(bits, className = '') {
-      let rows = '';
-      for (let line = 5; line >= 0; line--) {
-        const yang = Boolean(bits & (1 << line));
-        rows += `<div class="yao">${yang ? '<span></span>' : '<span></span><span></span>'}</div>`;
-      }
-      return `<div class="hex-lines ${className}" aria-label="六爻卦象">${rows}</div>`;
-    }
-    function miniLine(yang) { return `<div class="hex-lines mini-hex"><div class="yao">${yang ? '<span></span>' : '<span></span><span></span>'}</div></div>`; }
-    function showPicker() {
-      currentMode = 'picker'; hideScreens(); pickerScreen.hidden = false; setActive('picker');
-      pickerScreen.innerHTML = `<h2 class="section-title">六十四卦</h2><p class="intro">依文王卦序排列。點任一卦，查看固定的京房納甲、五行、六親與世應。</p><div class="picker-grid">${records.map(r => `<button class="picker-item" type="button" onclick="openDetail(${r.index})">${hexMarkup(r.bits,'picker-hex')}<span class="picker-name">${r.name}</span><span class="picker-meta">第${r.index + 1}卦・${r.stage}</span></button>`).join('')}</div>`;
-      scrollTopNow();
-    }
-    function showPalaces() {
-      currentMode = 'palaces'; hideScreens(); palacesScreen.hidden = false; setActive('palaces');
-      palacesScreen.innerHTML = `<h2 class="section-title">京房八宮</h2><p class="intro">每宮依本宮、一世至五世、遊魂、歸魂排列。</p>${palaceInfo.map(p => { const group = records.filter(r => r.trigram === p.trigram).sort((a,b) => a.stageIndex - b.stageIndex); return `<section class="palace-section"><h3 class="palace-title">${p.palace}宮・${p.element}</h3><div class="palace-grid">${group.map(r => `<button class="palace-item" onclick="openDetail(${r.index})"><strong>${r.name}</strong><span>${r.stage}・世${r.world}應${r.response}</span></button>`).join('')}</div></section>`; }).join('')}`;
-      scrollTopNow();
-    }
-    function lineName(line) { return ['初爻','二爻','三爻','四爻','五爻','上爻'][line - 1]; }
-    function alignDetail() {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const card = detailScreen.querySelector('.detail-card');
-        if (!card) return;
-        card.scrollIntoView({ behavior:'smooth', block:'start' });
-        setTimeout(() => { const toolbar = document.querySelector('.controls'); const safeTop = toolbar.getBoundingClientRect().bottom + 10; const top = card.getBoundingClientRect().top; window.scrollBy({ top:top - safeTop, behavior:'smooth' }); }, 450);
-      }));
-    }
-    function openDetail(index) {
-      currentIndex = (index + 64) % 64;
-      const r = records[currentIndex];
-      currentMode = 'detail'; hideScreens(); detailScreen.hidden = false; setActive('');
-      const rows = [...r.lines].reverse().map(line => `<div class="line-row"><span class="line-no">${lineName(line.line)}</span>${miniLine(line.yang)}<span class="najia">${line.stemBranch}・${line.element}</span><span class="relation">${line.relation}</span><span class="position">${line.line === r.world ? '世' : line.line === r.response ? '應' : ''}</span></div>`).join('');
-      detailScreen.innerHTML = `<article class="detail-card"><div class="detail-main"><div class="ordinal">第 ${r.index + 1} 卦・上${r.upper}下${r.lower}</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="core-meta"><span class="chip">${r.stage}</span><span class="chip">${r.palace}宮・${r.element}</span><span class="chip">世${r.world}・應${r.response}</span></div></div><div class="line-table">${rows}</div><p class="swipe-hint">向右滑上一卦　·　向左滑下一卦</p><div class="study-nav"><button onclick="openDetail(${currentIndex - 1})">← 上一卦</button><button onclick="openDetail(${currentIndex + 1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回六十四卦</button></article>`;
-      alignDetail();
-    }
-    function shuffleDeck() {
-      deck = Array.from({length:64},(_,i) => i);
-      for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i],deck[j]] = [deck[j],deck[i]]; }
-      deckPosition = 0;
-    }
-    function centerFlash(selector) {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const target = flashScreen.querySelector(selector); if (!target) return;
-        target.scrollIntoView({ behavior:'smooth', block:'center' });
-        setTimeout(() => { const toolbar = document.querySelector('.controls'); const safeTop = toolbar.getBoundingClientRect().bottom + 10; const top = target.getBoundingClientRect().top; if (top < safeTop) window.scrollBy({ top:top - safeTop, behavior:'smooth' }); }, 450);
-      }));
-    }
-    function showFlash(newDeck = false) {
-      currentMode = 'flash'; if (newDeck || deck.length === 0) shuffleDeck(); hideScreens(); flashScreen.hidden = false; setActive('flash'); renderFlash();
-    }
-    function renderFlash() {
-      const r = records[deck[deckPosition]];
-      flashScreen.innerHTML = `<article class="flash-card"><div class="ordinal">第 ${deckPosition + 1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">哪一宮？宮五行？世爻與應爻？</div><button class="answer-toggle" id="answer-toggle">顯示答案</button><div class="flash-nav"><button id="flash-prev">← 上一題</button><button id="flash-next">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="answer-main">${r.palace}宮・${r.element}</div><div class="answer-main">${r.stage}</div><div class="answer-sub">世爻：${lineName(r.world)}　應爻：${lineName(r.response)}</div></div><button class="reshuffle" id="reshuffle">重新隨機開始</button></article>`;
-      document.getElementById('answer-toggle').addEventListener('click', () => { const answer = document.getElementById('flash-answer'); answer.hidden = !answer.hidden; document.getElementById('answer-toggle').textContent = answer.hidden ? '顯示答案' : '隱藏答案'; centerFlash('.flash-card'); });
-      document.getElementById('flash-prev').addEventListener('click', () => { deckPosition = (deckPosition + 63) % 64; renderFlash(); });
-      document.getElementById('flash-next').addEventListener('click', () => { deckPosition = (deckPosition + 1) % 64; renderFlash(); });
-      document.getElementById('reshuffle').addEventListener('click', () => showFlash(true));
-      centerFlash('.flash-card');
-    }
-    function updateScale() { document.documentElement.style.setProperty('--scale', scales[scaleIndex]); try { localStorage.setItem('najia-scale', scaleIndex); } catch (_) {} }
-    document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => button.dataset.mode === 'picker' ? showPicker() : button.dataset.mode === 'palaces' ? showPalaces() : showFlash()));
-    document.getElementById('smaller').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
-    document.getElementById('normal').addEventListener('click', () => { scaleIndex = 1; updateScale(); });
-    document.getElementById('larger').addEventListener('click', () => { scaleIndex = Math.min(scales.length - 1, scaleIndex + 1); updateScale(); });
-    document.getElementById('top-button').addEventListener('click', scrollTopNow);
-    document.getElementById('restart-button').addEventListener('click', () => currentMode === 'flash' ? showFlash(true) : showPicker());
-    document.getElementById('picker-button').addEventListener('click', showPicker);
-    detailScreen.addEventListener('touchstart', event => { const t = event.changedTouches[0]; touchStartX = t.clientX; touchStartY = t.clientY; }, {passive:true});
-    detailScreen.addEventListener('touchend', event => { if (touchStartX === null) return; const t = event.changedTouches[0]; const dx = t.clientX - touchStartX; const dy = t.clientY - touchStartY; touchStartX = touchStartY = null; if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) openDetail(currentIndex + (dx < 0 ? 1 : -1)); }, {passive:true});
-    try { const saved = Number(localStorage.getItem('najia-scale')); if ([0,1,2].includes(saved)) scaleIndex = saved; } catch (_) {}
-    updateScale(); showPicker();
+    const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen');
+    const screens=[pickerScreen,studyScreen,flashScreen],scales=[.88,1,1.16];
+    let scaleIndex=1,currentIndex=0,currentMode='picker',deck=[],deckPosition=0,touchX=null,touchY=null;
+    function hideScreens(){screens.forEach(s=>s.hidden=true)}
+    function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
+    function hexMarkup(bits,small=false){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="hex-lines ${small?'picker-hex':''}" aria-label="六爻卦象">${rows}</div>`}
+    function lineName(i){return['初爻','二爻','三爻','四爻','五爻','上爻'][i-1]}
+    function tableMarkup(r){return`<div class="line-table">${[...r.lines].reverse().map(x=>`<div class="line-row ${x.line===r.world?'world':''}"><span class="line-no">${lineName(x.line)}</span><span class="najia">${x.stemBranch}・${x.element}</span><span class="relation">${x.kin}</span><span class="position">${x.line===r.world?'世':x.line===r.response?'應':''}</span></div>`).join('')}</div>`}
+    function alignCard(screen){requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=screen.querySelector('.card');if(card)card.scrollIntoView({behavior:'auto',block:'start'})}))}
+    function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');pickerScreen.innerHTML=`<h2 class="section-title">選一卦學習</h2><p class="intro">點卦象，直接查看大字六爻裝卦與六親持世。</p><div class="picker-grid">${records.map(r=>`<button class="picker-item" onclick="openStudy(${r.index})">${hexMarkup(r.bits,true)}<span class="picker-name">${r.name}</span><span class="picker-no">第${r.index+1}卦</span></button>`).join('')}</div>`;window.scrollTo(0,0)}
+    function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
+    function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
+    function showFlash(reset=false){if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive('flash');renderFlash()}
+    function renderFlash(){const r=records[deck[deckPosition]];flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">哪一個六親持世？</div><button class="answer-button" id="answer-button">顯示答案</button><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${r.holding}持世・${lineName(r.world)}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';alignCard(flashScreen)};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true);alignCard(flashScreen)}
+    function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex]);try{localStorage.setItem('holding-scale',scaleIndex)}catch(_){}}
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>b.dataset.mode==='picker'?showPicker():showFlash());
+    document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
+    studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
+    try{const saved=Number(localStorage.getItem('holding-scale'));if([0,1,2].includes(saved))scaleIndex=saved}catch(_){}updateScale();showPicker();
   </script>
 </body>
 </html>
