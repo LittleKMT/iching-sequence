@@ -73,13 +73,13 @@
   <main class="shell">
     <header>
       <h1>六十四卦・六親持世</h1>
-      <p class="subtitle">選卦學習｜隨機閃卡｜什麼持世？</p>
+      <p class="subtitle">選卦學習｜六親持世｜幾世卦</p>
     </header>
     <nav class="controls" aria-label="學習工具">
       <div class="control-row three">
         <button class="control active" data-mode="picker">選卦學習</button>
         <button class="control" data-mode="flash">隨機閃卡</button>
-        <button class="control" data-mode="holding">什麼持世？</button>
+        <button class="control" data-mode="generation">幾世卦</button>
       </div>
       <div class="control-row three">
         <button class="control" id="smaller" aria-label="縮小文字">A−</button>
@@ -94,10 +94,11 @@
   <script>
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
     const bitsByKingWen = [63,0,17,34,23,58,2,16,55,59,7,56,61,47,4,8,25,38,3,48,41,37,32,1,57,39,33,30,18,45,28,14,60,15,40,5,53,43,20,10,35,49,31,62,24,6,26,22,29,46,9,36,52,11,13,44,54,27,50,19,51,12,21,42];
-    const palaces = [{t:7,e:'金'},{t:3,e:'金'},{t:5,e:'火'},{t:1,e:'木'},{t:6,e:'木'},{t:2,e:'水'},{t:4,e:'土'},{t:0,e:'土'}];
+    const palaces = [{t:7,e:'金',n:'乾'},{t:3,e:'金',n:'兌'},{t:5,e:'火',n:'離'},{t:1,e:'木',n:'震'},{t:6,e:'木',n:'巽'},{t:2,e:'水',n:'坎'},{t:4,e:'土',n:'艮'},{t:0,e:'土',n:'坤'}];
     const masks = [0,1,3,7,15,31,23,16];
     const worlds = [6,1,2,3,4,5,4,3];
     const responses = [3,4,5,6,1,2,1,6];
+    const generations = ['本宮卦','一世卦','二世卦','三世卦','四世卦','五世卦','遊魂卦','歸魂卦'];
     const najia = {
       7:{i:['甲子','甲寅','甲辰'],o:['壬午','壬申','壬戌']},0:{i:['乙未','乙巳','乙卯'],o:['癸丑','癸亥','癸酉']},
       1:{i:['庚子','庚寅','庚辰'],o:['庚午','庚申','庚戌']},6:{i:['辛丑','辛亥','辛酉'],o:['辛未','辛巳','辛卯']},
@@ -109,7 +110,7 @@
     const controls = {木:'土',土:'水',水:'火',火:'金',金:'木'};
     function sixKin(palace,line) { if(palace===line)return'兄弟'; if(generates[line]===palace)return'父母'; if(generates[palace]===line)return'子孫'; if(controls[line]===palace)return'官鬼'; return'妻財'; }
     const palaceByBits = new Map();
-    palaces.forEach(p => masks.forEach((mask,i) => palaceByBits.set((p.t|(p.t<<3))^mask,{element:p.e,world:worlds[i],response:responses[i]})));
+    palaces.forEach(p => masks.forEach((mask,i) => palaceByBits.set((p.t|(p.t<<3))^mask,{element:p.e,palace:p.n,generation:generations[i],world:worlds[i],response:responses[i]})));
     const records = names.map((name,index) => {
       const bits=bitsByKingWen[index], palace=palaceByBits.get(bits), lower=bits&7, upper=(bits>>3)&7;
       const assignments=[...najia[lower].i,...najia[upper].o];
@@ -120,7 +121,7 @@
 
     const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen');
     const screens=[pickerScreen,studyScreen,flashScreen],scales=[.88,1,1.16];
-    let scaleIndex=1,currentIndex=0,currentMode='picker',deck=[],deckPosition=0,touchX=null,touchY=null;
+    let scaleIndex=1,currentIndex=0,currentMode='picker',flashType='holding',deck=[],deckPosition=0,touchX=null,touchY=null;
     function hideScreens(){screens.forEach(s=>s.hidden=true)}
     function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
     function hexMarkup(bits,small=false){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="hex-lines ${small?'picker-hex':''}" aria-label="六爻卦象">${rows}</div>`}
@@ -131,10 +132,10 @@
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');pickerScreen.innerHTML=`<h2 class="section-title">選一卦學習</h2><p class="intro">點卦象，直接查看大字六爻裝卦與六親持世。</p><div class="picker-grid">${records.map(r=>`<button class="picker-item" onclick="openStudy(${r.index})">${hexMarkup(r.bits,true)}<span class="picker-name">${r.name}</span><span class="picker-no">第${r.index+1}卦</span></button>`).join('')}</div>`;window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
     function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
-    function showFlash(reset=false,activeMode='flash'){if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
-    function renderFlash(){const r=records[deck[deckPosition]];flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">哪一個六親持世？</div><button class="answer-button" id="answer-button">顯示答案</button><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${r.holding}持世・${lineName(r.world)}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';a.hidden?alignCard(flashScreen):centerFlashAnswer()};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true);alignCard(flashScreen)}
+    function showFlash(reset=false,activeMode='flash',type='holding'){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
+    function renderFlash(){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',question=isGeneration?'這是幾世卦？':'哪一個六親持世？',answerTitle=isGeneration?`${r.generation}・${r.palace}宮`:`${r.holding}持世・${lineName(r.world)}`;flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">${question}</div><button class="answer-button" id="answer-button">顯示答案</button><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${answerTitle}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';a.hidden?alignCard(flashScreen):centerFlashAnswer()};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':'flash',flashType);alignCard(flashScreen)}
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex]);try{localStorage.setItem('holding-scale',scaleIndex)}catch(_){}}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='holding')showFlash(true,'holding');else showFlash()});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     try{const saved=Number(localStorage.getItem('holding-scale'));if([0,1,2].includes(saved))scaleIndex=saved}catch(_){}updateScale();showPicker();
