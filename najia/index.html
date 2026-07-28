@@ -58,6 +58,14 @@
     .back-button, .shuffle-button { width: 100%; margin-top: 9px; color: #fff; border-color: var(--blue); background: var(--blue); }
     .flash-question { margin: 8px 0 10px; font-size: calc(1.32rem * var(--scale)); font-weight: 950; }
     .answer-button { padding: 8px 22px; }
+    .generation-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 10px 0 4px; }
+    .generation-choice { min-height: 48px; border: 2px solid #aebbc3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.12rem * var(--scale)); font-weight: 950; }
+    .generation-choice.correct { color: #fff; border-color: #19733e; background: #19733e; }
+    .generation-choice.wrong { color: #fff; border-color: #b52d2d; background: #b52d2d; }
+    .generation-choice:disabled { opacity: 1; }
+    .quiz-feedback { min-height: 1.8rem; margin: 7px 0 2px; font-size: calc(1.12rem * var(--scale)); font-weight: 950; }
+    .quiz-feedback.correct { color: #19733e; }
+    .quiz-feedback.wrong { color: #b52d2d; }
     .flash-answer[hidden] { display: none; }
     .flash-answer { margin-top: 10px; }
     #flash-screen { padding-bottom: 40vh; }
@@ -99,6 +107,7 @@
     const worlds = [6,1,2,3,4,5,4,3];
     const responses = [3,4,5,6,1,2,1,6];
     const generations = ['本宮卦','一世卦','二世卦','三世卦','四世卦','五世卦','遊魂卦','歸魂卦'];
+    const generationChoices = ['6','1','2','3','4','5','遊魂','歸魂'];
     const najia = {
       7:{i:['甲子','甲寅','甲辰'],o:['壬午','壬申','壬戌']},0:{i:['乙未','乙巳','乙卯'],o:['癸丑','癸亥','癸酉']},
       1:{i:['庚子','庚寅','庚辰'],o:['庚午','庚申','庚戌']},6:{i:['辛丑','辛亥','辛酉'],o:['辛未','辛巳','辛卯']},
@@ -110,7 +119,7 @@
     const controls = {木:'土',土:'水',水:'火',火:'金',金:'木'};
     function sixKin(palace,line) { if(palace===line)return'兄弟'; if(generates[line]===palace)return'父母'; if(generates[palace]===line)return'子孫'; if(controls[line]===palace)return'官鬼'; return'妻財'; }
     const palaceByBits = new Map();
-    palaces.forEach(p => masks.forEach((mask,i) => palaceByBits.set((p.t|(p.t<<3))^mask,{element:p.e,palace:p.n,generation:generations[i],world:worlds[i],response:responses[i]})));
+    palaces.forEach(p => masks.forEach((mask,i) => palaceByBits.set((p.t|(p.t<<3))^mask,{element:p.e,palace:p.n,generation:generations[i],generationChoice:generationChoices[i],world:worlds[i],response:responses[i]})));
     const records = names.map((name,index) => {
       const bits=bitsByKingWen[index], palace=palaceByBits.get(bits), lower=bits&7, upper=(bits>>3)&7;
       const assignments=[...najia[lower].i,...najia[upper].o];
@@ -133,7 +142,8 @@
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
     function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
     function showFlash(reset=false,activeMode='flash',type='holding'){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
-    function renderFlash(){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',question=isGeneration?'這是幾世卦？':'哪一個六親持世？',answerTitle=isGeneration?`${r.generation}・${r.palace}宮`:`${r.holding}持世・${lineName(r.world)}`;flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">${question}</div><button class="answer-button" id="answer-button">顯示答案</button><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${answerTitle}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';a.hidden?alignCard(flashScreen):centerFlashAnswer()};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':'flash',flashType);alignCard(flashScreen)}
+    function gradeGeneration(choice){const r=records[deck[deckPosition]],correct=r.generationChoice,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback');document.querySelectorAll('.generation-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correct}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
+    function renderFlash(){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',question=isGeneration?'這是幾世卦？':'哪一個六親持世？',answerTitle=isGeneration?`${r.generationChoice==='6'?'六世卦（本宮）':r.generation}・${r.palace}宮`:`${r.holding}持世・${lineName(r.world)}`,quizControls=isGeneration?`<div class="generation-choices" aria-label="幾世卦選項">${generationChoices.map(choice=>`<button class="generation-choice" data-choice="${choice}">${choice}</button>`).join('')}</div><div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>`:`<button class="answer-button" id="answer-button">顯示答案</button>`;flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">${question}</div>${quizControls}<div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${answerTitle}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;if(isGeneration)document.querySelectorAll('.generation-choice').forEach(button=>button.onclick=()=>gradeGeneration(button.dataset.choice));else document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';a.hidden?alignCard(flashScreen):centerFlashAnswer()};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':'flash',flashType);alignCard(flashScreen)}
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex]);try{localStorage.setItem('holding-scale',scaleIndex)}catch(_){}}
     document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
