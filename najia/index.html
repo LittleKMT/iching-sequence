@@ -22,6 +22,7 @@
     .control-row.two { grid-template-columns: 1fr 1fr; }
     .control-row.three { grid-template-columns: repeat(3, 1fr); margin-bottom: 0; }
     .control-row.four { grid-template-columns: repeat(2, 1fr); }
+    .control.full { grid-column: 1 / -1; }
     .control { min-height: 46px; padding: 8px 3px; border: 1px solid #b7c3cb; border-radius: 13px; color: #1c2b35; background: #fff; font-size: calc(1.22rem * var(--scale)); font-weight: 950; line-height: 1; }
     .control.active { color: #fff; border-color: var(--blue); background: var(--blue); }
     .screen[hidden] { display: none !important; }
@@ -85,6 +86,19 @@
     .flash-card > .shuffle-button { margin-top: 5px; }
     .answer-name { margin: 0 0 7px; color: #687781; font-size: calc(.82rem * var(--scale)); font-weight: 850; }
     .answer-name strong { display: block; margin-top: 1px; color: var(--blue); font-size: calc(2.35rem * var(--scale)); font-weight: 950; line-height: 1.15; }
+    .stats-card { padding: 18px 14px; }
+    .stats-title { margin: 0 0 5px; color: var(--blue); font-size: calc(1.55rem * var(--scale)); }
+    .stats-note { margin: 0 0 13px; color: #66757d; font-size: calc(.82rem * var(--scale)); }
+    .stats-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-box { padding: 12px 6px; border-radius: 14px; background: var(--pale); }
+    .stat-box span { display: block; color: #62717a; font-size: calc(.78rem * var(--scale)); font-weight: 800; }
+    .stat-box strong { display: block; margin-top: 2px; color: var(--blue); font-size: calc(2rem * var(--scale)); line-height: 1; }
+    .stats-types { overflow: hidden; margin-top: 12px; border: 1px solid #ced9df; border-radius: 14px; }
+    .stats-row { display: grid; grid-template-columns: 1.3fr .8fr .8fr .8fr; align-items: center; min-height: 52px; padding: 8px 10px; border-top: 1px solid #dfe7eb; font-size: calc(.96rem * var(--scale)); font-weight: 850; }
+    .stats-row:first-child { border-top: 0; }
+    .stats-row strong { color: var(--blue); font-size: calc(1.12rem * var(--scale)); }
+    .clear-stats { width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid #b52d2d; border-radius: 13px; color: #b52d2d; background: #fff; font-size: calc(1.08rem * var(--scale)); font-weight: 950; }
+    .clear-stats.confirm { color: #fff; background: #b52d2d; }
     #flash-screen { padding-bottom: 40vh; touch-action: pan-y; }
     @media (max-width: 370px) {
       .shell { padding-left: 7px; padding-right: 7px; }
@@ -106,6 +120,7 @@
         <button class="control" data-mode="flash">隨機閃卡</button>
         <button class="control" data-mode="generation">幾世卦</button>
         <button class="control" data-mode="palace">什麼宮？</button>
+        <button class="control full" data-mode="stats">學習紀錄</button>
       </div>
       <div class="control-row three">
         <button class="control" id="smaller" aria-label="縮小文字">A−</button>
@@ -116,6 +131,7 @@
     <section id="picker-screen" class="screen"></section>
     <section id="study-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
+    <section id="stats-screen" class="screen" hidden></section>
   </main>
   <script>
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
@@ -148,9 +164,18 @@
     });
     if(records.length!==64||palaceByBits.size!==64)throw new Error('六十四卦資料不完整');
 
-    const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen');
-    const screens=[pickerScreen,studyScreen,flashScreen],scales=[.88,1,1.16];
-    let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',deck=[],deckPosition=0,touchX=null,touchY=null;
+    const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen'),statsScreen=document.getElementById('stats-screen');
+    const screens=[pickerScreen,studyScreen,flashScreen,statsScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1';
+    let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false;
+    function emptyStats(){return{total:0,correct:0,byType:{holding:{total:0,correct:0},generation:{total:0,correct:0},palace:{total:0,correct:0}}}}
+    function loadStats(){try{const saved=JSON.parse(localStorage.getItem(STATS_KEY));if(saved&&saved.byType?.holding&&saved.byType?.generation&&saved.byType?.palace)return saved}catch(_){}return emptyStats()}
+    let stats=loadStats();
+    function saveStats(){try{localStorage.setItem(STATS_KEY,JSON.stringify(stats))}catch(_){}}
+    function rate(item){return item.total?Math.round(item.correct/item.total*100):0}
+    function recordAnswer(isCorrect){const bucket=stats.byType[flashType];stats.total++;bucket.total++;if(isCorrect){stats.correct++;bucket.correct++}saveStats()}
+    function statsRow(label,item){return`<div class="stats-row"><strong>${label}</strong><span>${item.total} 次</span><span>對 ${item.correct}</span><span>${rate(item)}%</span></div>`}
+    function showStats(){currentMode='stats';clearPending=false;hideScreens();statsScreen.hidden=false;setActive('stats');const wrong=stats.total-stats.correct;statsScreen.innerHTML=`<article class="card stats-card"><h2 class="stats-title">學習紀錄</h2><p class="stats-note">紀錄只保存在這支手機的 Safari，不會上傳。</p><div class="stats-summary"><div class="stat-box"><span>回答次數</span><strong>${stats.total}</strong></div><div class="stat-box"><span>正確率</span><strong>${rate(stats)}%</strong></div><div class="stat-box"><span>答對</span><strong>${stats.correct}</strong></div><div class="stat-box"><span>答錯</span><strong>${wrong}</strong></div></div><div class="stats-types">${statsRow('六親持世',stats.byType.holding)}${statsRow('幾世卦',stats.byType.generation)}${statsRow('八宮',stats.byType.palace)}</div><button class="clear-stats" id="clear-stats">清除全部紀錄</button></article>`;document.getElementById('clear-stats').onclick=clearStats;alignCard(statsScreen)}
+    function clearStats(){const button=document.getElementById('clear-stats');if(!clearPending){clearPending=true;button.textContent='再按一次確認清除';button.classList.add('confirm');return}stats=emptyStats();saveStats();showStats()}
     function hideScreens(){screens.forEach(s=>s.hidden=true)}
     function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
     function hexMarkup(bits,small=false){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="hex-lines ${small?'picker-hex':''}" aria-label="六爻卦象">${rows}</div>`}
@@ -164,10 +189,10 @@
     function showFlash(reset=false,activeMode='flash',type='holding'){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
     function moveFlashCard(step=1){deckPosition=(deckPosition+step+64)%64;renderFlash()}
     function flashSwipeStep(dx,dy){if(Math.abs(dx)<=55||Math.abs(dx)<=Math.abs(dy)*1.25)return 0;return dx<0?1:-1}
-    function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',correct=isPalace?r.palace:isGeneration?r.generationChoice:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
+    function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',correct=isPalace?r.palace:isGeneration?r.generationChoice:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');recordAnswer(isCorrect);feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
     function renderFlash(){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',question=isGeneration?'這是幾世卦？':isPalace?'這是什麼宮？':'哪一個六親持世？',answerTitle=isGeneration?`${r.generationChoice==='6'?'六世卦（本宮）':r.generation}・${r.palace}宮`:isPalace?`${r.palace}宮・${r.holding}持世`:`${r.holding}持世・${lineName(r.world)}`,choices=isGeneration?generationChoices:isPalace?palaceChoices:kinChoices,choiceClass=isPalace?'palace-choices':isGeneration?'':'kin-choices',choiceLabel=isGeneration?'幾世卦':isPalace?'八宮':'六親持世',quizControls=`<div class="quiz-choices ${choiceClass}" aria-label="${choiceLabel}選項">${choices.map(choice=>`<button class="quiz-choice" data-choice="${choice}">${choice}</button>`).join('')}</div>`;flashScreen.innerHTML=`<article class="card flash-card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div><div class="flash-question">${question}</div>${hexMarkup(r.bits)}${quizControls}<div class="flash-answer" id="flash-answer" hidden><div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div><div class="answer-name">卦名<strong>${r.name}</strong></div><div class="holding">${answerTitle}</div>${tableMarkup(r)}</div><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.querySelectorAll('.quiz-choice').forEach(button=>button.onclick=()=>gradeQuiz(button.dataset.choice));document.getElementById('prev-card').onclick=()=>moveFlashCard(-1);document.getElementById('next-card').onclick=()=>moveFlashCard(1);document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':flashType==='palace'?'palace':'flash',flashType);alignCard(flashScreen)}
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else showFlash(false,'flash','holding')});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     flashScreen.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;touchX=e.clientX;touchY=e.clientY;try{flashScreen.setPointerCapture(e.pointerId)}catch(_){} });flashScreen.addEventListener('pointerup',e=>{if(!e.isPrimary||touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY,step=flashSwipeStep(dx,dy);touchX=touchY=null;if(step)moveFlashCard(step)});flashScreen.addEventListener('pointercancel',()=>{touchX=touchY=null});
