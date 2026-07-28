@@ -75,13 +75,17 @@
     .flash-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
     .flash-nav button, .reshuffle { min-height: 48px; border: 1px solid #b8c3ba; border-radius: 14px; background: #fff; font-size: calc(1rem * var(--scale)); font-weight: 800; }
     .reshuffle { width: 100%; margin-top: 9px; color: #fff; border-color: var(--green); background: var(--green); }
-    .order-card { padding: 20px 14px; text-align: center; }
+    .order-card { padding: 16px 14px; text-align: center; }
     .order-title { margin: 0; color: var(--green); font-size: calc(1.45rem * var(--scale)); }
     .order-intro { margin: 7px 0 4px; color: #526056; font-size: calc(.96rem * var(--scale)); line-height: 1.5; }
-    .order-progress { min-height: 1.5em; margin: 12px 0 10px; color: #617064; font-size: calc(.9rem * var(--scale)); font-weight: 750; }
-    .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .order-choice { position: relative; min-height: 64px; padding: 9px 38px 9px 8px; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-weight: 850; overflow: hidden; }
+    .order-status { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin: 12px 0 10px; }
+    .order-progress { min-height: 1.5em; margin: 0; color: #617064; font-size: calc(.9rem * var(--scale)); font-weight: 750; text-align: left; }
+    .order-symbol-toggle { min-height: 38px; padding: 6px 10px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 800; white-space: nowrap; }
+    .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .order-choice { position: relative; min-height: 64px; padding: 9px 38px 9px 8px; display: grid; place-items: center; align-content: center; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-weight: 850; overflow: hidden; }
+    .order-choice.with-symbol { min-height: 104px; padding-top: 5px; padding-bottom: 8px; }
     .order-choice.selected { color: #fff; border-color: var(--green); background: var(--green); }
+    .order-hex { display: block; margin: -2px 0 1px; color: currentColor; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; font-size: calc(4.25rem * var(--scale)); font-weight: 800; line-height: .66; -webkit-text-stroke: .4px currentColor; }
     .order-name { display: block; white-space: nowrap; font-size: calc(1.9rem * var(--scale)); line-height: 1; }
     .order-name.single { font-size: calc(2.2rem * var(--scale)); }
     .order-number { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--green); font-size: .86rem; font-weight: 900; box-shadow: 0 1px 4px #0002; }
@@ -175,6 +179,7 @@
     let orderChoices = [];
     let orderSelections = [];
     let orderQuestionDeck = [];
+    let showOrderSymbols = true;
     let touchStartX = null;
     let touchStartY = null;
 
@@ -323,7 +328,7 @@
         : complete
           ? '順序不對，請取消後重新調整。'
           : orderSelections.length === 0 ? '依正確順序逐一點選' : '再點一次已選卦，即可取消並重新編號';
-      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">序卦傳排列</h2><p class="order-intro">請依六十四卦的正確次序點選</p><div class="order-progress">${progressText}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const name = hexagrams[i].name; return `<button class="order-choice${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}<span class="order-name${name.length === 1 ? ' single' : ''}">${name}</span></button>`; }).join('')}</div><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></article>`;
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">序卦傳排列</h2><p class="order-intro">請依六十四卦的正確次序點選</p><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></article>`;
     }
     function showOrder(newQuestion = true) {
       currentMode = 'order';
@@ -365,6 +370,7 @@
     function updateScale() {
       document.documentElement.style.setProperty('--scale', scales[scaleIndex]);
       try { localStorage.setItem('iching-scale', String(scaleIndex)); } catch (_) {}
+      if (currentMode === 'order' && !orderScreen.hidden) alignOrderCard();
     }
 
     document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
@@ -394,6 +400,10 @@
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
         renderOrder();
+      } else if (action?.dataset.orderAction === 'symbols') {
+        showOrderSymbols = !showOrderSymbols;
+        renderOrder();
+        alignOrderCard();
       } else if (action?.dataset.orderAction === 'next') {
         showOrder(true);
       }
