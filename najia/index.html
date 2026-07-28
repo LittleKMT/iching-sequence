@@ -41,14 +41,17 @@
     .hex-name { margin: 8px 0 5px; color: var(--blue); font-size: calc(2.15rem * var(--scale)); font-weight: 950; }
     .holding { margin: 8px 0 10px; padding: 9px 8px; border-radius: 13px; color: #fff; background: var(--blue); font-size: calc(1.45rem * var(--scale)); font-weight: 950; }
     .line-table { overflow: hidden; margin-top: 8px; border: 1px solid #ced9df; border-radius: 14px; text-align: left; }
-    .line-row { display: grid; grid-template-columns: 2.7rem minmax(7.1rem, 1fr) 4.1rem 2.1rem; align-items: center; min-height: 52px; padding: 7px 9px; border-top: 1px solid #dfe7eb; font-size: calc(1.08rem * var(--scale)); }
+    .line-row { display: grid; grid-template-columns: minmax(4.6rem, .85fr) minmax(8.4rem, 1.35fr) minmax(4.6rem, .85fr); align-items: center; min-height: 70px; padding: 8px 10px; border-top: 1px solid #dfe7eb; font-size: calc(1.16rem * var(--scale)); }
     .line-row:first-child { border-top: 0; }
     .line-row.world { background: var(--pale); }
-    .line-no { color: #5d6d76; font-weight: 800; }
-    .najia { font-weight: 900; }
-    .relation { color: var(--blue); font-weight: 950; }
-    .position { justify-self: end; min-width: 1.8rem; padding: 4px; border-radius: 8px; color: #fff; background: var(--blue); text-align: center; font-weight: 950; }
-    .position:empty { background: transparent; }
+    .najia { justify-self: start; font-weight: 950; letter-spacing: .04em; }
+    .relation { justify-self: end; color: var(--blue); font-weight: 950; }
+    .line-center { display: grid; grid-template-rows: 15px 1.35rem; align-items: center; gap: 4px; }
+    .answer-yao { display: flex; gap: 17px; height: 13px; }
+    .answer-yao span { display: block; flex: 1; background: #111; }
+    .position { min-height: 1.35rem; color: #6a7880; text-align: center; font-size: calc(.96rem * var(--scale)); font-weight: 950; line-height: 1.2; }
+    .line-row.world .position { color: #c22626; }
+    .line-row.response .position { color: #1768a5; }
     .hint { margin: 9px 0 0; color: #66757d; font-size: calc(.84rem * var(--scale)); font-weight: 750; }
     .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
     .nav button, .answer-button, .back-button, .shuffle-button { min-height: 48px; border: 1px solid #abbac3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1rem * var(--scale)); font-weight: 900; }
@@ -61,7 +64,8 @@
     @media (max-width: 370px) {
       .shell { padding-left: 7px; padding-right: 7px; }
       .control { font-size: calc(.88rem * var(--scale)); }
-      .line-row { grid-template-columns: 2.55rem minmax(6.5rem, 1fr) 3.8rem 1.9rem; padding-inline: 6px; font-size: calc(1rem * var(--scale)); }
+      .line-row { grid-template-columns: minmax(4.1rem, .8fr) minmax(7.5rem, 1.35fr) minmax(4.1rem, .8fr); padding-inline: 6px; font-size: calc(1.06rem * var(--scale)); }
+      .answer-yao { gap: 14px; }
     }
   </style>
 </head>
@@ -120,7 +124,7 @@
     function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
     function hexMarkup(bits,small=false){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="hex-lines ${small?'picker-hex':''}" aria-label="六爻卦象">${rows}</div>`}
     function lineName(i){return['初爻','二爻','三爻','四爻','五爻','上爻'][i-1]}
-    function tableMarkup(r){return`<div class="line-table">${[...r.lines].reverse().map(x=>`<div class="line-row ${x.line===r.world?'world':''}"><span class="line-no">${lineName(x.line)}</span><span class="najia">${x.stemBranch}・${x.element}</span><span class="relation">${x.kin}</span><span class="position">${x.line===r.world?'世':x.line===r.response?'應':''}</span></div>`).join('')}</div>`}
+    function tableMarkup(r){return`<div class="line-table">${[...r.lines].reverse().map(x=>{const yang=Boolean(r.bits&(1<<(x.line-1))),mark=x.line===r.world?'世':x.line===r.response?'應':'';return`<div class="line-row ${x.line===r.world?'world':x.line===r.response?'response':''}"><span class="najia">${x.stemBranch}</span><span class="line-center"><span class="answer-yao">${yang?'<span></span>':'<span></span><span></span>'}</span><span class="position">${mark}</span></span><span class="relation">${x.kin}</span></div>`}).join('')}</div>`}
     function alignCard(screen){requestAnimationFrame(()=>requestAnimationFrame(()=>{const card=screen.querySelector('.card');if(card)card.scrollIntoView({behavior:'auto',block:'start'})}))}
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');pickerScreen.innerHTML=`<h2 class="section-title">選一卦學習</h2><p class="intro">點卦象，直接查看大字六爻裝卦與六親持世。</p><div class="picker-grid">${records.map(r=>`<button class="picker-item" onclick="openStudy(${r.index})">${hexMarkup(r.bits,true)}<span class="picker-name">${r.name}</span><span class="picker-no">第${r.index+1}卦</span></button>`).join('')}</div>`;window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
