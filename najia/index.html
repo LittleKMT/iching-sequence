@@ -73,12 +73,13 @@
   <main class="shell">
     <header>
       <h1>六十四卦・六親持世</h1>
-      <p class="subtitle">選卦學習｜隨機閃卡</p>
+      <p class="subtitle">選卦學習｜隨機閃卡｜什麼持世？</p>
     </header>
     <nav class="controls" aria-label="學習工具">
-      <div class="control-row two">
+      <div class="control-row three">
         <button class="control active" data-mode="picker">選卦學習</button>
         <button class="control" data-mode="flash">隨機閃卡</button>
+        <button class="control" data-mode="holding">什麼持世？</button>
       </div>
       <div class="control-row three">
         <button class="control" id="smaller" aria-label="縮小文字">A−</button>
@@ -130,10 +131,10 @@
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');pickerScreen.innerHTML=`<h2 class="section-title">選一卦學習</h2><p class="intro">點卦象，直接查看大字六爻裝卦與六親持世。</p><div class="picker-grid">${records.map(r=>`<button class="picker-item" onclick="openStudy(${r.index})">${hexMarkup(r.bits,true)}<span class="picker-name">${r.name}</span><span class="picker-no">第${r.index+1}卦</span></button>`).join('')}</div>`;window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
     function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
-    function showFlash(reset=false){if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive('flash');renderFlash()}
+    function showFlash(reset=false,activeMode='flash'){if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
     function renderFlash(){const r=records[deck[deckPosition]];flashScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${deckPosition+1} / 64 題</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="flash-question">哪一個六親持世？</div><button class="answer-button" id="answer-button">顯示答案</button><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="flash-answer" id="flash-answer" hidden><div class="holding">${r.holding}持世・${lineName(r.world)}</div>${tableMarkup(r)}</div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;document.getElementById('answer-button').onclick=()=>{const a=document.getElementById('flash-answer');a.hidden=!a.hidden;document.getElementById('answer-button').textContent=a.hidden?'顯示答案':'隱藏答案';a.hidden?alignCard(flashScreen):centerFlashAnswer()};document.getElementById('prev-card').onclick=()=>{deckPosition=(deckPosition+63)%64;renderFlash()};document.getElementById('next-card').onclick=()=>{deckPosition=(deckPosition+1)%64;renderFlash()};document.getElementById('shuffle-button').onclick=()=>showFlash(true);alignCard(flashScreen)}
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex]);try{localStorage.setItem('holding-scale',scaleIndex)}catch(_){}}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>b.dataset.mode==='picker'?showPicker():showFlash());
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='holding')showFlash(true,'holding');else showFlash()});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     try{const saved=Number(localStorage.getItem('holding-scale'));if([0,1,2].includes(saved))scaleIndex=saved}catch(_){}updateScale();showPicker();
