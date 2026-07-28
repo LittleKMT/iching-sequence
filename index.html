@@ -21,6 +21,7 @@
     .subtitle { margin: 6px 0 0; font-size: calc(.95rem * var(--scale)); color: #526056; }
     .controls { position: sticky; top: 0; z-index: 20; margin: 0 -2px 10px; padding: 4px 2px; background: color-mix(in srgb, var(--cream) 94%, transparent); backdrop-filter: blur(10px); }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
+    .control-row.five { grid-template-columns: repeat(5, 1fr); }
     .control-row.four { grid-template-columns: repeat(4, 1fr); }
     .control-row.three { grid-template-columns: repeat(3, 1fr); }
     .control-row.one { grid-template-columns: 1fr; margin-bottom: 0; }
@@ -28,10 +29,10 @@
     .control:active { transform: translateY(1px); }
     .control.active, .control.primary { color: #fff; border-color: var(--green); background: var(--green); }
     .screen[hidden] { display: none !important; }
-    #flash-screen { padding-bottom: 45vh; }
+    #flash-screen, #order-screen { padding-bottom: 45vh; }
     .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
     .study-list { display: grid; gap: 12px; }
-    .study-card, .single-card, .flash-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
+    .study-card, .single-card, .flash-card, .order-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
     .study-card { display: grid; grid-template-columns: 94px 1fr; align-items: stretch; }
     .study-head { display: grid; place-items: center; align-content: center; padding: 14px 8px; background: #edf4ee; }
     .hex-symbol { font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; color: var(--green); line-height: .9; }
@@ -74,6 +75,20 @@
     .flash-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
     .flash-nav button, .reshuffle { min-height: 48px; border: 1px solid #b8c3ba; border-radius: 14px; background: #fff; font-size: calc(1rem * var(--scale)); font-weight: 800; }
     .reshuffle { width: 100%; margin-top: 9px; color: #fff; border-color: var(--green); background: var(--green); }
+    .order-card { padding: 20px 14px; text-align: center; }
+    .order-title { margin: 0; color: var(--green); font-size: calc(1.45rem * var(--scale)); }
+    .order-intro { margin: 7px 0 4px; color: #526056; font-size: calc(.96rem * var(--scale)); line-height: 1.5; }
+    .order-progress { min-height: 1.5em; margin: 12px 0 10px; color: #617064; font-size: calc(.9rem * var(--scale)); font-weight: 750; }
+    .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .order-choice { min-height: 58px; padding: 9px 6px; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-size: calc(1.28rem * var(--scale)); font-weight: 850; }
+    .order-choice.selected { color: #fff; border-color: var(--green); background: var(--green); }
+    .order-choice.wrong { color: #8b2727; border-color: #bd5a5a; background: #fff0ef; }
+    .order-feedback { min-height: 3.2em; margin: 14px 0 2px; display: grid; place-items: center; color: #8b2727; font-size: calc(1rem * var(--scale)); font-weight: 800; line-height: 1.45; }
+    .order-feedback.correct { color: var(--green); font-size: calc(1.12rem * var(--scale)); }
+    .order-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+    .order-actions.two { grid-template-columns: 1fr 1fr; }
+    .order-actions button { min-height: 48px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
+    .order-actions .next-order { color: #fff; background: var(--green); }
     .empty { padding: 30px; text-align: center; color: #68746a; }
     @media (max-width: 370px) {
       .shell { padding-left: 8px; padding-right: 8px; }
@@ -96,11 +111,12 @@
     </header>
 
     <nav class="controls" aria-label="學習工具">
-      <div class="control-row four">
+      <div class="control-row five">
         <button class="control" data-mode="all">全部</button>
         <button class="control" data-mode="upper">上經</button>
         <button class="control" data-mode="lower">下經</button>
         <button class="control" data-mode="flash">閃卡</button>
+        <button class="control" data-mode="order">排序</button>
       </div>
       <div class="control-row three">
         <button class="control" id="font-down" aria-label="縮小文字">A−</button>
@@ -125,6 +141,7 @@
     </section>
     <section id="single-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
+    <section id="order-screen" class="screen" hidden></section>
   </main>
 
   <script>
@@ -140,11 +157,12 @@
     const hexagrams = names.map((name, i) => ({ name, symbol: String.fromCodePoint(0x4dc0 + i), original: originals[i], plain: plains[i] }));
     if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64) throw new Error('六十四卦資料不完整');
 
-    const screens = ['list-screen','picker-screen','single-screen','flash-screen'].map(id => document.getElementById(id));
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen'].map(id => document.getElementById(id));
     const listScreen = document.getElementById('list-screen');
     const pickerScreen = document.getElementById('picker-screen');
     const singleScreen = document.getElementById('single-screen');
     const flashScreen = document.getElementById('flash-screen');
+    const orderScreen = document.getElementById('order-screen');
     let currentMode = 'all';
     let showPlain = true;
     let scaleIndex = 1;
@@ -152,6 +170,10 @@
     let deck = [];
     let deckPosition = 0;
     let currentStudyIndex = 0;
+    let orderSequence = [];
+    let orderChoices = [];
+    let orderProgress = 0;
+    let orderWrongIndex = null;
     let touchStartX = null;
     let touchStartY = null;
 
@@ -183,6 +205,20 @@
     function alignStudyCard() {
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const card = singleScreen.querySelector('.single-card');
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        setTimeout(() => {
+          const controls = document.querySelector('.controls');
+          if (!controls) return;
+          const safeTop = controls.getBoundingClientRect().bottom + 10;
+          const cardTop = card.getBoundingClientRect().top;
+          window.scrollBy({ top: cardTop - safeTop, behavior: 'smooth' });
+        }, 450);
+      }));
+    }
+    function alignOrderCard() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const card = orderScreen.querySelector('.order-card');
         if (!card) return;
         card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
         setTimeout(() => {
@@ -244,6 +280,43 @@
       for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
       deckPosition = 0;
     }
+    function shuffled(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      if (copy.length > 1 && copy.every((item, i) => item === items[i])) copy.push(copy.shift());
+      return copy;
+    }
+    function newOrderQuestion() {
+      const length = 3 + Math.floor(Math.random() * 3);
+      const start = Math.floor(Math.random() * (65 - length));
+      orderSequence = Array.from({ length }, (_, i) => start + i);
+      orderChoices = shuffled(orderSequence);
+      orderProgress = 0;
+      orderWrongIndex = null;
+    }
+    function renderOrder() {
+      const complete = orderProgress === orderSequence.length;
+      const selected = new Set(orderSequence.slice(0, orderProgress));
+      const progressText = complete
+        ? `已完成 ${orderSequence.length} / ${orderSequence.length}`
+        : `請選第 ${orderProgress + 1} 個・共 ${orderSequence.length} 個`;
+      const feedback = complete
+        ? `答對！<br>${orderSequence.map(i => hexagrams[i].name).join(' → ')}`
+        : orderWrongIndex === null ? '依正確順序逐一點選' : '順序不對，請再試一次。';
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">序卦傳排列</h2><p class="order-intro">請依六十四卦的正確次序點選</p><div class="order-progress">${progressText}</div><div class="order-grid">${orderChoices.map(i => `<button class="order-choice${selected.has(i) ? ' selected' : ''}${orderWrongIndex === i ? ' wrong' : ''}" type="button" data-order-index="${i}" ${selected.has(i) || complete ? 'disabled' : ''}>${hexagrams[i].name}</button>`).join('')}</div><div class="order-feedback${complete ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions${complete ? ' two' : ''}"><button type="button" data-order-action="reset">重新本題</button>${complete ? '<button class="next-order" type="button" data-order-action="next">下一題</button>' : ''}</div></article>`;
+    }
+    function showOrder(newQuestion = true) {
+      currentMode = 'order';
+      if (newQuestion || orderSequence.length === 0) newOrderQuestion();
+      hideScreens();
+      orderScreen.hidden = false;
+      setActive('order');
+      renderOrder();
+      alignOrderCard();
+    }
     function showFlash(newDeck = false) {
       currentMode = 'flash';
       if (newDeck || deck.length === 0) shuffleDeck();
@@ -279,7 +352,9 @@
 
     document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
       const mode = button.dataset.mode;
-      if (mode === 'flash') showFlash(true); else showList(mode);
+      if (mode === 'flash') showFlash(true);
+      else if (mode === 'order') showOrder(true);
+      else showList(mode);
     }));
     document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
     document.getElementById('font-reset').addEventListener('click', () => { scaleIndex = 1; updateScale(); });
@@ -290,6 +365,26 @@
     document.getElementById('picker-button').addEventListener('click', () => showPicker());
     document.getElementById('picker-grid').innerHTML = hexagrams.map((item, i) => `<button class="picker-item" type="button" data-index="${i}"><span class="hex-symbol">${item.symbol}</span><span class="picker-name">${item.name}</span><span class="picker-no">第 ${i + 1} 卦</span></button>`).join('');
     document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
+    orderScreen.addEventListener('click', event => {
+      const choice = event.target.closest('[data-order-index]');
+      const action = event.target.closest('[data-order-action]');
+      if (choice) {
+        const index = Number(choice.dataset.orderIndex);
+        if (index === orderSequence[orderProgress]) {
+          orderProgress += 1;
+          orderWrongIndex = null;
+        } else {
+          orderWrongIndex = index;
+        }
+        renderOrder();
+      } else if (action?.dataset.orderAction === 'reset') {
+        orderProgress = 0;
+        orderWrongIndex = null;
+        renderOrder();
+      } else if (action?.dataset.orderAction === 'next') {
+        showOrder(true);
+      }
+    });
     singleScreen.addEventListener('touchstart', event => {
       if (event.touches.length !== 1) return;
       touchStartX = event.touches[0].clientX;
