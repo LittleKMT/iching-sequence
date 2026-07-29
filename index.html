@@ -117,6 +117,7 @@
     .order-number { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--green); font-size: .86rem; font-weight: 900; box-shadow: 0 1px 4px #0002; }
     .order-feedback { min-height: 2.2em; margin: 8px 0 0; display: grid; place-items: center; color: #8b2727; font-size: calc(1rem * var(--scale)); font-weight: 800; line-height: 1.15; }
     .order-feedback.correct { color: var(--green); font-size: calc(1.12rem * var(--scale)); }
+    .order-result { scroll-margin-bottom: max(18px, env(safe-area-inset-bottom)); }
     .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .order-actions button { min-height: 48px; padding: 8px 4px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; white-space: nowrap; }
     .order-actions .next-order { color: #fff; background: var(--green); }
@@ -349,7 +350,7 @@
     let orderSequence = [];
     let orderChoices = [];
     let orderSelections = [];
-    let orderQuestionDeck = [];
+    let orderStartRegionDeck = [];
     let showOrderSymbols = true;
     let touchStartX = null;
     let touchStartY = null;
@@ -418,6 +419,18 @@
           const safeTop = controls.getBoundingClientRect().bottom + 10;
           const cardTop = card.getBoundingClientRect().top;
           window.scrollBy({ top: cardTop - safeTop, behavior: 'smooth' });
+        }, 450);
+      }));
+    }
+    function alignOrderResult() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const result = orderScreen.querySelector('.order-result');
+        if (!result) return;
+        result.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+        setTimeout(() => {
+          const resultBottom = result.getBoundingClientRect().bottom;
+          const safeBottom = window.innerHeight - 18;
+          if (resultBottom > safeBottom) window.scrollBy({ top: resultBottom - safeBottom, behavior: 'smooth' });
         }, 450);
       }));
     }
@@ -490,16 +503,17 @@
       if (copy.length > 1 && copy.every((item, i) => item === items[i])) copy.push(copy.shift());
       return copy;
     }
-    function refillOrderQuestionDeck() {
-      const questions = [];
-      for (let length = 3; length <= 5; length++) {
-        for (let start = 0; start <= 64 - length; start++) questions.push({ start, length });
-      }
-      orderQuestionDeck = shuffled(questions);
+    function refillOrderStartRegionDeck() {
+      orderStartRegionDeck = shuffled([0, 1, 2, 3]);
     }
     function newOrderQuestion() {
-      if (orderQuestionDeck.length === 0) refillOrderQuestionDeck();
-      const { start, length } = orderQuestionDeck.pop();
+      if (orderStartRegionDeck.length === 0) refillOrderStartRegionDeck();
+      const length = 2 + secureRandomInt(5);
+      const possibleStarts = 65 - length;
+      const region = orderStartRegionDeck.pop();
+      const regionStart = Math.floor(region * possibleStarts / 4);
+      const regionEnd = Math.floor((region + 1) * possibleStarts / 4);
+      const start = regionStart + secureRandomInt(regionEnd - regionStart);
       orderSequence = Array.from({ length }, (_, i) => start + i);
       orderChoices = shuffled(orderSequence);
       orderSelections = [];
@@ -513,7 +527,7 @@
         : complete
           ? '順序不對，請取消後重新調整。'
           : orderSelections.length === 0 ? '依正確順序逐一點選' : '再點一次已選卦，即可取消並重新編號';
-      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></article>`;
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
     }
     function showOrder(newQuestion = true) {
       currentMode = 'order';
@@ -662,7 +676,9 @@
         const selectedPosition = orderSelections.indexOf(index);
         if (selectedPosition >= 0) orderSelections.splice(selectedPosition, 1);
         else if (orderSelections.length < orderSequence.length) orderSelections.push(index);
+        const completedOrder = orderSelections.length === orderSequence.length;
         renderOrder();
+        if (completedOrder) alignOrderResult();
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
         renderOrder();
