@@ -238,11 +238,11 @@
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');renderPicker();window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
     function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
-    function showFlash(reset=false,activeMode='flash',type='holding'){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash()}
+    function showFlash(reset=false,activeMode='flash',type='holding',shouldAlign=true){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash(shouldAlign)}
     function moveFlashCard(step=1){deckPosition=(deckPosition+step+64)%64;renderFlash()}
     function flashSwipeStep(dx,dy){if(Math.abs(dx)<=55||Math.abs(dx)<=Math.abs(dy)*1.25)return 0;return dx<0?1:-1}
     function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement',worldLine=r.lines[r.world-1],correct=isPalace?r.palace:isGeneration?r.generationChoice:isWorldElement?worldLine.element:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:isWorldElement?`${correct}行`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');recordAnswer(r,choice,correct,isCorrect);feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
-    function renderFlash(){
+    function renderFlash(shouldAlign=true){
       const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement';
       const stage=isPalace?1:isGeneration?2:isWorldElement?3:4;
       const worldLine=r.lines[r.world-1],worldBranchElement=`${worldLine.stemBranch.slice(-1)}${worldLine.element}`;
@@ -260,14 +260,16 @@
       document.getElementById('prev-card').onclick=()=>moveFlashCard(-1);
       document.getElementById('next-card').onclick=()=>moveFlashCard(1);
       document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':flashType==='palace'?'palace':flashType==='worldElement'?'worldElement':'flash',flashType);
-      alignCard(flashScreen)
+      if(shouldAlign)alignCard(flashScreen)
     }
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
     document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(true,'worldElement','worldElement');else showFlash(true,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     flashScreen.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;touchX=e.clientX;touchY=e.clientY;try{flashScreen.setPointerCapture(e.pointerId)}catch(_){} });flashScreen.addEventListener('pointerup',e=>{if(!e.isPrimary||touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY,step=flashSwipeStep(dx,dy);touchX=touchY=null;if(step)moveFlashCard(step)});flashScreen.addEventListener('pointercancel',()=>{touchX=touchY=null});
-    updateScale();showFlash(true,'palace','palace');
+    try{history.scrollRestoration='manual'}catch(_){}
+    updateScale();showFlash(true,'palace','palace',false);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,0)));
   </script>
 </body>
 </html>
