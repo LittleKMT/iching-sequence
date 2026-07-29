@@ -75,7 +75,8 @@
     .build-side-select { width: 100%; min-height: 34px; margin: 0 0 5px; padding: 1px; border: 0; background: transparent; color: var(--green); font-size: calc(1.05rem * var(--scale)); font-weight: 900; }
     .build-parts { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 5px; }
     .build-part { min-width: 0; min-height: 50px; padding: 5px 1px; border: 2px solid transparent; border-radius: 12px; background: #fff; color: #526056; font-size: calc(.86rem * var(--scale)); font-weight: 800; }
-    .build-part.active { border-color: var(--green); box-shadow: 0 0 0 2px #0b4f2c18; }
+    .build-part.active { border-color: var(--green); background: var(--green); color: #fff; box-shadow: 0 0 0 2px #0b4f2c18; }
+    .build-part.active .build-value { color: #fff; }
     .build-value { display: block; margin-top: 2px; color: var(--green); font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(2.45rem * var(--scale)); font-weight: 900; line-height: 1; white-space: nowrap; }
     .build-value:empty { display: none; }
     .build-prompt { min-height: 1.5em; margin: 10px 0 7px; color: #526056; font-size: calc(.86rem * var(--scale)); font-weight: 800; }
@@ -567,6 +568,10 @@
             : `${flashBuildLabel(flashBuildStep)}：請選八卦圖`;
       document.getElementById('flash-submit').disabled = !complete || flashChecked;
     }
+    function focusFlashBuildInput() {
+      const nextInput = document.querySelector(`[data-build-index="${flashBuildStep}"]`);
+      if (nextInput) nextInput.focus({ preventScroll: true });
+    }
     function checkFlashAnswer() {
       if (flashBuild.some(value => value === null) || flashChecked) return;
       const i = deck[deckPosition];
@@ -596,23 +601,20 @@
         if (flashChecked || flashBuildStep < 0) return;
         const completedStep = flashBuildStep;
         flashBuild[completedStep] = Number(button.dataset.trigramIndex);
-        if (completedStep % 2 === 0) {
+        if (completedStep % 2 === 0 && flashBuild[completedStep + 1] === null) {
           flashBuildStep = completedStep + 1;
         } else {
-          const otherSideFirst = completedStep < 2 ? 2 : 0;
-          flashBuildStep = flashBuild[otherSideFirst] === null
-            ? otherSideFirst
-            : flashBuild[otherSideFirst + 1] === null
-              ? otherSideFirst + 1
-              : -1;
+          flashBuildStep = flashBuild.findIndex(value => value === null);
         }
         updateFlashBuilder();
+        focusFlashBuildInput();
       }));
       document.querySelectorAll('[data-build-side-select]').forEach(button => button.addEventListener('click', () => {
         if (flashChecked) return;
         const firstIndex = Number(button.dataset.buildSideSelect) * 2;
         flashBuildStep = flashBuild[firstIndex] === null ? firstIndex : flashBuild[firstIndex + 1] === null ? firstIndex + 1 : firstIndex;
         updateFlashBuilder();
+        focusFlashBuildInput();
       }));
       document.querySelectorAll('[data-build-index]').forEach(button => button.addEventListener('click', () => {
         if (flashChecked) return;
