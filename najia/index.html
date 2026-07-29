@@ -207,7 +207,7 @@
 
     const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen'),statsScreen=document.getElementById('stats-screen');
     const screens=[pickerScreen,studyScreen,flashScreen,statsScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1';
-    let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',pickerOrder='kingwen',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false;
+    let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',pickerOrder='kingwen',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false,initialNavigationChosen=false;
     const TYPE_LABELS={palace:'八宮',generation:'幾世卦',coordinate:'舊五行六親',worldElement:'世爻五行',holding:'六親持世'};
     const TRAINING_TYPES=['palace','generation','worldElement','holding'];
     function emptyStats(){return{total:0,correct:0,byType:{palace:{total:0,correct:0},generation:{total:0,correct:0},worldElement:{total:0,correct:0},holding:{total:0,correct:0}},history:[]}}
@@ -263,13 +263,15 @@
       if(shouldAlign)alignCard(flashScreen)
     }
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(true,'worldElement','worldElement');else showFlash(true,'flash','holding')});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(true,'worldElement','worldElement');else showFlash(true,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     flashScreen.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;touchX=e.clientX;touchY=e.clientY;try{flashScreen.setPointerCapture(e.pointerId)}catch(_){} });flashScreen.addEventListener('pointerup',e=>{if(!e.isPrimary||touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY,step=flashSwipeStep(dx,dy);touchX=touchY=null;if(step)moveFlashCard(step)});flashScreen.addEventListener('pointercancel',()=>{touchX=touchY=null});
+    const resetInitialScroll=()=>{if(!initialNavigationChosen)window.scrollTo(0,0)};
     try{history.scrollRestoration='manual'}catch(_){}
+    window.addEventListener('pageshow',()=>{resetInitialScroll();requestAnimationFrame(resetInitialScroll);setTimeout(resetInitialScroll,100);setTimeout(resetInitialScroll,350)},{once:true});
     updateScale();showFlash(true,'palace','palace',false);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,0)));
+    requestAnimationFrame(()=>requestAnimationFrame(resetInitialScroll));
   </script>
 </body>
 </html>
