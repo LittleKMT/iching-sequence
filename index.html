@@ -107,6 +107,9 @@
     .order-status { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin: 8px 0; }
     .order-progress { min-height: 1.5em; margin: 0; color: #617064; font-size: calc(.9rem * var(--scale)); font-weight: 750; text-align: left; }
     .order-symbol-toggle { min-height: 38px; padding: 6px 10px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 800; white-space: nowrap; }
+    .order-length-control { display: grid; grid-template-columns: 1.35fr repeat(5, 1fr); gap: 4px; margin: 0 0 8px; }
+    .order-length-control button { min-width: 0; min-height: 38px; padding: 4px 1px; border: 1px solid #b8c3ba; border-radius: 10px; background: #fff; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 850; white-space: nowrap; }
+    .order-length-control button.active { border-color: var(--green); background: var(--green); color: #fff; }
     .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .order-choice { position: relative; min-height: 64px; padding: 9px 8px; display: grid; place-items: center; align-content: center; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-weight: 850; overflow: hidden; }
     .order-choice.with-symbol { min-height: 128px; padding-top: 5px; padding-bottom: 8px; }
@@ -351,6 +354,7 @@
     let orderChoices = [];
     let orderSelections = [];
     let orderStartRegionDeck = [];
+    let orderLengthMode = 'random';
     let showOrderSymbols = true;
     let touchStartX = null;
     let touchStartY = null;
@@ -508,7 +512,7 @@
     }
     function newOrderQuestion() {
       if (orderStartRegionDeck.length === 0) refillOrderStartRegionDeck();
-      const length = 2 + secureRandomInt(5);
+      const length = orderLengthMode === 'random' ? 2 + secureRandomInt(5) : Number(orderLengthMode);
       const possibleStarts = 65 - length;
       const region = orderStartRegionDeck.pop();
       const regionStart = Math.floor(region * possibleStarts / 4);
@@ -527,7 +531,8 @@
         : complete
           ? '順序不對，請取消後重新調整。'
           : orderSelections.length === 0 ? '依正確順序逐一點選' : '再點一次已選卦，即可取消並重新編號';
-      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
+      const lengthChoices = [{ value: 'random', label: '隨機' }, ...[2, 3, 4, 5, 6].map(value => ({ value: String(value), label: String(value) }))];
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-length-control" aria-label="選擇排序題數">${lengthChoices.map(choice => `<button class="${orderLengthMode === choice.value ? 'active' : ''}" type="button" data-order-length="${choice.value}" aria-pressed="${orderLengthMode === choice.value}">${choice.label}</button>`).join('')}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
     }
     function showOrder(newQuestion = true) {
       currentMode = 'order';
@@ -670,6 +675,7 @@
     document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
     orderScreen.addEventListener('click', event => {
       const choice = event.target.closest('[data-order-index]');
+      const lengthChoice = event.target.closest('[data-order-length]');
       const action = event.target.closest('[data-order-action]');
       if (choice) {
         const index = Number(choice.dataset.orderIndex);
@@ -679,6 +685,9 @@
         const completedOrder = orderSelections.length === orderSequence.length;
         renderOrder();
         if (completedOrder) alignOrderResult();
+      } else if (lengthChoice) {
+        orderLengthMode = lengthChoice.dataset.orderLength;
+        showOrder(true);
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
         renderOrder();
