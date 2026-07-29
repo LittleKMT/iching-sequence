@@ -354,6 +354,7 @@
     let orderChoices = [];
     let orderSelections = [];
     let orderStartRegionDeck = [];
+    let orderTwoChoiceOrientationDeck = [];
     let orderLengthMode = 'random';
     let showOrderSymbols = true;
     let touchStartX = null;
@@ -510,6 +511,14 @@
     function refillOrderStartRegionDeck() {
       orderStartRegionDeck = shuffled([0, 1, 2, 3]);
     }
+    function orderChoiceShuffle(items) {
+      if (items.length !== 2) return shuffled(items);
+      if (orderTwoChoiceOrientationDeck.length === 0) {
+        const correctFirst = secureRandomInt(2) === 0;
+        orderTwoChoiceOrientationDeck = [correctFirst, !correctFirst];
+      }
+      return orderTwoChoiceOrientationDeck.pop() ? [...items] : [items[1], items[0]];
+    }
     function newOrderQuestion() {
       if (orderStartRegionDeck.length === 0) refillOrderStartRegionDeck();
       const length = orderLengthMode === 'random' ? 2 + secureRandomInt(5) : Number(orderLengthMode);
@@ -519,7 +528,7 @@
       const regionEnd = Math.floor((region + 1) * possibleStarts / 4);
       const start = regionStart + secureRandomInt(regionEnd - regionStart);
       orderSequence = Array.from({ length }, (_, i) => start + i);
-      orderChoices = shuffled(orderSequence);
+      orderChoices = orderChoiceShuffle(orderSequence);
       orderSelections = [];
     }
     function renderOrder() {
