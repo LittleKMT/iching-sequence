@@ -59,7 +59,7 @@
     .study-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .study-nav button { min-height: 46px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 800; }
     .back-button { width: 100%; margin-top: 10px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
-    .flash-card { padding: 18px 12px; text-align: center; }
+    .flash-card { padding: 14px 8px; text-align: center; }
     .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
     .flash-main .hex-symbol, .answer-cell .hex-symbol { display: block; margin: 18px auto 8px; }
     .flash-main .hex-symbol { margin-top: 8px; margin-bottom: -18px; }
@@ -67,19 +67,19 @@
     .answer-cell .hex-symbol { font-size: calc(8rem * var(--scale)); }
     .flash-main .hex-name, .answer-cell .hex-name { font-size: calc(1.9rem * var(--scale)); font-weight: 850; color: var(--green); }
     .flash-question { margin: 8px 0; font-size: calc(1rem * var(--scale)); font-weight: 800; }
-    .flash-build-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .build-card { min-width: 0; padding: 9px; border: 1px solid #c8d1c9; border-radius: 15px; background: #f8faf8; }
-    .build-title { margin-bottom: 7px; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 850; }
+    .flash-build-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .build-card { min-width: 0; padding: 8px 6px; border: 2px solid #c8d1c9; border-radius: 17px; background: #f8faf8; }
+    .build-card.active { border-color: var(--green); background: #edf4ee; box-shadow: 0 0 0 2px #0b4f2c12; }
+    .build-side-select { width: 100%; min-height: 38px; margin: 0 0 7px; padding: 2px; border: 0; background: transparent; color: var(--green); font-size: calc(1.05rem * var(--scale)); font-weight: 900; }
     .build-parts { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-    .build-part { min-width: 0; min-height: 54px; padding: 4px 2px; border: 2px solid transparent; border-radius: 10px; background: #fff; color: #526056; font-size: calc(.7rem * var(--scale)); font-weight: 750; }
+    .build-part { min-width: 0; min-height: 82px; padding: 5px 1px; border: 2px solid transparent; border-radius: 12px; background: #fff; color: #526056; font-size: calc(.86rem * var(--scale)); font-weight: 800; }
     .build-part.active { border-color: var(--green); box-shadow: 0 0 0 2px #0b4f2c18; }
-    .build-value { display: block; margin-top: 1px; color: var(--green); font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(1.35rem * var(--scale)); font-weight: 900; line-height: 1; white-space: nowrap; }
+    .build-value { display: block; min-height: 1em; margin-top: 2px; color: var(--green); font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(2.45rem * var(--scale)); font-weight: 900; line-height: 1; white-space: nowrap; }
     .build-prompt { min-height: 1.5em; margin: 10px 0 7px; color: #526056; font-size: calc(.86rem * var(--scale)); font-weight: 800; }
     .trigram-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-    .trigram-choice { min-width: 0; min-height: 62px; padding: 4px 1px; border: 1px solid #b8c3ba; border-radius: 12px; background: #fff; color: var(--green); }
+    .trigram-choice { min-width: 0; min-height: 92px; padding: 4px 1px; border: 2px solid #b8c3ba; border-radius: 14px; background: #fff; color: var(--green); }
     .trigram-choice:active { transform: translateY(1px); }
-    .trigram-symbol { display: block; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(1.75rem * var(--scale)); font-weight: 900; line-height: 1; }
-    .trigram-name { display: block; margin-top: 2px; font-size: calc(.72rem * var(--scale)); font-weight: 850; }
+    .trigram-symbol { display: block; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(3.2rem * var(--scale)); font-weight: 900; line-height: 1; }
     .flash-build-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
     .flash-build-actions button { min-height: 46px; padding: 7px 3px; border: 1px solid var(--green); border-radius: 13px; background: #fff; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 850; }
     .flash-build-actions .flash-submit { color: #fff; background: var(--green); }
@@ -339,7 +339,7 @@
     let deck = [];
     let deckPosition = 0;
     let flashBuild = [null, null, null, null];
-    let flashBuildStep = 0;
+    let flashBuildStep = -1;
     let flashChecked = false;
     let currentStudyIndex = 0;
     let orderSequence = [];
@@ -516,7 +516,7 @@
     }
     function resetFlashBuild() {
       flashBuild = [null, null, null, null];
-      flashBuildStep = 0;
+      flashBuildStep = -1;
       flashChecked = false;
     }
     function flashBuildLabel(index) {
@@ -526,22 +526,28 @@
       return hexagramTrigrams.findIndex(pair => pair[0] === upper && pair[1] === lower);
     }
     function updateFlashBuilder() {
+      document.querySelectorAll('[data-build-side]').forEach(card => {
+        const side = Number(card.dataset.buildSide);
+        card.classList.toggle('active', !flashChecked && flashBuildStep >= side * 2 && flashBuildStep <= side * 2 + 1);
+      });
       document.querySelectorAll('[data-build-index]').forEach(button => {
         const index = Number(button.dataset.buildIndex);
         const trigram = flashBuild[index] === null ? null : trigrams[flashBuild[index]];
         button.classList.toggle('active', !flashChecked && flashBuildStep === index);
         button.disabled = flashChecked;
         button.setAttribute('aria-label', `${flashBuildLabel(index)}${trigram ? `，已選${trigram.name}` : '，尚未選擇'}`);
-        button.querySelector('.build-value').textContent = trigram ? `${trigram.symbol} ${trigram.name}` : '？';
+        button.querySelector('.build-value').textContent = trigram ? trigram.symbol : '';
       });
-      document.querySelectorAll('[data-trigram-index]').forEach(button => { button.disabled = flashChecked; });
+      document.querySelectorAll('[data-trigram-index]').forEach(button => { button.disabled = flashChecked || flashBuildStep < 0; });
       const complete = flashBuild.every(value => value !== null);
       const prompt = document.getElementById('build-prompt');
       prompt.textContent = flashChecked
         ? '已確認答案，可重新作答或切換題目'
         : complete
           ? '四次選擇完成，請確認答案'
-          : `${flashBuildLabel(flashBuildStep)}（第 ${flashBuildStep + 1} / 4 次）`;
+          : flashBuildStep < 0
+            ? '先點前一卦或後一卦'
+            : `${flashBuildLabel(flashBuildStep)}：請選八卦圖`;
       document.getElementById('flash-submit').disabled = !complete || flashChecked;
     }
     function checkFlashAnswer() {
@@ -556,7 +562,7 @@
       const answerCell = (label, chosen, correctIndex, correct) => {
         const upper = trigrams[hexagramTrigrams[chosen][0]];
         const lower = trigrams[hexagramTrigrams[chosen][1]];
-        return `<div class="answer-cell ${correct ? 'correct' : 'wrong'}"><div class="answer-label">${label}</div><div class="answer-mark">${correct ? '答對 ✓' : '答錯 ✕'}</div><div class="answer-combo">你選：${upper.symbol}${upper.name}＋${lower.symbol}${lower.name}</div><span class="hex-symbol">${hexagrams[correctIndex].symbol}</span><div class="hex-name">${hexagrams[correctIndex].name}</div></div>`;
+        return `<div class="answer-cell ${correct ? 'correct' : 'wrong'}"><div class="answer-label">${label}</div><div class="answer-mark">${correct ? '答對 ✓' : '答錯 ✕'}</div><div class="answer-combo">你選：${upper.symbol}＋${lower.symbol}</div><span class="hex-symbol">${hexagrams[correctIndex].symbol}</span><div class="hex-name">${hexagrams[correctIndex].name}</div></div>`;
       };
       flashChecked = true;
       const answer = document.getElementById('flash-answer');
@@ -568,12 +574,18 @@
     function renderFlash() {
       resetFlashBuild();
       const i = deck[deckPosition];
-      flashScreen.innerHTML = `<article class="flash-card"><div class="flash-count">第 ${deckPosition + 1} / 64 題</div><div class="flash-main"><span class="hex-symbol">${hexagrams[i].symbol}</span><div class="hex-name">${hexagrams[i].name}</div></div><div class="flash-question">八卦組合作答</div><div class="flash-build-summary"><div class="build-card"><div class="build-title">前一卦</div><div class="build-parts"><button class="build-part" type="button" data-build-index="0"><span>上卦</span><span class="build-value">？</span></button><button class="build-part" type="button" data-build-index="1"><span>下卦</span><span class="build-value">？</span></button></div></div><div class="build-card"><div class="build-title">後一卦</div><div class="build-parts"><button class="build-part" type="button" data-build-index="2"><span>上卦</span><span class="build-value">？</span></button><button class="build-part" type="button" data-build-index="3"><span>下卦</span><span class="build-value">？</span></button></div></div></div><div class="build-prompt" id="build-prompt"></div><div class="trigram-grid">${trigrams.map((trigram, index) => `<button class="trigram-choice" type="button" data-trigram-index="${index}" aria-label="選擇${trigram.name}卦"><span class="trigram-symbol">${trigram.symbol}</span><span class="trigram-name">${trigram.name}</span></button>`).join('')}</div><div class="flash-build-actions"><button type="button" id="flash-clear">重新選擇</button><button class="flash-submit" type="button" id="flash-submit" disabled>確認答案</button></div><div class="flash-answer" id="flash-answer" hidden></div><div class="flash-nav"><button type="button" id="flash-prev">← 上一題</button><button type="button" id="flash-next">下一題 →</button></div><button class="reshuffle" type="button" id="reshuffle">重新隨機開始</button></article>`;
+      flashScreen.innerHTML = `<article class="flash-card"><div class="flash-count">第 ${deckPosition + 1} / 64 題</div><div class="flash-main"><span class="hex-symbol">${hexagrams[i].symbol}</span><div class="hex-name">${hexagrams[i].name}</div></div><div class="flash-question">八卦組合作答</div><div class="flash-build-summary"><div class="build-card" data-build-side="0"><button class="build-side-select" type="button" data-build-side-select="0">前一卦</button><div class="build-parts"><button class="build-part" type="button" data-build-index="0"><span>上卦</span><span class="build-value"></span></button><button class="build-part" type="button" data-build-index="1"><span>下卦</span><span class="build-value"></span></button></div></div><div class="build-card" data-build-side="1"><button class="build-side-select" type="button" data-build-side-select="1">後一卦</button><div class="build-parts"><button class="build-part" type="button" data-build-index="2"><span>上卦</span><span class="build-value"></span></button><button class="build-part" type="button" data-build-index="3"><span>下卦</span><span class="build-value"></span></button></div></div></div><div class="build-prompt" id="build-prompt"></div><div class="trigram-grid">${trigrams.map((trigram, index) => `<button class="trigram-choice" type="button" data-trigram-index="${index}" aria-label="選擇${trigram.name}卦"><span class="trigram-symbol">${trigram.symbol}</span></button>`).join('')}</div><div class="flash-build-actions"><button type="button" id="flash-clear">重新選擇</button><button class="flash-submit" type="button" id="flash-submit" disabled>確認答案</button></div><div class="flash-answer" id="flash-answer" hidden></div><div class="flash-nav"><button type="button" id="flash-prev">← 上一題</button><button type="button" id="flash-next">下一題 →</button></div><button class="reshuffle" type="button" id="reshuffle">重新隨機開始</button></article>`;
       document.querySelectorAll('[data-trigram-index]').forEach(button => button.addEventListener('click', () => {
         if (flashChecked || flashBuildStep < 0) return;
-        flashBuild[flashBuildStep] = Number(button.dataset.trigramIndex);
-        const nextEmpty = flashBuild.findIndex(value => value === null);
-        flashBuildStep = nextEmpty;
+        const completedStep = flashBuildStep;
+        flashBuild[completedStep] = Number(button.dataset.trigramIndex);
+        flashBuildStep = completedStep % 2 === 0 ? completedStep + 1 : -1;
+        updateFlashBuilder();
+      }));
+      document.querySelectorAll('[data-build-side-select]').forEach(button => button.addEventListener('click', () => {
+        if (flashChecked) return;
+        const firstIndex = Number(button.dataset.buildSideSelect) * 2;
+        flashBuildStep = flashBuild[firstIndex] === null ? firstIndex : flashBuild[firstIndex + 1] === null ? firstIndex + 1 : firstIndex;
         updateFlashBuilder();
       }));
       document.querySelectorAll('[data-build-index]').forEach(button => button.addEventListener('click', () => {
