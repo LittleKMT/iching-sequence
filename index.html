@@ -596,7 +596,16 @@
         if (flashChecked || flashBuildStep < 0) return;
         const completedStep = flashBuildStep;
         flashBuild[completedStep] = Number(button.dataset.trigramIndex);
-        flashBuildStep = completedStep % 2 === 0 ? completedStep + 1 : -1;
+        if (completedStep % 2 === 0) {
+          flashBuildStep = completedStep + 1;
+        } else {
+          const otherSideFirst = completedStep < 2 ? 2 : 0;
+          flashBuildStep = flashBuild[otherSideFirst] === null
+            ? otherSideFirst
+            : flashBuild[otherSideFirst + 1] === null
+              ? otherSideFirst + 1
+              : -1;
+        }
         updateFlashBuilder();
       }));
       document.querySelectorAll('[data-build-side-select]').forEach(button => button.addEventListener('click', () => {
