@@ -74,9 +74,6 @@
     .coordinate-prompt span { display: flex; min-height: 104px; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; border: 3px solid var(--blue); border-radius: 17px; color: var(--blue); background: var(--pale); font-weight: 950; line-height: 1; }
     .coordinate-prompt small { margin-bottom: 7px; color: #61727d; font-size: calc(.88rem * var(--scale)); font-weight: 900; }
     .coordinate-prompt strong { font-size: calc(2.25rem * var(--scale)); font-weight: 950; }
-    .coordinate-answer-hex { margin: 5px auto 7px; }
-    .coordinate-answer-hex .hex-lines { gap: 5px; width: 105px; }
-    .coordinate-answer-hex .yao { gap: 10px; height: 8px; }
     .coordinate-note { margin: -2px 0 7px; color: #61727d; font-size: calc(.9rem * var(--scale)); font-weight: 900; line-height: 1.3; }
     .answer-button { padding: 8px 22px; }
     .quiz-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 10px 0 4px; }
@@ -259,8 +256,8 @@
       const choices=isGeneration?generationChoices:isPalace?palaceChoices:kinChoices;
       const choiceClass=isPalace?'palace-choices':isGeneration?'':'kin-choices';
       const choiceLabel=isGeneration?'幾世卦':isPalace?'八宮':isCoordinate?'五行六親':'六親持世';
-      const questionVisual=isCoordinate?`<div class="coordinate-prompt" aria-label="五行六親條件"><span><small>${r.palace}宮五行</small><strong>${r.element}</strong></span><span><small>世爻納甲</small><strong>${worldBranchElement}</strong></span></div>`:hexMarkup(r.bits);
-      const answerHex=isCoordinate?`<div class="coordinate-answer-hex">${hexMarkup(r.bits)}</div>`:'';
+      const questionVisual=isCoordinate?`${hexMarkup(r.bits)}<div class="coordinate-prompt" aria-label="五行六親條件"><span><small>${r.palace}宮五行</small><strong>${r.element}</strong></span><span><small>世爻納甲</small><strong>${worldBranchElement}</strong></span></div>`:hexMarkup(r.bits);
+      const answerHex='';
       const quizControls=`<div class="quiz-choices ${choiceClass}" aria-label="${choiceLabel}選項">${choices.map(choice=>`<button class="quiz-choice" data-choice="${choice}">${choice}</button>`).join('')}</div>`;
       flashScreen.innerHTML=`<article class="card flash-card"><div class="stage-badge">第 ${stage} 關 / 4・${TYPE_LABELS[flashType]}</div><div class="ordinal">第 ${deckPosition+1} / 64 題</div><div class="flash-question">${question}</div>${questionVisual}${quizControls}<div class="flash-answer" id="flash-answer" hidden><div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>${answerHex}<div class="answer-name">卦名<strong>${r.name}</strong></div><div class="holding">${answerTitle}</div>${answerNote}${tableMarkup(r)}</div><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;
       document.querySelectorAll('.quiz-choice').forEach(button=>button.onclick=()=>gradeQuiz(button.dataset.choice));
