@@ -543,14 +543,14 @@
       const lengthChoices = [{ value: 'random', label: '隨機' }, ...[2, 3, 4, 5, 6].map(value => ({ value: String(value), label: String(value) }))];
       orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-length-control" aria-label="選擇排序題數">${lengthChoices.map(choice => `<button class="${orderLengthMode === choice.value ? 'active' : ''}" type="button" data-order-length="${choice.value}" aria-pressed="${orderLengthMode === choice.value}">${choice.label}</button>`).join('')}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
     }
-    function showOrder(newQuestion = true) {
+    function showOrder(newQuestion = true, shouldAlign = true) {
       currentMode = 'order';
       if (newQuestion || orderSequence.length === 0) newOrderQuestion();
       hideScreens();
       orderScreen.hidden = false;
       setActive('order');
       renderOrder();
-      alignOrderCard();
+      if (shouldAlign) alignOrderCard();
     }
     function showFlash(newDeck = false) {
       currentMode = 'flash';
@@ -693,19 +693,18 @@
         else if (orderSelections.length < orderSequence.length) orderSelections.push(index);
         const completedOrder = orderSelections.length === orderSequence.length;
         renderOrder();
-        if (completedOrder) alignOrderResult();
+        if (completedOrder && orderLengthMode !== '2') alignOrderResult();
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
-        showOrder(true);
+        showOrder(true, orderLengthMode !== '2');
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
         renderOrder();
       } else if (action?.dataset.orderAction === 'symbols') {
         showOrderSymbols = !showOrderSymbols;
         renderOrder();
-        alignOrderCard();
       } else if (action?.dataset.orderAction === 'next') {
-        showOrder(true);
+        showOrder(true, orderLengthMode !== '2');
       }
     });
     singleScreen.addEventListener('touchstart', event => {
