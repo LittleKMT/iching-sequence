@@ -66,8 +66,12 @@
     .line-row.response .position { color: #1768a5; }
     .hint { margin: 9px 0 0; color: #66757d; font-size: calc(.84rem * var(--scale)); font-weight: 750; }
     .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
-    .nav button, .answer-button, .back-button, .shuffle-button { min-height: 48px; border: 1px solid #abbac3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.28rem * var(--scale)); font-weight: 950; line-height: 1; }
+    .nav button, .answer-button, .back-button, .shuffle-button, .boost-button { min-height: 48px; border: 1px solid #abbac3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.28rem * var(--scale)); font-weight: 950; line-height: 1; }
     .back-button, .shuffle-button { width: 100%; margin-top: 9px; color: #fff; border-color: var(--blue); background: var(--blue); }
+    .memory-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+    .memory-actions .shuffle-button, .memory-actions .boost-button { width: 100%; margin-top: 0; padding-inline: 4px; font-size: calc(1.08rem * var(--scale)); }
+    .boost-button { border: 2px solid var(--blue); background: #fff; }
+    .boost-button.active { color: #fff; border-color: #19733e; background: #19733e; }
     .flash-question { margin: 8px 0 10px; font-size: calc(1.32rem * var(--scale)); font-weight: 950; }
     .flash-card > .hex-lines { gap: 10px; width: min(84vw, 315px); margin-top: 0; }
     .flash-card > .hex-lines .yao { gap: 27px; height: 25px; }
@@ -95,7 +99,7 @@
     .flash-answer .line-center { grid-template-rows: 17px calc(1.3rem * var(--scale)); gap: 0; }
     .flash-answer .position { min-height: calc(1.3rem * var(--scale)); font-size: calc(1.25rem * var(--scale)); line-height: 1; }
     .flash-card > .nav { margin-top: 5px; }
-    .flash-card > .shuffle-button { margin-top: 5px; }
+    .flash-card > .memory-actions { margin-top: 5px; }
     .answer-name { margin: 0 0 7px; color: #687781; font-size: calc(.82rem * var(--scale)); font-weight: 850; }
     .answer-name strong { display: block; margin-top: 1px; color: var(--blue); font-size: calc(2.35rem * var(--scale)); font-weight: 950; line-height: 1.15; }
     .stats-card { padding: 18px 14px; }
@@ -213,12 +217,13 @@
     let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',pickerOrder='kingwen',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false,initialNavigationChosen=false;
     const TYPE_LABELS={palace:'八宮',generation:'幾世卦',coordinate:'舊五行六親',worldElement:'世爻五行',holding:'六親持世'};
     const TRAINING_TYPES=['palace','generation','worldElement','holding'];
-    function emptyProgress(){return{lastType:'palace',modes:{}}}
-    function validDeck(value){return Array.isArray(value)&&value.length===64&&new Set(value).size===64&&value.every(x=>Number.isInteger(x)&&x>=0&&x<64)}
-    function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(PROGRESS_KEY));if(saved&&TRAINING_TYPES.includes(saved.lastType)&&saved.modes&&typeof saved.modes==='object')return saved}catch(_){}return emptyProgress()}
+    function emptyProgress(){return{lastType:'palace',modes:{},boosted:{}}}
+    function validDeck(value){if(!Array.isArray(value)||value.length<64||value.length>192||new Set(value).size!==64||!value.every(x=>Number.isInteger(x)&&x>=0&&x<64))return false;const counts={};for(const x of value){counts[x]=(counts[x]||0)+1;if(counts[x]>3)return false}return true}
+    function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(PROGRESS_KEY));if(saved&&TRAINING_TYPES.includes(saved.lastType)&&saved.modes&&typeof saved.modes==='object'){saved.boosted=saved.boosted&&typeof saved.boosted==='object'?saved.boosted:{};return saved}}catch(_){}return emptyProgress()}
     let progress=loadProgress();
-    function saveProgress(position=deckPosition){progress.lastType=flashType;progress.modes[flashType]={deck:[...deck],position:(position+64)%64};try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(progress))}catch(_){}}
-    function restoreProgress(type){const saved=progress.modes[type];if(!saved||!validDeck(saved.deck)||!Number.isInteger(saved.position))return false;deck=[...saved.deck];deckPosition=(saved.position+64)%64;return true}
+    function boostedFor(type){return new Set((progress.boosted?.[type]||[]).filter(x=>Number.isInteger(x)&&x>=0&&x<64))}
+    function saveProgress(position=deckPosition){const size=Math.max(deck.length,1);progress.lastType=flashType;progress.modes[flashType]={deck:[...deck],position:(position+size)%size};try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(progress))}catch(_){}}
+    function restoreProgress(type){const saved=progress.modes[type];if(!saved||!validDeck(saved.deck)||!Number.isInteger(saved.position))return false;deck=[...saved.deck];deckPosition=(saved.position+deck.length)%deck.length;return true}
     function emptyStats(){return{total:0,correct:0,byType:{palace:{total:0,correct:0},generation:{total:0,correct:0},worldElement:{total:0,correct:0},holding:{total:0,correct:0}},history:[]}}
     function loadStats(){try{const saved=JSON.parse(localStorage.getItem(STATS_KEY));if(saved&&saved.byType?.holding&&saved.byType?.generation&&saved.byType?.palace){saved.byType.worldElement=saved.byType.worldElement||{total:0,correct:0};saved.history=(Array.isArray(saved.history)?saved.history:[]).map(event=>event.type==='generation'?{...event,choice:event.choice==='6'?'本':event.choice,correct:event.correct==='6'?'本':event.correct}:event);return saved}}catch(_){}return emptyStats()}
     let stats=loadStats();
@@ -246,9 +251,10 @@
     function renderPicker(){const buttons=[['kingwen','卦序'],['palace','BY 宮'],['generation','BY 幾世卦']].map(([key,label])=>`<button class="picker-sort ${pickerOrder===key?'active':''}" data-picker-order="${key}">${label}</button>`).join(''),groups=pickerGroups().map(group=>`${group.label?`<h3 class="picker-group-title">${group.label}</h3>`:''}${group.items.map(pickerCard).join('')}`).join('');pickerScreen.innerHTML=`<h2 class="section-title">選一卦學習</h2><p class="intro">點卦象，直接查看大字六爻裝卦與六親持世。</p><div class="picker-order" aria-label="選卦排列方式">${buttons}</div><div class="picker-grid">${groups}</div>`;document.querySelectorAll('[data-picker-order]').forEach(button=>button.onclick=()=>{pickerOrder=button.dataset.pickerOrder;renderPicker()})}
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');renderPicker();window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
-    function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
+    function shuffle(){deck=Array.from({length:64},(_,i)=>i);boostedFor(flashType).forEach(index=>deck.push(index,index));for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
     function showFlash(reset=false,activeMode='flash',type='holding',shouldAlign=true){flashType=type;if(reset||!restoreProgress(type))shuffle();saveProgress();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash(shouldAlign)}
-    function moveFlashCard(step=1){deckPosition=(deckPosition+step+64)%64;saveProgress();renderFlash()}
+    function moveFlashCard(step=1){deckPosition=(deckPosition+step+deck.length)%deck.length;saveProgress();renderFlash()}
+    function toggleBoost(){const index=deck[deckPosition],boosted=boostedFor(flashType),answer=document.getElementById('flash-answer'),answered=answer&&!answer.hidden;if(boosted.has(index)){boosted.delete(index);deck=deck.filter((value,position)=>position<=deckPosition||value!==index)}else{boosted.add(index);const first=Math.min(deck.length,deckPosition+4+Math.floor(Math.random()*4));deck.splice(first,0,index);const second=Math.min(deck.length,Math.max(first+4,deckPosition+10+Math.floor(Math.random()*7)));deck.splice(second,0,index)}progress.boosted[flashType]=[...boosted];saveProgress(answered?deckPosition+1:deckPosition);const button=document.getElementById('boost-button'),active=boosted.has(index);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));button.textContent=active?'已加強 ✓':'加強記憶';document.querySelector('.flash-card > .ordinal').textContent=`第 ${deckPosition+1} / ${deck.length} 題`}
     function flashSwipeStep(dx,dy){if(Math.abs(dx)<=55||Math.abs(dx)<=Math.abs(dy)*1.25)return 0;return dx<0?1:-1}
     function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement',worldLine=r.lines[r.world-1],correct=isPalace?r.palace:isGeneration?r.generationChoice:isWorldElement?worldLine.element:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:isWorldElement?`${correct}行`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');recordAnswer(r,choice,correct,isCorrect);saveProgress(deckPosition+1);feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
     function renderFlash(shouldAlign=true){
@@ -264,11 +270,13 @@
       const questionVisual=hexMarkup(r.bits);
       const answerHex='';
       const quizControls=`<div class="quiz-choices ${choiceClass}" aria-label="${choiceLabel}選項">${choices.map(choice=>`<button class="quiz-choice" data-choice="${choice}">${choice}</button>`).join('')}</div>`;
-      flashScreen.innerHTML=`<article class="card flash-card"><div class="stage-badge">第 ${stage} 關 / 4・${TYPE_LABELS[flashType]}</div><div class="ordinal">第 ${deckPosition+1} / 64 題</div><div class="flash-question">${question}</div>${questionVisual}${quizControls}<div class="flash-answer" id="flash-answer" hidden><div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>${answerHex}<div class="answer-name">卦名<strong>${r.name}</strong></div><div class="holding">${answerTitle}</div>${answerNote}${tableMarkup(r)}</div><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><button class="shuffle-button" id="shuffle-button">重新隨機開始</button></article>`;
+      const isBoosted=boostedFor(flashType).has(r.index);
+      flashScreen.innerHTML=`<article class="card flash-card"><div class="stage-badge">第 ${stage} 關 / 4・${TYPE_LABELS[flashType]}</div><div class="ordinal">第 ${deckPosition+1} / ${deck.length} 題</div><div class="flash-question">${question}</div>${questionVisual}${quizControls}<div class="flash-answer" id="flash-answer" hidden><div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>${answerHex}<div class="answer-name">卦名<strong>${r.name}</strong></div><div class="holding">${answerTitle}</div>${answerNote}${tableMarkup(r)}</div><div class="nav"><button id="prev-card">← 上一題</button><button id="next-card">下一題 →</button></div><div class="memory-actions"><button class="shuffle-button" id="shuffle-button">重新隨機</button><button class="boost-button ${isBoosted?'active':''}" id="boost-button" aria-pressed="${isBoosted}">${isBoosted?'已加強 ✓':'加強記憶'}</button></div></article>`;
       document.querySelectorAll('.quiz-choice').forEach(button=>button.onclick=()=>gradeQuiz(button.dataset.choice));
       document.getElementById('prev-card').onclick=()=>moveFlashCard(-1);
       document.getElementById('next-card').onclick=()=>moveFlashCard(1);
       document.getElementById('shuffle-button').onclick=()=>showFlash(true,flashType==='generation'?'generation':flashType==='palace'?'palace':flashType==='worldElement'?'worldElement':'flash',flashType);
+      document.getElementById('boost-button').onclick=toggleBoost;
       if(shouldAlign)alignCard(flashScreen)
     }
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
