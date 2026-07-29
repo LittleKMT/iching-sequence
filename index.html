@@ -39,12 +39,10 @@
     .all-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
     .all-overview-grid.with-text { grid-template-columns: 1fr; gap: 10px; }
     .all-overview-card { min-width: 0; min-height: 80px; display: grid; place-items: center; align-content: center; padding: 7px 2px; border: 1px solid #ccd5cc; border-radius: 13px; background: #fff; color: var(--green); text-align: center; overflow: hidden; }
-    .all-overview-no { color: #6b776e; font-size: calc(.68rem * var(--scale)); font-weight: 750; line-height: 1; }
     .all-overview-symbol { margin: 1px 0; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; font-size: calc(2.8rem * var(--scale)); font-weight: 800; line-height: .95; }
-    .all-overview-name { font-size: calc(1.55rem * var(--scale)); font-weight: 900; line-height: 1.05; white-space: nowrap; }
+    .all-overview-name { font-size: calc(1.75rem * var(--scale)); font-weight: 900; line-height: 1.05; white-space: nowrap; }
     .all-overview-grid.with-text .all-overview-card { min-height: 0; display: block; padding: 12px; text-align: left; }
     .all-overview-grid.with-text .all-overview-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-    .all-overview-grid.with-text .all-overview-no { margin-left: auto; }
     .all-overview-grid.with-text .all-overview-symbol { margin: 0; font-size: calc(2.25rem * var(--scale)); }
     .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(.95rem * var(--scale)); line-height: 1.55; }
     .all-overview-copy .label { margin-bottom: 2px; }
@@ -477,8 +475,8 @@
         const name = allViewFields.name ? `<span class="all-overview-name">${item.name}</span>` : '';
         const original = allViewFields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
         const plain = allViewFields.plain ? `<div class="all-overview-copy"><div class="label">傅佩榮白話</div><p>${item.plain}</p></div>` : '';
-        if (withText) return `<article class="all-overview-card"><div class="all-overview-head">${symbol}${name}<span class="all-overview-no">第 ${i + 1} 卦</span></div>${original}${plain}</article>`;
-        return `<article class="all-overview-card"><span class="all-overview-no">${i + 1}</span>${symbol}${name}</article>`;
+        if (withText) return `<article class="all-overview-card"><div class="all-overview-head">${symbol}${name}</div>${original}${plain}</article>`;
+        return `<article class="all-overview-card">${symbol}${name}</article>`;
       }).join('');
       return `<h2 class="section-title">六十四卦排列</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>`;
     }
