@@ -33,6 +33,22 @@
     #flash-screen, #order-screen { padding-bottom: 45vh; }
     #flash-screen { scroll-margin-top: max(8px, env(safe-area-inset-top)); }
     .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
+    .all-view-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 10px; }
+    .all-view-options button { min-width: 0; min-height: 42px; padding: 6px 2px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 850; }
+    .all-view-options button.active { border-color: var(--green); background: var(--green); color: #fff; }
+    .all-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .all-overview-grid.with-text { grid-template-columns: 1fr; gap: 10px; }
+    .all-overview-card { min-width: 0; min-height: 80px; display: grid; place-items: center; align-content: center; padding: 7px 2px; border: 1px solid #ccd5cc; border-radius: 13px; background: #fff; color: var(--green); text-align: center; overflow: hidden; }
+    .all-overview-no { color: #6b776e; font-size: calc(.68rem * var(--scale)); font-weight: 750; line-height: 1; }
+    .all-overview-symbol { margin: 1px 0; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; font-size: calc(2.8rem * var(--scale)); font-weight: 800; line-height: .95; }
+    .all-overview-name { font-size: calc(1.55rem * var(--scale)); font-weight: 900; line-height: 1.05; white-space: nowrap; }
+    .all-overview-grid.with-text .all-overview-card { min-height: 0; display: block; padding: 12px; text-align: left; }
+    .all-overview-grid.with-text .all-overview-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .all-overview-grid.with-text .all-overview-no { margin-left: auto; }
+    .all-overview-grid.with-text .all-overview-symbol { margin: 0; font-size: calc(2.25rem * var(--scale)); }
+    .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(.95rem * var(--scale)); line-height: 1.55; }
+    .all-overview-copy .label { margin-bottom: 2px; }
+    .all-overview-copy p { margin: 0; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
     .study-card { display: grid; grid-template-columns: 94px 1fr; align-items: stretch; }
@@ -341,6 +357,13 @@
     const orderScreen = document.getElementById('order-screen');
     let currentMode = 'all';
     let showPlain = true;
+    const allViewFields = { symbol: false, name: true, original: false, plain: false };
+    const allViewChoices = [
+      { key: 'symbol', label: '卦象' },
+      { key: 'name', label: '卦名' },
+      { key: 'original', label: '序文' },
+      { key: 'plain', label: '白話' }
+    ];
     let scaleIndex = 2;
     const scales = [.86, 1, 1.32];
     const scaleStorageKey = 'iching-scale-v2';
@@ -446,11 +469,29 @@
     function studyMarkup(item, i) {
       return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">傅佩榮白話</div><p class="text">${item.plain}</p></div></div></article>`;
     }
+    function allOverviewMarkup() {
+      const withText = allViewFields.original || allViewFields.plain;
+      const options = allViewChoices.map(choice => `<button type="button" data-all-field="${choice.key}" class="${allViewFields[choice.key] ? 'active' : ''}" aria-pressed="${allViewFields[choice.key]}">${choice.label}</button>`).join('');
+      const cards = hexagrams.map((item, i) => {
+        const symbol = allViewFields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
+        const name = allViewFields.name ? `<span class="all-overview-name">${item.name}</span>` : '';
+        const original = allViewFields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
+        const plain = allViewFields.plain ? `<div class="all-overview-copy"><div class="label">傅佩榮白話</div><p>${item.plain}</p></div>` : '';
+        if (withText) return `<article class="all-overview-card"><div class="all-overview-head">${symbol}${name}<span class="all-overview-no">第 ${i + 1} 卦</span></div>${original}${plain}</article>`;
+        return `<article class="all-overview-card"><span class="all-overview-no">${i + 1}</span>${symbol}${name}</article>`;
+      }).join('');
+      return `<h2 class="section-title">六十四卦排列</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>`;
+    }
     function showList(mode, shouldScroll = true) {
       currentMode = mode;
       hideScreens();
       listScreen.hidden = false;
       setActive(mode);
+      if (mode === 'all') {
+        listScreen.innerHTML = allOverviewMarkup();
+        if (shouldScroll) scrollTopNow();
+        return;
+      }
       const start = mode === 'lower' ? 30 : 0;
       const end = mode === 'upper' ? 30 : 64;
       const title = mode === 'upper' ? '上經・第一至三十卦' : mode === 'lower' ? '下經・第三十一至六十四卦' : '六十四卦原文與白話';
@@ -682,6 +723,15 @@
     document.getElementById('picker-button').addEventListener('click', () => showPicker());
     document.getElementById('picker-grid').innerHTML = hexagrams.map((item, i) => `<button class="picker-item" type="button" data-index="${i}"><span class="hex-symbol">${item.symbol}</span><span class="picker-name">${item.name}</span><span class="picker-no">第 ${i + 1} 卦</span></button>`).join('');
     document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
+    listScreen.addEventListener('click', event => {
+      const button = event.target.closest('[data-all-field]');
+      if (!button || currentMode !== 'all') return;
+      const key = button.dataset.allField;
+      const selectedCount = Object.values(allViewFields).filter(Boolean).length;
+      if (allViewFields[key] && selectedCount === 1) return;
+      allViewFields[key] = !allViewFields[key];
+      showList('all', false);
+    });
     orderScreen.addEventListener('click', event => {
       const choice = event.target.closest('[data-order-index]');
       const lengthChoice = event.target.closest('[data-order-length]');
