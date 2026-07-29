@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#123f61">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="六親持世">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>六十四卦・六親持世閃卡</title>
   <style>
     :root { --scale: 1; --blue: #123f61; --pale: #e9f3f8; --cream: #f6f2e9; --ink: #14202a; }
@@ -206,10 +209,16 @@
     if(records.length!==64||palaceByBits.size!==64)throw new Error('六十四卦資料不完整');
 
     const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen'),statsScreen=document.getElementById('stats-screen');
-    const screens=[pickerScreen,studyScreen,flashScreen,statsScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1';
+    const screens=[pickerScreen,studyScreen,flashScreen,statsScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1',PROGRESS_KEY='najia-memory-progress-v1';
     let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',pickerOrder='kingwen',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false,initialNavigationChosen=false;
     const TYPE_LABELS={palace:'八宮',generation:'幾世卦',coordinate:'舊五行六親',worldElement:'世爻五行',holding:'六親持世'};
     const TRAINING_TYPES=['palace','generation','worldElement','holding'];
+    function emptyProgress(){return{lastType:'palace',modes:{}}}
+    function validDeck(value){return Array.isArray(value)&&value.length===64&&new Set(value).size===64&&value.every(x=>Number.isInteger(x)&&x>=0&&x<64)}
+    function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(PROGRESS_KEY));if(saved&&TRAINING_TYPES.includes(saved.lastType)&&saved.modes&&typeof saved.modes==='object')return saved}catch(_){}return emptyProgress()}
+    let progress=loadProgress();
+    function saveProgress(position=deckPosition){progress.lastType=flashType;progress.modes[flashType]={deck:[...deck],position:(position+64)%64};try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(progress))}catch(_){}}
+    function restoreProgress(type){const saved=progress.modes[type];if(!saved||!validDeck(saved.deck)||!Number.isInteger(saved.position))return false;deck=[...saved.deck];deckPosition=(saved.position+64)%64;return true}
     function emptyStats(){return{total:0,correct:0,byType:{palace:{total:0,correct:0},generation:{total:0,correct:0},worldElement:{total:0,correct:0},holding:{total:0,correct:0}},history:[]}}
     function loadStats(){try{const saved=JSON.parse(localStorage.getItem(STATS_KEY));if(saved&&saved.byType?.holding&&saved.byType?.generation&&saved.byType?.palace){saved.byType.worldElement=saved.byType.worldElement||{total:0,correct:0};saved.history=(Array.isArray(saved.history)?saved.history:[]).map(event=>event.type==='generation'?{...event,choice:event.choice==='6'?'本':event.choice,correct:event.correct==='6'?'本':event.correct}:event);return saved}}catch(_){}return emptyStats()}
     let stats=loadStats();
@@ -238,10 +247,10 @@
     function showPicker(){currentMode='picker';hideScreens();pickerScreen.hidden=false;setActive('picker');renderPicker();window.scrollTo(0,0)}
     function openStudy(index){currentIndex=(index+64)%64;const r=records[currentIndex];currentMode='study';hideScreens();studyScreen.hidden=false;setActive('');studyScreen.innerHTML=`<article class="card"><div class="ordinal">第 ${r.index+1} 卦</div>${hexMarkup(r.bits)}<h2 class="hex-name">${r.name}</h2><div class="holding">${r.holding}持世</div>${tableMarkup(r)}<p class="hint">向右滑上一卦　·　向左滑下一卦</p><div class="nav"><button onclick="openStudy(${currentIndex-1})">← 上一卦</button><button onclick="openStudy(${currentIndex+1})">下一卦 →</button></div><button class="back-button" onclick="showPicker()">← 回選卦</button></article>`;alignCard(studyScreen)}
     function shuffle(){deck=Array.from({length:64},(_,i)=>i);for(let i=63;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}deckPosition=0}
-    function showFlash(reset=false,activeMode='flash',type='holding',shouldAlign=true){flashType=type;if(reset||!deck.length)shuffle();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash(shouldAlign)}
-    function moveFlashCard(step=1){deckPosition=(deckPosition+step+64)%64;renderFlash()}
+    function showFlash(reset=false,activeMode='flash',type='holding',shouldAlign=true){flashType=type;if(reset||!restoreProgress(type))shuffle();saveProgress();currentMode='flash';hideScreens();flashScreen.hidden=false;setActive(activeMode);renderFlash(shouldAlign)}
+    function moveFlashCard(step=1){deckPosition=(deckPosition+step+64)%64;saveProgress();renderFlash()}
     function flashSwipeStep(dx,dy){if(Math.abs(dx)<=55||Math.abs(dx)<=Math.abs(dy)*1.25)return 0;return dx<0?1:-1}
-    function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement',worldLine=r.lines[r.world-1],correct=isPalace?r.palace:isGeneration?r.generationChoice:isWorldElement?worldLine.element:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:isWorldElement?`${correct}行`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');recordAnswer(r,choice,correct,isCorrect);feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
+    function gradeQuiz(choice){const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement',worldLine=r.lines[r.world-1],correct=isPalace?r.palace:isGeneration?r.generationChoice:isWorldElement?worldLine.element:r.holding,isCorrect=choice===correct,feedback=document.getElementById('quiz-feedback'),correctText=isPalace?`${correct}宮`:isWorldElement?`${correct}行`:correct;document.querySelectorAll('.quiz-choice').forEach(button=>{button.disabled=true;if(button.dataset.choice===correct)button.classList.add('correct');else if(button.dataset.choice===choice)button.classList.add('wrong')});document.querySelector('.quiz-choices')?.classList.add('answered');recordAnswer(r,choice,correct,isCorrect);saveProgress(deckPosition+1);feedback.textContent=isCorrect?'答對了 ✓':`答錯了，正確答案是 ${correctText}`;feedback.className=`quiz-feedback ${isCorrect?'correct':'wrong'}`;document.getElementById('flash-answer').hidden=false;centerFlashAnswer()}
     function renderFlash(shouldAlign=true){
       const r=records[deck[deckPosition]],isGeneration=flashType==='generation',isPalace=flashType==='palace',isWorldElement=flashType==='worldElement';
       const stage=isPalace?1:isGeneration?2:isWorldElement?3:4;
@@ -263,14 +272,15 @@
       if(shouldAlign)alignCard(flashScreen)
     }
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(true,'generation','generation');else if(b.dataset.mode==='palace')showFlash(true,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(true,'worldElement','worldElement');else showFlash(true,'flash','holding')});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(false,'generation','generation');else if(b.dataset.mode==='palace')showFlash(false,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(false,'worldElement','worldElement');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     flashScreen.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;touchX=e.clientX;touchY=e.clientY;try{flashScreen.setPointerCapture(e.pointerId)}catch(_){} });flashScreen.addEventListener('pointerup',e=>{if(!e.isPrimary||touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY,step=flashSwipeStep(dx,dy);touchX=touchY=null;if(step)moveFlashCard(step)});flashScreen.addEventListener('pointercancel',()=>{touchX=touchY=null});
     const resetInitialScroll=()=>{if(!initialNavigationChosen)window.scrollTo(0,0)};
     try{history.scrollRestoration='manual'}catch(_){}
     window.addEventListener('pageshow',()=>{resetInitialScroll();requestAnimationFrame(resetInitialScroll);setTimeout(resetInitialScroll,100);setTimeout(resetInitialScroll,350)},{once:true});
-    updateScale();showFlash(true,'palace','palace',false);
+    const initialType=TRAINING_TYPES.includes(progress.lastType)?progress.lastType:'palace',initialMode=initialType==='holding'?'flash':initialType;
+    updateScale();showFlash(false,initialMode,initialType,false);
     requestAnimationFrame(()=>requestAnimationFrame(resetInitialScroll));
   </script>
 </body>
