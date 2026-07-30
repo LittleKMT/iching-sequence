@@ -486,8 +486,9 @@
       const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">傅佩榮白話</div><p>${item.plain}</p></div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
+      const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
       const content = expanded ? `<div class="all-overview-head">${symbol}${name}</div>${original}${plain}` : `${symbol}${name}`;
-      return `<article class="all-overview-card${expanded ? ' expanded' : ''}" data-all-card="${i}" role="button" tabindex="0" aria-label="${item.name}${nextLabel ? `，點一下${nextLabel}` : ''}">${content}</article>`;
+      return `<article class="all-overview-card${expanded ? ' expanded' : ''}" data-all-card="${i}" role="button" tabindex="0" aria-label="${item.name}${nextLabel ? `，點一下${nextLabel}` : canCollapse ? '，點一下收回' : ''}">${content}</article>`;
     }
     function allOverviewMarkup() {
       const withText = allViewFields.original || allViewFields.plain;
@@ -498,9 +499,11 @@
     function revealNextAllCard(i) {
       const fields = allCardFields(i);
       const nextKey = fields.symbol && !fields.name ? 'name' : fields.name && !fields.original ? 'original' : fields.original && !fields.plain ? 'plain' : null;
-      if (!nextKey) return;
-      if (!allCardReveals.has(i)) allCardReveals.set(i, new Set());
-      allCardReveals.get(i).add(nextKey);
+      if (nextKey) {
+        if (!allCardReveals.has(i)) allCardReveals.set(i, new Set());
+        allCardReveals.get(i).add(nextKey);
+      } else if (allCardReveals.get(i)?.size) allCardReveals.delete(i);
+      else return;
       const card = listScreen.querySelector(`[data-all-card="${i}"]`);
       if (!card) return;
       card.outerHTML = allOverviewCardMarkup(hexagrams[i], i);
