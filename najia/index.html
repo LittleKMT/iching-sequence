@@ -185,8 +185,8 @@
     .speed-question { margin: 5px 0 7px; color: var(--ink); font-size: calc(1.55rem * var(--scale)); font-weight: 950; }
     .trigram-lines { display: grid; gap: 15px; width: min(84vw, 315px); margin: 0 auto 10px; color: var(--blue); }
     .trigram-lines .yao { gap: 28px; height: 30px; }
-    .speed-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
-    .speed-choice { min-height: 58px; border: 2px solid #aebbc3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.85rem * var(--scale)); font-weight: 950; line-height: 1; }
+    .speed-choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(4px, 1.6vw, 7px); width: 100%; max-width: 100%; }
+    .speed-choice { width: 100%; min-width: 0; min-height: 58px; padding-inline: 0; border: 2px solid #aebbc3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.85rem * var(--scale)); font-weight: 950; line-height: 1; }
     .speed-choice.correct { color: #fff; border-color: #19733e; background: #19733e; }
     .speed-choice.wrong { color: #fff; border-color: #b52d2d; background: #b52d2d; }
     .speed-choice:disabled { opacity: 1; }
