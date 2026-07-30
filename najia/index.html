@@ -143,7 +143,36 @@
     .error-pattern strong { color: #b52d2d; }
     .clear-stats { width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid #b52d2d; border-radius: 13px; color: #b52d2d; background: #fff; font-size: calc(1.08rem * var(--scale)); font-weight: 950; }
     .clear-stats.confirm { color: #fff; background: #b52d2d; }
+    .speed-launch { color: #fff; border-color: #b56f0b; background: linear-gradient(135deg, #d88c16, #a94f0c); }
+    .speed-card { padding: 14px 12px 12px; }
+    .speed-home-icon { margin: 3px 0; font-size: calc(3.2rem * var(--scale)); line-height: 1; }
+    .speed-title { margin: 3px 0 5px; color: var(--blue); font-size: calc(1.75rem * var(--scale)); }
+    .speed-rules { margin: 0 auto 10px; color: #62717a; font-size: calc(.96rem * var(--scale)); font-weight: 750; line-height: 1.45; }
+    .speed-best { margin: 7px 0 11px; padding: 9px; border-radius: 12px; color: #8a4d00; background: #fff3d8; font-size: calc(1rem * var(--scale)); font-weight: 950; }
+    .speed-start, .speed-restart { width: 100%; min-height: 52px; border: 0; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #d88c16, #a94f0c); font-size: calc(1.25rem * var(--scale)); font-weight: 950; }
+    .speed-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; align-items: center; color: #63727b; font-size: calc(.82rem * var(--scale)); font-weight: 900; }
+    .speed-top strong { color: var(--blue); }
+    .speed-progress { overflow: hidden; height: 7px; margin: 7px 0 6px; border-radius: 999px; background: #dfe8ed; }
+    .speed-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #e19a27, #c96112); transition: width .2s ease; }
+    .speed-question { margin: 5px 0 7px; color: var(--ink); font-size: calc(1.55rem * var(--scale)); font-weight: 950; }
+    .trigram-lines { display: grid; gap: 15px; width: min(84vw, 315px); margin: 0 auto 10px; color: var(--blue); }
+    .trigram-lines .yao { gap: 28px; height: 30px; }
+    .speed-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .speed-choice { min-height: 58px; border: 2px solid #aebbc3; border-radius: 13px; color: var(--blue); background: #fff; font-size: calc(1.85rem * var(--scale)); font-weight: 950; line-height: 1; }
+    .speed-choice.correct { color: #fff; border-color: #19733e; background: #19733e; }
+    .speed-choice.wrong { color: #fff; border-color: #b52d2d; background: #b52d2d; }
+    .speed-choice:disabled { opacity: 1; }
+    .speed-feedback { min-height: calc(1.7rem * var(--scale)); margin: 7px 0 5px; font-size: calc(1.08rem * var(--scale)); font-weight: 950; }
+    .speed-feedback.correct { color: #19733e; }
+    .speed-feedback.wrong { color: #b52d2d; }
+    .countdown { display: grid; min-height: 390px; place-items: center; color: #c96112; font-size: calc(7rem * var(--scale)); font-weight: 950; }
+    .speed-result { margin: 7px 0; color: var(--blue); font-size: calc(2rem * var(--scale)); font-weight: 950; }
+    .speed-score { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 11px 0; }
+    .speed-score div { padding: 11px 5px; border-radius: 13px; background: var(--pale); }
+    .speed-score span { display: block; color: #66757d; font-size: calc(.78rem * var(--scale)); font-weight: 850; }
+    .speed-score strong { display: block; margin-top: 3px; color: var(--blue); font-size: calc(1.65rem * var(--scale)); }
     #flash-screen { padding-bottom: 40vh; touch-action: pan-y; }
+    #trigram-screen { padding-bottom: 32vh; }
     @media (max-width: 370px) {
       .shell { padding-left: 7px; padding-right: 7px; }
       .control { font-size: calc(1.1rem * var(--scale)); }
@@ -163,6 +192,9 @@
         <button class="control" data-mode="picker">選卦學習</button>
         <button class="control" data-mode="stats">學習紀錄</button>
       </div>
+      <div class="control-row two">
+        <button class="control speed-launch full" data-mode="trigram">⚡ 八卦快閃・速度挑戰</button>
+      </div>
       <p class="training-label">依照順序逐關練習</p>
       <div class="control-row four">
         <button class="control stage-control active" data-mode="palace">① 八宮</button>
@@ -180,6 +212,7 @@
     <section id="study-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
     <section id="stats-screen" class="screen" hidden></section>
+    <section id="trigram-screen" class="screen" hidden></section>
   </main>
   <script>
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
@@ -212,9 +245,10 @@
     });
     if(records.length!==64||palaceByBits.size!==64)throw new Error('六十四卦資料不完整');
 
-    const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen'),statsScreen=document.getElementById('stats-screen');
-    const screens=[pickerScreen,studyScreen,flashScreen,statsScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1',PROGRESS_KEY='najia-memory-progress-v1';
+    const pickerScreen=document.getElementById('picker-screen'),studyScreen=document.getElementById('study-screen'),flashScreen=document.getElementById('flash-screen'),statsScreen=document.getElementById('stats-screen'),trigramScreen=document.getElementById('trigram-screen');
+    const screens=[pickerScreen,studyScreen,flashScreen,statsScreen,trigramScreen],scales=[.88,1,1.16],STATS_KEY='najia-memory-stats-v1',PROGRESS_KEY='najia-memory-progress-v1',TRIGRAM_KEY='najia-trigram-speed-v1';
     let scaleIndex=2,currentIndex=0,currentMode='picker',flashType='holding',pickerOrder='kingwen',deck=[],deckPosition=0,touchX=null,touchY=null,clearPending=false,initialNavigationChosen=false;
+    let trigramDeck=[],trigramPosition=0,trigramCorrect=0,trigramStreak=0,trigramBestStreak=0,trigramReactionTotal=0,trigramGameStart=0,trigramQuestionStart=0,trigramLocked=false,trigramTimer=null;
     const TYPE_LABELS={palace:'八宮',generation:'幾世卦',coordinate:'舊五行六親',worldElement:'世爻五行',holding:'六親持世'};
     const TRAINING_TYPES=['palace','generation','worldElement','holding'];
     function emptyProgress(){return{lastType:'palace',modes:{},boosted:{}}}
@@ -240,6 +274,20 @@
     function hideScreens(){screens.forEach(s=>s.hidden=true)}
     function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
     function hexMarkup(bits,small=false){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="hex-lines ${small?'picker-hex':''}" aria-label="六爻卦象">${rows}</div>`}
+    function trigramMarkup(bits){let rows='';for(let i=2;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="trigram-lines" aria-label="三爻八卦卦象">${rows}</div>`}
+    function loadTrigramBest(){try{const value=JSON.parse(localStorage.getItem(TRIGRAM_KEY));if(value&&Number.isInteger(value.games))return value}catch(_){}return{games:0,bestCorrect:0,bestAverage:0,bestTotal:0}}
+    let trigramBest=loadTrigramBest();
+    function saveTrigramBest(){try{localStorage.setItem(TRIGRAM_KEY,JSON.stringify(trigramBest))}catch(_){}}
+    function seconds(ms){return`${(ms/1000).toFixed(2)} 秒`}
+    function stopTrigramTimer(){if(trigramTimer!==null){clearTimeout(trigramTimer);trigramTimer=null}}
+    function shuffledEight(){const items=Array.from({length:8},(_,i)=>i);for(let i=7;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items}
+    function buildTrigramDeck(){return[...shuffledEight(),...shuffledEight(),...shuffledEight()]}
+    function showTrigramHome(){stopTrigramTimer();currentMode='trigram';hideScreens();trigramScreen.hidden=false;setActive('trigram');const best=trigramBest.games?`${trigramBest.bestCorrect}/24・平均 ${seconds(trigramBest.bestAverage)}`:'尚無紀錄，來挑戰第一局！';trigramScreen.innerHTML=`<article class="card speed-card"><div class="speed-home-icon">⚡</div><h2 class="speed-title">八卦快閃</h2><p class="speed-rules">三輪共 24 題<br>每一輪八卦各出現一次，順序重新打亂。<br>看到三爻卦象，立刻按下卦名！</p><div class="speed-best">個人最佳：${best}</div><button class="speed-start" id="speed-start">開始速度挑戰</button></article>`;document.getElementById('speed-start').onclick=startTrigramGame;alignCard(trigramScreen)}
+    function startTrigramGame(){stopTrigramTimer();trigramDeck=buildTrigramDeck();trigramPosition=trigramCorrect=trigramStreak=trigramBestStreak=trigramReactionTotal=0;trigramGameStart=0;renderTrigramCountdown(3)}
+    function renderTrigramCountdown(value){trigramScreen.innerHTML=`<article class="card speed-card"><div class="countdown">${value}</div></article>`;if(value>1)trigramTimer=setTimeout(()=>renderTrigramCountdown(value-1),520);else trigramTimer=setTimeout(()=>{trigramGameStart=Date.now();renderTrigramQuestion()},520)}
+    function renderTrigramQuestion(){stopTrigramTimer();if(trigramPosition>=trigramDeck.length){finishTrigramGame();return}trigramLocked=false;const item=palaces[trigramDeck[trigramPosition]],round=Math.floor(trigramPosition/8)+1,progress=Math.round(trigramPosition/trigramDeck.length*100);trigramScreen.innerHTML=`<article class="card speed-card"><div class="speed-top"><span>第 <strong>${round}</strong> 輪</span><span><strong>${trigramPosition+1}</strong> / 24</span><span>連對 <strong>${trigramStreak}</strong></span></div><div class="speed-progress"><span style="width:${progress}%"></span></div><div class="speed-question">這是什麼卦？</div>${trigramMarkup(item.t)}<div class="speed-choices" aria-label="八卦答案">${palaces.map(p=>`<button class="speed-choice" data-trigram-choice="${p.n}">${p.n}</button>`).join('')}</div><div class="speed-feedback" id="speed-feedback" aria-live="polite"></div><button class="speed-restart" id="speed-restart">重新開始</button></article>`;document.querySelectorAll('[data-trigram-choice]').forEach(button=>button.onclick=()=>answerTrigram(button.dataset.trigramChoice));document.getElementById('speed-restart').onclick=startTrigramGame;trigramQuestionStart=Date.now();if(trigramPosition===0)alignCard(trigramScreen)}
+    function answerTrigram(choice){if(trigramLocked)return;trigramLocked=true;const correct=palaces[trigramDeck[trigramPosition]].n,elapsed=Date.now()-trigramQuestionStart,isCorrect=choice===correct;trigramReactionTotal+=elapsed;if(isCorrect){trigramCorrect++;trigramStreak++;trigramBestStreak=Math.max(trigramBestStreak,trigramStreak)}else trigramStreak=0;document.querySelectorAll('[data-trigram-choice]').forEach(button=>{button.disabled=true;if(button.dataset.trigramChoice===correct)button.classList.add('correct');else if(button.dataset.trigramChoice===choice)button.classList.add('wrong')});const feedback=document.getElementById('speed-feedback');feedback.textContent=isCorrect?`答對 ⚡ ${seconds(elapsed)}`:`答錯・正確是「${correct}」・${seconds(elapsed)}`;feedback.className=`speed-feedback ${isCorrect?'correct':'wrong'}`;trigramPosition++;trigramTimer=setTimeout(renderTrigramQuestion,isCorrect?560:950)}
+    function finishTrigramGame(){stopTrigramTimer();const total=Date.now()-trigramGameStart,average=Math.round(trigramReactionTotal/24),better=trigramCorrect>trigramBest.bestCorrect||(trigramCorrect===trigramBest.bestCorrect&&(!trigramBest.bestAverage||average<trigramBest.bestAverage));trigramBest.games++;if(better){trigramBest.bestCorrect=trigramCorrect;trigramBest.bestAverage=average;trigramBest.bestTotal=total}saveTrigramBest();const title=trigramCorrect===24&&average<900?'八卦閃電手！':trigramCorrect>=21?'反應高手！':trigramCorrect>=18?'越來越快！':'再來一輪！';trigramScreen.innerHTML=`<article class="card speed-card"><div class="speed-home-icon">🏁</div><div class="speed-result">${title}</div><div class="speed-score"><div><span>答對</span><strong>${trigramCorrect}/24</strong></div><div><span>正確率</span><strong>${Math.round(trigramCorrect/24*100)}%</strong></div><div><span>平均反應</span><strong>${seconds(average)}</strong></div><div><span>最高連對</span><strong>${trigramBestStreak}</strong></div></div><div class="speed-best">${better?'刷新個人最佳！':'個人最佳：'} ${trigramBest.bestCorrect}/24・平均 ${seconds(trigramBest.bestAverage)}</div><button class="speed-start" id="speed-again">再玩一局</button></article>`;document.getElementById('speed-again').onclick=startTrigramGame;alignCard(trigramScreen)}
     function lineName(i){return['初爻','二爻','三爻','四爻','五爻','上爻'][i-1]}
     function generationLabel(r){return r.generationChoice==='本'?'本卦':r.generationChoice==='遊魂'||r.generationChoice==='歸魂'?r.generationChoice:`${r.generationChoice}世`}
     function sixKinRule(palace,line){if(palace===line)return'同我者為兄弟';if(generates[line]===palace)return'生我者為父母';if(generates[palace]===line)return'我生者為子孫';if(controls[line]===palace)return'克我者為官鬼';return'我克者為妻財'}
@@ -280,7 +328,7 @@
       if(shouldAlign)alignCard(flashScreen)
     }
     function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
-    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='generation')showFlash(false,'generation','generation');else if(b.dataset.mode==='palace')showFlash(false,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(false,'worldElement','worldElement');else showFlash(false,'flash','holding')});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;stopTrigramTimer();if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='trigram')showTrigramHome();else if(b.dataset.mode==='generation')showFlash(false,'generation','generation');else if(b.dataset.mode==='palace')showFlash(false,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(false,'worldElement','worldElement');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
     flashScreen.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;touchX=e.clientX;touchY=e.clientY;try{flashScreen.setPointerCapture(e.pointerId)}catch(_){} });flashScreen.addEventListener('pointerup',e=>{if(!e.isPrimary||touchX===null)return;const dx=e.clientX-touchX,dy=e.clientY-touchY,step=flashSwipeStep(dx,dy);touchX=touchY=null;if(step)moveFlashCard(step)});flashScreen.addEventListener('pointercancel',()=>{touchX=touchY=null});
