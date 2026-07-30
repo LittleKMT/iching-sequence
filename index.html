@@ -50,6 +50,7 @@
     .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(.95rem * var(--scale)); line-height: 1.55; }
     .all-overview-copy .label { margin-bottom: 2px; }
     .all-overview-copy p { margin: 0; }
+    .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
     .study-card { display: grid; grid-template-columns: 94px 1fr; align-items: stretch; }
@@ -194,6 +195,7 @@
     <section id="single-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
     <section id="order-screen" class="screen" hidden></section>
+    <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）</footer>
   </main>
 
   <script>
@@ -471,7 +473,7 @@
       document.getElementById('picker-button').classList.toggle('active', mode === 'picker');
     }
     function studyMarkup(item, i) {
-      return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">傅佩榮白話</div><p class="text">${item.plain}</p></div></div></article>`;
+      return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話</div><p class="text">${item.plain}</p></div></div></article>`;
     }
     function allCardFields(i) {
       const fields = { ...allViewFields };
@@ -483,7 +485,7 @@
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
       const name = fields.name ? `<span class="all-overview-name">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
-      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">傅佩榮白話</div><p>${item.plain}</p></div>` : '';
+      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話</div><p>${item.plain}</p></div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
       const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
@@ -540,7 +542,7 @@
       singleScreen.hidden = false;
       setActive('');
       const item = hexagrams[i];
-      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">傅佩榮白話</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
+      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
       alignStudyCard();
     }
     function completeStudySwipe(endX, endY) {
