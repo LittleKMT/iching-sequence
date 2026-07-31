@@ -22,8 +22,10 @@
     .controls { position: sticky; top: 0; z-index: 20; margin: 0 -2px 10px; padding: 4px 2px; background: color-mix(in srgb, var(--cream) 94%, transparent); backdrop-filter: blur(10px); }
     .controls.flash-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.all-focus { position: relative; top: auto; backdrop-filter: none; }
+    .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
+    .control-row.six { grid-template-columns: repeat(6, 1fr); }
     .control-row.four { grid-template-columns: repeat(4, 1fr); }
     .control-row.three { grid-template-columns: repeat(3, 1fr); }
     .control-row.one { grid-template-columns: 1fr; margin-bottom: 0; }
@@ -31,7 +33,7 @@
     .control:active { transform: translateY(1px); }
     .control.active, .control.primary { color: #fff; border-color: var(--green); background: var(--green); }
     .screen[hidden] { display: none !important; }
-    #flash-screen, #order-screen { padding-bottom: 45vh; }
+    #flash-screen, #order-screen, #english-screen { padding-bottom: 45vh; }
     #flash-screen { scroll-margin-top: max(8px, env(safe-area-inset-top)); }
     .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
     .all-view-options { position: sticky; top: max(0px, env(safe-area-inset-top)); z-index: 25; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 10px; padding: 6px 0; background: color-mix(in srgb, var(--cream) 96%, transparent); backdrop-filter: blur(10px); }
@@ -52,7 +54,7 @@
     .all-overview-copy p { margin: 0; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
-    .study-card, .single-card, .flash-card, .order-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
+    .study-card, .single-card, .flash-card, .order-card, .english-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
     .study-card { display: grid; grid-template-columns: 94px 1fr; align-items: stretch; }
     .study-head { display: grid; place-items: center; align-content: center; padding: 14px 8px; background: #edf4ee; }
     .hex-symbol { font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; color: var(--green); line-height: .9; }
@@ -148,6 +150,25 @@
     .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .order-actions button { min-height: 48px; padding: 8px 4px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; white-space: nowrap; }
     .order-actions .next-order { color: #fff; background: var(--green); }
+    .english-card { padding: 12px 14px 14px; text-align: center; }
+    .english-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px; }
+    .english-stat { padding: 5px 2px; border-radius: 10px; background: #edf4ee; color: #526056; font-size: calc(.7rem * var(--scale)); font-weight: 800; line-height: 1.15; }
+    .english-stat strong { display: block; margin-top: 2px; color: var(--green); font-size: calc(.92rem * var(--scale)); }
+    .english-prompt { padding: 4px 4px 8px; }
+    .english-prompt .hex-symbol { display: block; margin: -10px 0 -22px; font-size: calc(9rem * var(--scale)); font-weight: 800; -webkit-text-stroke: .5px currentColor; }
+    .english-chinese-name { margin: 0; color: var(--green); font-size: calc(2.25rem * var(--scale)); font-weight: 900; line-height: 1.05; }
+    .english-question { margin: 9px 0 4px; color: #526056; font-size: calc(.88rem * var(--scale)); font-weight: 800; }
+    .english-seen { margin: 0; color: #7a867d; font-size: calc(.68rem * var(--scale)); font-weight: 750; }
+    .english-options { display: grid; gap: 9px; margin-top: 10px; }
+    .english-option { width: 100%; min-height: 78px; padding: 11px 10px; border: 2px solid #b8c3ba; border-radius: 16px; background: #fff; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: calc(1.18rem * var(--scale)); font-weight: 800; line-height: 1.2; }
+    .english-option:active { transform: translateY(1px); }
+    .english-option:disabled { opacity: 1; }
+    .english-option.correct { border-color: var(--green); background: var(--green); color: #fff; }
+    .english-option.wrong { border-color: #9c2f2f; background: #fff4f3; color: #8b2727; }
+    .english-feedback { min-height: 2.6em; margin: 9px 0 0; display: grid; place-items: center; color: #8b2727; font-size: calc(.92rem * var(--scale)); font-weight: 850; line-height: 1.25; }
+    .english-feedback.correct { color: var(--green); }
+    .english-next { width: 100%; min-height: 50px; margin-top: 8px; border: 1px solid var(--green); border-radius: 14px; background: var(--green); color: #fff; font-size: calc(1rem * var(--scale)); font-weight: 850; }
+    .english-next:disabled { opacity: .35; }
     .empty { padding: 30px; text-align: center; color: #68746a; }
     @media (max-width: 370px) {
       .shell { padding-left: 8px; padding-right: 8px; }
@@ -170,12 +191,13 @@
     </header>
 
     <nav class="controls" aria-label="學習工具">
-      <div class="control-row five">
+      <div class="control-row six">
         <button class="control" data-mode="all">全部</button>
         <button class="control" data-mode="upper">上經</button>
         <button class="control" data-mode="lower">下經</button>
         <button class="control" data-mode="flash">閃卡</button>
         <button class="control" data-mode="order">排序</button>
+        <button class="control" data-mode="english">中英</button>
       </div>
       <div class="control-row three">
         <button class="control" id="font-down" aria-label="縮小文字">A−</button>
@@ -201,11 +223,30 @@
     <section id="single-screen" class="screen" hidden></section>
     <section id="flash-screen" class="screen" hidden></section>
     <section id="order-screen" class="screen" hidden></section>
-    <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）</footer>
+    <section id="english-screen" class="screen" hidden></section>
+    <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）；英文卦名採 Wilhelm–Baynes 常見譯名。</footer>
   </main>
 
   <script>
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
+    const englishTitles = [
+      'The Creative','The Receptive','Difficulty at the Beginning','Youthful Folly',
+      'Waiting (Nourishment)','Conflict','The Army','Holding Together',
+      'The Taming Power of the Small','Treading (Conduct)','Peace','Standstill (Stagnation)',
+      'Fellowship with Men','Possession in Great Measure','Modesty','Enthusiasm',
+      'Following','Work on What Has Been Spoiled','Approach','Contemplation',
+      'Biting Through','Grace','Splitting Apart','Return',
+      'Innocence (The Unexpected)','The Taming Power of the Great','The Corners of the Mouth','Preponderance of the Great',
+      'The Abysmal (Water)','The Clinging (Fire)','Influence (Wooing)','Duration',
+      'Retreat','The Power of the Great','Progress','Darkening of the Light',
+      'The Family','Opposition','Obstruction','Deliverance',
+      'Decrease','Increase','Breakthrough (Resoluteness)','Coming to Meet',
+      'Gathering Together','Pushing Upward','Oppression (Exhaustion)','The Well',
+      'Revolution (Molting)','The Caldron','The Arousing (Shock)','Keeping Still (Mountain)',
+      'Development (Gradual Progress)','The Marrying Maiden','Abundance (Fullness)','The Wanderer',
+      'The Gentle (The Penetrating)','The Joyous (Lake)','Dispersion (Dissolution)','Limitation',
+      'Inner Truth','Preponderance of the Small','After Completion','Before Completion'
+    ];
     const originals = [
       '有天地。',
       '有天地，然後萬物生焉。',
@@ -355,15 +396,16 @@
       [1,2],[2,4],[3,3],[6,6],[4,6],[3,1],[3,2],[2,6],
       [4,4],[1,1],[4,5],[5,1],[4,1],[3,6],[5,2],[2,5]
     ];
-    if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64) throw new Error('六十四卦資料不完整');
+    if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64 || englishTitles.length !== 64) throw new Error('六十四卦資料不完整');
     if (hexagramTrigrams.length !== 64 || new Set(hexagramTrigrams.map(pair => pair.join('-'))).size !== 64) throw new Error('八卦組合資料不完整');
 
-    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen'].map(id => document.getElementById(id));
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen'].map(id => document.getElementById(id));
     const listScreen = document.getElementById('list-screen');
     const pickerScreen = document.getElementById('picker-screen');
     const singleScreen = document.getElementById('single-screen');
     const flashScreen = document.getElementById('flash-screen');
     const orderScreen = document.getElementById('order-screen');
+    const englishScreen = document.getElementById('english-screen');
     let currentMode = 'all';
     let showPlain = true;
     const allViewFields = { symbol: false, name: true, original: false, plain: false };
@@ -397,6 +439,16 @@
     let orderQuestionStats = loadOrderQuestionStats();
     let orderRecentQuestions = loadOrderRecentQuestions();
     let showOrderSymbols = true;
+    const englishStatsStorageKey = 'iching-english-stats-v1';
+    const englishQuestionStatsStorageKey = 'iching-english-question-stats-v1';
+    let englishStats = loadEnglishStats();
+    let englishQuestionStats = loadEnglishQuestionStats();
+    let englishDeck = [];
+    let englishDeckPosition = 0;
+    let englishCurrentIndex = null;
+    let englishOptions = [];
+    let englishAnswered = false;
+    let englishSelectedIndex = null;
     let touchStartX = null;
     let touchStartY = null;
 
@@ -405,6 +457,7 @@
       const controls = document.querySelector('.controls');
       controls.classList.toggle('flash-focus', currentMode === 'flash');
       controls.classList.toggle('all-focus', currentMode === 'all');
+      controls.classList.toggle('english-focus', currentMode === 'english');
     }
     function scrollTopNow() {
       window.scrollTo(0, 0);
@@ -478,6 +531,29 @@
           const resultBottom = result.getBoundingClientRect().bottom;
           const safeBottom = window.innerHeight - 18;
           if (resultBottom > safeBottom) window.scrollBy({ top: resultBottom - safeBottom, behavior: 'smooth' });
+        }, 450);
+      }));
+    }
+    function alignEnglishCard() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const card = englishScreen.querySelector('.english-card');
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        setTimeout(() => {
+          const cardTop = card.getBoundingClientRect().top;
+          window.scrollBy({ top: cardTop - 8, behavior: 'smooth' });
+        }, 450);
+      }));
+    }
+    function alignEnglishResult() {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const nextButton = englishScreen.querySelector('.english-next');
+        if (!nextButton) return;
+        nextButton.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+        setTimeout(() => {
+          const bottom = nextButton.getBoundingClientRect().bottom;
+          const safeBottom = window.innerHeight - 18;
+          if (bottom > safeBottom) window.scrollBy({ top: bottom - safeBottom, behavior: 'smooth' });
         }, 450);
       }));
     }
@@ -727,6 +803,82 @@
       renderOrder();
       if (shouldAlign) alignOrderCard();
     }
+    function loadEnglishStats() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(englishStatsStorageKey) || '{}');
+        return {
+          attempts: Math.max(0, Number(saved.attempts) || 0),
+          correct: Math.max(0, Number(saved.correct) || 0),
+          wrong: Math.max(0, Number(saved.wrong) || 0)
+        };
+      } catch {
+        return { attempts: 0, correct: 0, wrong: 0 };
+      }
+    }
+    function loadEnglishQuestionStats() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(englishQuestionStatsStorageKey) || '{}');
+        return Object.fromEntries(Object.entries(saved).filter(([key]) => /^(?:[0-9]|[1-5][0-9]|6[0-3])$/.test(key)).map(([key, value]) => [key, {
+          attempts: Math.max(0, Number(value?.attempts) || 0),
+          correct: Math.max(0, Number(value?.correct) || 0),
+          wrong: Math.max(0, Number(value?.wrong) || 0)
+        }]));
+      } catch {
+        return {};
+      }
+    }
+    function saveEnglishStats() {
+      localStorage.setItem(englishStatsStorageKey, JSON.stringify(englishStats));
+      localStorage.setItem(englishQuestionStatsStorageKey, JSON.stringify(englishQuestionStats));
+    }
+    function refillEnglishDeck() {
+      const previous = englishCurrentIndex;
+      englishDeck = shuffled(Array.from({ length: 64 }, (_, i) => i));
+      if (previous !== null && englishDeck[0] === previous) {
+        [englishDeck[0], englishDeck[1]] = [englishDeck[1], englishDeck[0]];
+      }
+      englishDeckPosition = 0;
+    }
+    function newEnglishQuestion() {
+      if (englishDeckPosition >= englishDeck.length) refillEnglishDeck();
+      englishCurrentIndex = englishDeck[englishDeckPosition++];
+      let distractor;
+      do { distractor = secureRandomInt(64); } while (distractor === englishCurrentIndex);
+      englishOptions = secureRandomInt(2) === 0
+        ? [englishCurrentIndex, distractor]
+        : [distractor, englishCurrentIndex];
+      englishAnswered = false;
+      englishSelectedIndex = null;
+    }
+    function recordEnglishAnswer(correct) {
+      englishStats.attempts += 1;
+      englishStats[correct ? 'correct' : 'wrong'] += 1;
+      const stats = englishQuestionStats[englishCurrentIndex] || { attempts: 0, correct: 0, wrong: 0 };
+      stats.attempts += 1;
+      stats[correct ? 'correct' : 'wrong'] += 1;
+      englishQuestionStats[englishCurrentIndex] = stats;
+      saveEnglishStats();
+    }
+    function renderEnglish() {
+      const item = hexagrams[englishCurrentIndex];
+      const questionStats = englishQuestionStats[englishCurrentIndex] || { attempts: 0, correct: 0, wrong: 0 };
+      const correct = englishAnswered && englishSelectedIndex === englishCurrentIndex;
+      const feedback = !englishAnswered
+        ? '請選擇正確的英文卦名'
+        : correct
+          ? `答對！${item.name} = ${englishTitles[englishCurrentIndex]}`
+          : `答錯。正確答案是 ${englishTitles[englishCurrentIndex]}`;
+      englishScreen.innerHTML = `<article class="english-card"><div class="english-stats"><div class="english-stat">作答<strong>${englishStats.attempts}</strong></div><div class="english-stat">答對<strong>${englishStats.correct}</strong></div><div class="english-stat">答錯<strong>${englishStats.wrong}</strong></div></div><div class="english-prompt"><span class="hex-symbol" aria-hidden="true">${item.symbol}</span><h2 class="english-chinese-name">${item.name}</h2><p class="english-question">這一卦的英文名稱是？</p><p class="english-seen">本卦已練 ${questionStats.attempts} 次</p></div><div class="english-options">${englishOptions.map(index => { const isCorrect = englishAnswered && index === englishCurrentIndex; const isWrong = englishAnswered && index === englishSelectedIndex && index !== englishCurrentIndex; return `<button class="english-option${isCorrect ? ' correct' : ''}${isWrong ? ' wrong' : ''}" type="button" data-english-index="${index}" ${englishAnswered ? 'disabled' : ''}>${englishTitles[index]}</button>`; }).join('')}</div><div class="english-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><button class="english-next" type="button" data-english-action="next" ${englishAnswered ? '' : 'disabled'}>下一題</button></article>`;
+    }
+    function showEnglish(newQuestion = true) {
+      currentMode = 'english';
+      if (newQuestion || englishCurrentIndex === null) newEnglishQuestion();
+      hideScreens();
+      englishScreen.hidden = false;
+      setActive('english');
+      renderEnglish();
+      alignEnglishCard();
+    }
     function showFlash(newDeck = false) {
       currentMode = 'flash';
       if (newDeck || deck.length === 0) shuffleDeck();
@@ -840,12 +992,14 @@
       document.documentElement.style.setProperty('--scale', scales[scaleIndex]);
       try { localStorage.setItem(scaleStorageKey, String(scaleIndex)); } catch (_) {}
       if (currentMode === 'order' && !orderScreen.hidden) alignOrderCard();
+      if (currentMode === 'english' && !englishScreen.hidden) alignEnglishCard();
     }
 
     document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
       const mode = button.dataset.mode;
       if (mode === 'flash') showFlash(true);
       else if (mode === 'order') showOrder(true);
+      else if (mode === 'english') showEnglish(true);
       else showList(mode);
     }));
     document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
@@ -906,6 +1060,21 @@
         renderOrder();
       } else if (action?.dataset.orderAction === 'next') {
         showOrder(true, orderLengthMode !== '2');
+      }
+    });
+    englishScreen.addEventListener('click', event => {
+      const option = event.target.closest('[data-english-index]');
+      const action = event.target.closest('[data-english-action]');
+      if (option && !englishAnswered) {
+        englishSelectedIndex = Number(option.dataset.englishIndex);
+        englishAnswered = true;
+        recordEnglishAnswer(englishSelectedIndex === englishCurrentIndex);
+        renderEnglish();
+        alignEnglishResult();
+      } else if (action?.dataset.englishAction === 'next' && englishAnswered) {
+        newEnglishQuestion();
+        renderEnglish();
+        alignEnglishCard();
       }
     });
     singleScreen.addEventListener('touchstart', event => {
