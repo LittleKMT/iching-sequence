@@ -590,11 +590,11 @@
       const content = expanded ? `<div class="all-overview-head">${symbol}${name}</div>${original}${plain}` : `${symbol}${name}`;
       return `<article class="all-overview-card${expanded ? ' expanded' : ''}" data-all-card="${i}" role="button" tabindex="0" aria-label="${item.name}${nextLabel ? `，點一下${nextLabel}` : canCollapse ? '，點一下收回' : ''}">${content}</article>`;
     }
-    function allOverviewMarkup() {
+    function allOverviewMarkup(start = 0, end = 64, title = '六十四卦排列') {
       const withText = allViewFields.original || allViewFields.plain;
       const options = allViewChoices.map(choice => `<button type="button" data-all-field="${choice.key}" class="${allViewFields[choice.key] ? 'active' : ''}" aria-pressed="${allViewFields[choice.key]}">${choice.label}</button>`).join('');
-      const cards = hexagrams.map((item, i) => allOverviewCardMarkup(item, i)).join('');
-      return `<h2 class="section-title">六十四卦排列</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>`;
+      const cards = hexagrams.slice(start, end).map((item, offset) => allOverviewCardMarkup(item, start + offset)).join('');
+      return `<h2 class="section-title">${title}</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>`;
     }
     function revealNextAllCard(i) {
       const fields = allCardFields(i);
@@ -614,15 +614,15 @@
       hideScreens();
       listScreen.hidden = false;
       setActive(mode);
-      if (mode === 'all') {
-        listScreen.innerHTML = allOverviewMarkup();
+      if (mode === 'all' || mode === 'upper' || mode === 'lower') {
+        const start = mode === 'lower' ? 30 : 0;
+        const end = mode === 'upper' ? 30 : 64;
+        const title = mode === 'upper' ? '上經・卦名排列' : mode === 'lower' ? '下經・卦名排列' : '六十四卦排列';
+        listScreen.innerHTML = allOverviewMarkup(start, end, title);
         if (shouldScroll) scrollTopNow();
         return;
       }
-      const start = mode === 'lower' ? 30 : 0;
-      const end = mode === 'upper' ? 30 : 64;
-      const title = mode === 'upper' ? '上經・第一至三十卦' : mode === 'lower' ? '下經・第三十一至六十四卦' : '六十四卦原文與白話';
-      listScreen.innerHTML = `<h2 class="section-title">${title}</h2><div class="study-list">${hexagrams.slice(start, end).map((item, offset) => studyMarkup(item, start + offset)).join('')}</div>`;
+      listScreen.innerHTML = `<h2 class="section-title">六十四卦原文與白話</h2><div class="study-list">${hexagrams.map((item, i) => studyMarkup(item, i)).join('')}</div>`;
       if (shouldScroll) scrollTopNow();
     }
     function showPicker(shouldScroll = true) {
@@ -1064,19 +1064,19 @@
     listScreen.addEventListener('click', event => {
       const button = event.target.closest('[data-all-field]');
       const card = event.target.closest('[data-all-card]');
-      if (currentMode !== 'all') return;
+      if (!['all', 'upper', 'lower'].includes(currentMode)) return;
       if (button) {
         const key = button.dataset.allField;
         const selectedCount = Object.values(allViewFields).filter(Boolean).length;
         if (allViewFields[key] && selectedCount === 1) return;
         allViewFields[key] = !allViewFields[key];
         allCardReveals.clear();
-        showList('all', false);
+        showList(currentMode, false);
       } else if (card) revealNextAllCard(Number(card.dataset.allCard));
     });
     listScreen.addEventListener('keydown', event => {
       const card = event.target.closest('[data-all-card]');
-      if (!card || currentMode !== 'all' || (event.key !== 'Enter' && event.key !== ' ')) return;
+      if (!card || !['all', 'upper', 'lower'].includes(currentMode) || (event.key !== 'Enter' && event.key !== ' ')) return;
       event.preventDefault();
       revealNextAllCard(Number(card.dataset.allCard));
     });
