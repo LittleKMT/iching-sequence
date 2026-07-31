@@ -49,7 +49,7 @@
     .all-overview-grid.with-text .all-overview-card, .all-overview-card.expanded { grid-column: 1 / -1; min-height: 0; display: block; padding: 12px; text-align: left; }
     .all-overview-grid.with-text .all-overview-head, .all-overview-card.expanded .all-overview-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
     .all-overview-grid.with-text .all-overview-symbol, .all-overview-card.expanded .all-overview-symbol { margin: 0; font-size: calc(2.25rem * var(--scale)); }
-    .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(.95rem * var(--scale)); line-height: 1.55; }
+    .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(1.06rem * var(--scale)); line-height: 1.55; overflow-wrap: anywhere; }
     .all-overview-copy .label { margin-bottom: 2px; }
     .all-overview-copy p { margin: 0; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
@@ -420,8 +420,8 @@
       { key: 'original', label: '序文' },
       { key: 'plain', label: '白話' }
     ];
-    let scaleIndex = 2;
-    const scales = [.86, 1, 1.32];
+    let scaleIndex = 3;
+    const scales = [.86, 1, 1.32, 1.55];
     const scaleStorageKey = 'iching-scale-v2';
     let deck = [];
     let deckPosition = 0;
@@ -1161,7 +1161,7 @@
       completeStudySwipe(event.clientX, event.clientY);
     });
     singleScreen.addEventListener('pointercancel', () => { touchStartX = null; touchStartY = null; });
-    try { const saved = localStorage.getItem(scaleStorageKey); if (saved !== null && ['0','1','2'].includes(saved)) scaleIndex = Number(saved); } catch (_) {}
+    try { const saved = localStorage.getItem(scaleStorageKey); if (saved !== null && ['0','1','2','3'].includes(saved)) scaleIndex = Number(saved); } catch (_) {}
     updateScale();
     updatePlain();
     showList('all', false);
