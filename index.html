@@ -128,6 +128,11 @@
     .order-length-control { display: grid; grid-template-columns: 1.35fr repeat(5, 1fr); gap: 4px; margin: 0 0 8px; }
     .order-length-control button { min-width: 0; min-height: 38px; padding: 4px 1px; border: 1px solid #b8c3ba; border-radius: 10px; background: #fff; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 850; white-space: nowrap; }
     .order-length-control button.active { border-color: var(--green); background: var(--green); color: #fff; }
+    .order-practice-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 6px; margin: 0 0 8px; }
+    .order-stats { min-width: 0; display: grid; align-content: center; gap: 1px; padding: 5px 8px; border-radius: 10px; background: #edf4ee; color: #526056; font-size: calc(.72rem * var(--scale)); font-weight: 800; line-height: 1.15; text-align: left; }
+    .order-stats strong { color: var(--green); font-size: calc(.78rem * var(--scale)); }
+    .order-enhance { min-width: 88px; min-height: 42px; padding: 5px 8px; border: 1px solid var(--green); border-radius: 10px; background: #fff; color: var(--green); font-size: calc(.76rem * var(--scale)); font-weight: 850; line-height: 1.1; white-space: nowrap; }
+    .order-enhance.active { color: #fff; background: var(--green); }
     .order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .order-choice { position: relative; min-height: 64px; padding: 9px 8px; display: grid; place-items: center; align-content: center; border: 2px solid #b8c3ba; border-radius: 15px; background: #fff; color: var(--green); font-weight: 850; overflow: hidden; }
     .order-choice.with-symbol { min-height: 128px; padding-top: 5px; padding-bottom: 8px; }
@@ -382,7 +387,11 @@
     let orderSelections = [];
     let orderStartRegionDeck = [];
     let orderTwoChoiceOrientationDeck = [];
-    let orderLengthMode = 'random';
+    let orderLengthMode = '3';
+    const orderStatsStorageKey = 'iching-order-stats-v1';
+    const orderEnhancedStorageKey = 'iching-order-enhanced-v1';
+    let orderStats = loadOrderStats();
+    let orderEnhanced = loadOrderEnhanced();
     let showOrderSymbols = true;
     let touchStartX = null;
     let touchStartY = null;
@@ -589,14 +598,65 @@
       }
       return orderTwoChoiceOrientationDeck.pop() ? [...items] : [items[1], items[0]];
     }
+    function loadOrderStats() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(orderStatsStorageKey) || '{}');
+        return Object.fromEntries([2, 3, 4, 5, 6].map(length => {
+          const value = saved[length] || {};
+          return [length, {
+            attempts: Math.max(0, Number(value.attempts) || 0),
+            correct: Math.max(0, Number(value.correct) || 0),
+            wrong: Math.max(0, Number(value.wrong) || 0)
+          }];
+        }));
+      } catch {
+        return Object.fromEntries([2, 3, 4, 5, 6].map(length => [length, { attempts: 0, correct: 0, wrong: 0 }]));
+      }
+    }
+    function loadOrderEnhanced() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(orderEnhancedStorageKey) || '[]');
+        return new Set(Array.isArray(saved) ? saved.filter(key => /^([2-6]):([0-9]|[1-5][0-9]|6[0-2])$/.test(key)) : []);
+      } catch {
+        return new Set();
+      }
+    }
+    function saveOrderStats() {
+      localStorage.setItem(orderStatsStorageKey, JSON.stringify(orderStats));
+    }
+    function saveOrderEnhanced() {
+      localStorage.setItem(orderEnhancedStorageKey, JSON.stringify([...orderEnhanced]));
+    }
+    function currentOrderKey() {
+      return orderSequence.length ? `${orderSequence.length}:${orderSequence[0]}` : '';
+    }
+    function recordOrderAttempt(correct) {
+      const length = orderSequence.length;
+      const stats = orderStats[length];
+      if (!stats) return;
+      stats.attempts += 1;
+      stats[correct ? 'correct' : 'wrong'] += 1;
+      saveOrderStats();
+    }
+    function enhancedOrderStart(length) {
+      const starts = [...orderEnhanced]
+        .map(key => key.split(':').map(Number))
+        .filter(([savedLength, start]) => savedLength === length && start >= 0 && start <= 64 - length)
+        .map(([, start]) => start);
+      if (starts.length === 0 || secureRandomInt(100) >= 40) return null;
+      return starts[secureRandomInt(starts.length)];
+    }
     function newOrderQuestion() {
-      if (orderStartRegionDeck.length === 0) refillOrderStartRegionDeck();
       const length = orderLengthMode === 'random' ? 2 + secureRandomInt(5) : Number(orderLengthMode);
-      const possibleStarts = 65 - length;
-      const region = orderStartRegionDeck.pop();
-      const regionStart = Math.floor(region * possibleStarts / 4);
-      const regionEnd = Math.floor((region + 1) * possibleStarts / 4);
-      const start = regionStart + secureRandomInt(regionEnd - regionStart);
+      let start = enhancedOrderStart(length);
+      if (start === null) {
+        if (orderStartRegionDeck.length === 0) refillOrderStartRegionDeck();
+        const possibleStarts = 65 - length;
+        const region = orderStartRegionDeck.pop();
+        const regionStart = Math.floor(region * possibleStarts / 4);
+        const regionEnd = Math.floor((region + 1) * possibleStarts / 4);
+        start = regionStart + secureRandomInt(regionEnd - regionStart);
+      }
       orderSequence = Array.from({ length }, (_, i) => start + i);
       orderChoices = orderChoiceShuffle(orderSequence);
       orderSelections = [];
@@ -611,7 +671,9 @@
           ? '順序不對，請取消後重新調整。'
           : orderSelections.length === 0 ? '依正確順序逐一點選' : '再點一次已選卦，即可取消並重新編號';
       const lengthChoices = [{ value: 'random', label: '隨機' }, ...[2, 3, 4, 5, 6].map(value => ({ value: String(value), label: String(value) }))];
-      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-length-control" aria-label="選擇排序題數">${lengthChoices.map(choice => `<button class="${orderLengthMode === choice.value ? 'active' : ''}" type="button" data-order-length="${choice.value}" aria-pressed="${orderLengthMode === choice.value}">${choice.label}</button>`).join('')}</div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
+      const stats = orderStats[orderSequence.length] || { attempts: 0, correct: 0, wrong: 0 };
+      const enhanced = orderEnhanced.has(currentOrderKey());
+      orderScreen.innerHTML = `<article class="order-card"><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-length-control" aria-label="選擇排序題數">${lengthChoices.map(choice => `<button class="${orderLengthMode === choice.value ? 'active' : ''}" type="button" data-order-length="${choice.value}" aria-pressed="${orderLengthMode === choice.value}">${choice.label}</button>`).join('')}</div><div class="order-practice-row"><div class="order-stats"><strong>${orderSequence.length}卦統計</strong><span>作答 ${stats.attempts}　答對 ${stats.correct}　答錯 ${stats.wrong}</span></div><button class="order-enhance${enhanced ? ' active' : ''}" type="button" data-order-action="enhance" aria-pressed="${enhanced}">${enhanced ? '已增強' : '增強練習'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
     }
     function showOrder(newQuestion = true, shouldAlign = true) {
       currentMode = 'order';
@@ -781,6 +843,7 @@
         if (selectedPosition >= 0) orderSelections.splice(selectedPosition, 1);
         else if (orderSelections.length < orderSequence.length) orderSelections.push(index);
         const completedOrder = orderSelections.length === orderSequence.length;
+        if (completedOrder) recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
         renderOrder();
         if (completedOrder && orderLengthMode !== '2') alignOrderResult();
       } else if (lengthChoice) {
@@ -791,6 +854,12 @@
         renderOrder();
       } else if (action?.dataset.orderAction === 'symbols') {
         showOrderSymbols = !showOrderSymbols;
+        renderOrder();
+      } else if (action?.dataset.orderAction === 'enhance') {
+        const key = currentOrderKey();
+        if (orderEnhanced.has(key)) orderEnhanced.delete(key);
+        else orderEnhanced.add(key);
+        saveOrderEnhanced();
         renderOrder();
       } else if (action?.dataset.orderAction === 'next') {
         showOrder(true, orderLengthMode !== '2');
