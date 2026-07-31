@@ -46,6 +46,7 @@
     .all-overview-card[role="button"]:focus-visible { outline: 3px solid #78a889; outline-offset: 2px; }
     .all-overview-symbol { margin: 1px 0; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", serif; font-size: calc(2.8rem * var(--scale)); font-weight: 800; line-height: .95; }
     .all-overview-name { display: block; max-width: 100%; font-size: min(calc(1.95rem * var(--scale)), 2.25rem); font-weight: 900; line-height: 1.05; letter-spacing: -.1em; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+    .all-overview-name.single { font-size: min(calc(2.7rem * var(--scale)), 3.25rem); letter-spacing: 0; }
     .all-overview-grid.with-text .all-overview-card, .all-overview-card.expanded { grid-column: 1 / -1; min-height: 0; display: block; padding: 12px; text-align: left; }
     .all-overview-grid.with-text .all-overview-head, .all-overview-card.expanded .all-overview-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
     .all-overview-grid.with-text .all-overview-symbol, .all-overview-card.expanded .all-overview-symbol { margin: 0; font-size: calc(2.25rem * var(--scale)); }
@@ -580,7 +581,7 @@
     function allOverviewCardMarkup(item, i) {
       const fields = allCardFields(i);
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
-      const name = fields.name ? `<span class="all-overview-name">${item.name}</span>` : '';
+      const name = fields.name ? `<span class="all-overview-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
       const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話</div><p>${item.plain}</p></div>` : '';
       const expanded = fields.original || fields.plain;
