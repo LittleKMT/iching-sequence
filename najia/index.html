@@ -416,7 +416,7 @@
       const choices=item.choices.map(index=>showSymbol?`<button class="hex-speed-choice" data-hex-speed-choice="${index}">${names[index]}</button>`:`<button class="hex-speed-choice symbol" data-hex-speed-choice="${index}" aria-label="${names[index]}卦象">${hexMarkup(records[index].bits)}</button>`).join('');
       trigramScreen.innerHTML=`<article class="card speed-card"><div class="speed-top"><span>${gameLabel}・${hexSpeedPractice==='weak'?'加強':''}</span><span><strong>${hexSpeedPosition+1}</strong> / ${total}</span><span>連對 <strong>${hexSpeedStreak}</strong></span></div><div class="speed-progress"><span style="width:${progress}%"></span></div><div class="speed-question">${question}</div>${prompt}<div class="hex-speed-choices">${choices}</div><div class="speed-feedback" id="speed-feedback" aria-live="polite"></div><button class="speed-restart" id="speed-restart">重新開始</button></article>`;
       document.querySelectorAll('[data-hex-speed-choice]').forEach(button=>button.onclick=()=>answerHexSpeed(Number(button.dataset.hexSpeedChoice)));
-      document.getElementById('speed-restart').onclick=startHexSpeedGame;
+      document.getElementById('speed-restart').onclick=()=>startHexSpeedGame(hexSpeedMode,hexSpeedPractice);
       hexSpeedQuestionStart=Date.now();
       if(hexSpeedPosition===0)alignCard(trigramScreen)
     }
