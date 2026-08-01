@@ -616,7 +616,7 @@
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
       const name = fields.name ? `<span class="all-overview-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
-      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（傅佩榮）</div><p>${item.plain}</p><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片｜${masterOverviewRefs[i]}</div></div>` : '';
+      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="label">白話（傅佩榮）</div><p>${item.plain}</p><div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片｜${masterOverviewRefs[i]}</div></div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
       const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
