@@ -23,6 +23,7 @@
     .controls.flash-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.all-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
+    .controls.order-focus { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
     .control-row.six { grid-template-columns: repeat(6, 1fr); }
@@ -467,6 +468,7 @@
       controls.classList.toggle('flash-focus', currentMode === 'flash');
       controls.classList.toggle('all-focus', currentMode === 'all');
       controls.classList.toggle('english-focus', currentMode === 'english');
+      controls.classList.toggle('order-focus', currentMode === 'order');
     }
     function scrollTopNow() {
       window.scrollTo(0, 0);
