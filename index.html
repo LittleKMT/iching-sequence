@@ -405,17 +405,7 @@
       '四處往來如風，行動與影響擴散。', '往來見聞增加，言語增多，須防誇說。', '言多而實行不足，人心與力量容易渙散。', '渙散後要建立節制、界線與規範。',
       '節制之後以誠信為核心；不踏實便失信。', '失信後進入小幅過渡，如獨自過橋。', '經過危險後暫告完成，仍須檢討智慧。', '完成並非終點，未濟表示重新開始新循環。'
     ];
-    const masterOverviewRefs = [
-      ...Array.from({ length: 14 }, (_, i) => `第51講；逐卦詳講第${95 + i * 2}–${96 + i * 2}講`),
-      ...Array.from({ length: 8 }, (_, i) => `第51講；逐卦詳講第${123 + i * 2}–${124 + i * 2}講`),
-      '第51–52講；逐卦詳講第139–140講',
-      ...Array.from({ length: 4 }, (_, i) => `第52講；逐卦詳講第${141 + i * 2}–${142 + i * 2}講`),
-      ...Array.from({ length: 13 }, (_, i) => `第52講；逐卦詳講第${149 + i * 2}–${150 + i * 2}講`),
-      ...Array.from({ length: 10 }, (_, i) => `第52講；逐卦詳講第${175 + i * 2}–${176 + i * 2}講`),
-      ...Array.from({ length: 3 }, (_, i) => `第52講；逐卦詳講第${213 + i * 2}–${214 + i * 2}講`),
-      ...Array.from({ length: 11 }, (_, i) => `第52講；逐卦詳講第${219 + i * 2}–${220 + i * 2}講`)
-    ];
-    if (masterPlains.length !== 64 || masterOverviewRefs.length !== 64) throw new Error('混元禪師白話資料不完整');
+    if (masterPlains.length !== 64) throw new Error('混元禪師白話資料不完整');
     const hexagrams = names.map((name, i) => ({ name, symbol: String.fromCodePoint(0x4dc0 + i), original: originals[i], plain: plains[i] }));
     const trigrams = [
       { name: '乾', symbol: '☰' }, { name: '兌', symbol: '☱' },
@@ -616,7 +606,7 @@
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
       const name = fields.name ? `<span class="all-overview-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
-      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="label">白話（傅佩榮）</div><p>${item.plain}</p><div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片｜${masterOverviewRefs[i]}</div></div>` : '';
+      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="label">白話（傅佩榮）</div><p>${item.plain}</p></div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
       const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
@@ -627,7 +617,8 @@
       const withText = allViewFields.original || allViewFields.plain;
       const options = allViewChoices.map(choice => `<button type="button" data-all-field="${choice.key}" class="${allViewFields[choice.key] ? 'active' : ''}" aria-pressed="${allViewFields[choice.key]}">${choice.label}</button>`).join('');
       const cards = hexagrams.slice(start, end).map((item, offset) => allOverviewCardMarkup(item, start + offset)).join('');
-      return `<h2 class="section-title">${title}</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>`;
+      const reference = start === 0 && end === 64 ? `<div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片（序卦傳白話研究）</div>` : '';
+      return `<h2 class="section-title">${title}</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>${reference}`;
     }
     function revealNextAllCard(i) {
       const fields = allCardFields(i);
