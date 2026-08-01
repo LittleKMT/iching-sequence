@@ -54,6 +54,7 @@
     .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(1.06rem * var(--scale)); line-height: 1.55; overflow-wrap: anywhere; }
     .all-overview-copy .label { margin-bottom: 2px; }
     .all-overview-copy p { margin: 0; }
+    .all-overview-reference { margin-top: 9px; padding-top: 6px; border-top: 1px solid #e1e8e1; color: #6b776e; font-size: calc(.78rem * var(--scale)); line-height: 1.4; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card, .english-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
@@ -385,6 +386,36 @@
       '能超過其他事物的人一定可以辦事成功，所以接著是既濟卦。',
       '事物發展不可能窮盡，所以接著是未濟卦，然後六十四卦結束。'
     ];
+    // 混元禪師《易經心法講座》對序卦傳的總覽層研究整理（保留傅佩榮版本，另列於白話欄下方）。
+    const masterPlains = [
+      '天地運行的起點，代表天與主動創生。', '大地承載包容，與乾共同構成天地。', '天地既立，萬物與事業開始萌發。', '初生階段經驗不足，思想仍在蒙昧學習。',
+      '生存發展產生等待、資源與滋養需求。', '各人爭取所需，遂形成爭執訴訟。', '爭訟擴大後，人群結隊並形成對抗。', '對抗之中又需互相依靠、結盟與比較。',
+      '結盟後開始累積少量資源和力量。', '小有成就後要謹慎有禮，守住成果。', '能謹慎有禮，內外通達，事情順遂。', '過度安泰使人自滿閉塞，轉為不通。',
+      '不通後回到群體，檢討自己並與人合作。', '改過再努力，形成第二次較大的成就。', '再次成功後更需謙虛，避免重蹈覆轍。', '謙虛使人重新獲得支持，進入順遂。',
+      '順遂後跟隨者增加，也要防止盲從。', '只顧外表與追隨，內部可能腐敗失實。', '發現內部問題後，需居高觀察並自省。', '自己成為他人觀看、評論和效法的對象。',
+      '評論增多，口舌衝突與裁決問題出現。', '面對合作與稱讚，須辨別文飾和實質。', '只重表面而根基不實，終會剝落下墜。', '剝落之後重新返回起點，再次開始。',
+      '重起時要守正、去妄，恢復行動魄力。', '力量已大時應積蓄、警覺並適可而止。', '成就後應養賢、求智慧，並以言語利益他人。', '計畫或負荷超過實際能力，容易失衡。',
+      '過度而不踏實，便再次陷入險境。', '陷險後須離開錯誤、躁進與不實觀念。', '去錯之後重新感應、互通，開始恢復。', '恢復需要長久持續，不可急於求成。',
+      '形勢不宜前進時，須退避保存自己。', '力量壯盛時尤其不可逞強與自誇。', '真正的進步應逐步前進，避免躁進。', '前進過頭或時勢不利，光明受到傷害。',
+      '在外受挫後回到家庭與內部秩序。', '情緒與立場不合，使家人彼此乖離。', '乖離之後道路艱難，如跛足而行。', '要解除困境，先鬆解並改正舊觀念。',
+      '改過需要減損錯誤、欲望與不當負擔。', '減去錯誤後，才逐漸產生真正增益。', '增益後若急切決斷失度，可能再度崩解。', '崩解後出現新的相遇與外來助力。',
+      '遇到助力後，聚集志同道合的人。', '人才與力量聚集，事情重新上升。', '上升過程仍會受限，陷入新的困境。', '困境中需建立長久可用的秩序與方法。',
+      '舊方法不能再用時，必須真正改革。', '改革後建立新的制度、規範與承載。', '新秩序發動，如雷震起，帶來警醒與行動。', '發動之後要知止，保持如山安定。',
+      '安定後循序漸進，不可求快。', '總覽把它說成回到原來歷程；完整義理須另讀逐卦詳講。', '漸進後成果豐盛，但盛大亦需警惕。', '豐盛後又外出奔走，進入旅居不安。',
+      '四處往來如風，行動與影響擴散。', '往來見聞增加，言語增多，須防誇說。', '言多而實行不足，人心與力量容易渙散。', '渙散後要建立節制、界線與規範。',
+      '節制之後以誠信為核心；不踏實便失信。', '失信後進入小幅過渡，如獨自過橋。', '經過危險後暫告完成，仍須檢討智慧。', '完成並非終點，未濟表示重新開始新循環。'
+    ];
+    const masterOverviewRefs = [
+      ...Array.from({ length: 14 }, (_, i) => `第51講；逐卦詳講第${95 + i * 2}–${96 + i * 2}講`),
+      ...Array.from({ length: 8 }, (_, i) => `第51講；逐卦詳講第${123 + i * 2}–${124 + i * 2}講`),
+      '第51–52講；逐卦詳講第139–140講',
+      ...Array.from({ length: 4 }, (_, i) => `第52講；逐卦詳講第${141 + i * 2}–${142 + i * 2}講`),
+      ...Array.from({ length: 13 }, (_, i) => `第52講；逐卦詳講第${149 + i * 2}–${150 + i * 2}講`),
+      ...Array.from({ length: 10 }, (_, i) => `第52講；逐卦詳講第${175 + i * 2}–${176 + i * 2}講`),
+      ...Array.from({ length: 3 }, (_, i) => `第52講；逐卦詳講第${213 + i * 2}–${214 + i * 2}講`),
+      ...Array.from({ length: 11 }, (_, i) => `第52講；逐卦詳講第${219 + i * 2}–${220 + i * 2}講`)
+    ];
+    if (masterPlains.length !== 64 || masterOverviewRefs.length !== 64) throw new Error('混元禪師白話資料不完整');
     const hexagrams = names.map((name, i) => ({ name, symbol: String.fromCodePoint(0x4dc0 + i), original: originals[i], plain: plains[i] }));
     const trigrams = [
       { name: '乾', symbol: '☰' }, { name: '兌', symbol: '☱' },
@@ -585,7 +616,7 @@
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
       const name = fields.name ? `<span class="all-overview-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
-      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話</div><p>${item.plain}</p></div>` : '';
+      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（傅佩榮）</div><p>${item.plain}</p><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片｜${masterOverviewRefs[i]}</div></div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
       const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
