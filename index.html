@@ -24,6 +24,7 @@
     .controls.all-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.order-focus { display: none; }
+    .controls.query-focus { display: none; }
     .controls:not(.flash-focus) .flash-only-row { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
@@ -70,6 +71,7 @@
     .query-lecture-title { margin: 0 0 8px; color: var(--green); font-size: calc(1.05rem * var(--scale)); font-weight: 900; }
     .query-lecture-episodes { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
     .query-lecture-episodes a { display: inline-flex; align-items: center; min-height: 38px; padding: 6px 10px; border: 1px solid var(--green); border-radius: 10px; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 800; text-decoration: none; }
+    .query-lecture-hint { margin: 0; color: #617064; font-size: calc(.82rem * var(--scale)); line-height: 1.45; }
     .query-lecture-yao { margin: 7px 0; border: 1px solid #d5ded6; border-radius: 10px; background: #f8faf8; overflow: hidden; }
     .query-lecture-yao summary { cursor: pointer; padding: 10px 11px; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 850; }
     .query-lecture-text { margin: 0; padding: 0 11px 11px; color: #26352b; font-size: calc(.86rem * var(--scale)); line-height: 1.6; white-space: pre-wrap; }
@@ -85,6 +87,10 @@
     .query-meaning { margin: 0 0 10px; color: #526056; font-size: calc(.94rem * var(--scale)); line-height: 1.5; }
     .query-yao-list { display: grid; gap: 6px; }
     .query-yao-row { padding: 8px 9px; border-radius: 10px; background: #f3f7f3; color: #26352b; font-size: calc(.94rem * var(--scale)); line-height: 1.55; }
+    .query-yao-row summary { cursor: pointer; list-style: none; }
+    .query-yao-row summary::-webkit-details-marker { display: none; }
+    .query-yao-row[open] { background: #eef5ef; }
+    .query-yao-transcript { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid #d5ded6; color: #26352b; font-size: calc(.86rem * var(--scale)); line-height: 1.6; white-space: pre-wrap; }
     .query-yao-label { display: inline-block; min-width: 3.1em; margin-right: 5px; color: var(--green); font-weight: 900; }
     .query-detail-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 13px; }
     .query-detail-nav button, .query-back { min-height: 44px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
@@ -531,6 +537,7 @@
       controls.classList.toggle('all-focus', currentMode === 'all');
       controls.classList.toggle('english-focus', currentMode === 'english');
       controls.classList.toggle('order-focus', currentMode === 'order');
+      controls.classList.toggle('query-focus', currentMode === 'query');
       const flashOnlyRow = controls.querySelector('.flash-only-row');
       if (flashOnlyRow) flashOnlyRow.hidden = currentMode !== 'flash';
     }
@@ -719,11 +726,7 @@
       const lecture = window.heartMindLectureData?.[String(selected.number)];
       if (!lecture) return '<p class="query-lecture-loading">正在載入易經心法講座逐字稿……</p>';
       const episodeLinks = (lecture.episodes || []).map(ep => `<a href="${escapeQueryHtml(ep.url)}" target="_blank" rel="noopener">第 ${ep.number} 集｜影片</a>`).join('');
-      const yaoDetails = (selected.yao || []).map(yao => {
-        const transcript = lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。';
-        return `<details class="query-lecture-yao"><summary>${escapeQueryHtml(yao.label)}｜查看講座逐字稿</summary><p class="query-lecture-text">${escapeQueryHtml(transcript)}</p></details>`;
-      }).join('');
-      return `<section class="query-lecture"><h4 class="query-lecture-title">易經心法講座・逐爻配對</h4><div class="query-lecture-episodes">${episodeLinks}</div>${yaoDetails}</section>`;
+      return `<section class="query-lecture"><h4 class="query-lecture-title">易經心法講座・逐爻配對</h4><div class="query-lecture-episodes">${episodeLinks}</div><p class="query-lecture-hint">點擊上方每一爻的解釋即可展開對應逐字稿。</p></section>`;
     }
     function renderQuery(term = '', selectedNumber = null) {
       const query = term.trim();
@@ -734,7 +737,14 @@
       if (selected) {
         const previous = data.hexagrams.find(item => item.number === selected.number - 1);
         const next = data.hexagrams.find(item => item.number === selected.number + 1);
-        const yaoRows = (selected.yao || []).map(yao => `<div class="query-yao-row"><span class="query-yao-label">${escapeQueryHtml(yao.label)}</span>${escapeQueryHtml(yao.text)}</div>`).join('');
+        const lecture = window.heartMindLectureData?.[String(selected.number)];
+        const yaoRows = (selected.yao || []).map(yao => {
+          const label = escapeQueryHtml(yao.label);
+          const explanation = escapeQueryHtml(yao.text);
+          if (!lecture) return `<div class="query-yao-row"><span class="query-yao-label">${label}</span>${explanation}</div>`;
+          const transcript = escapeQueryHtml(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。');
+          return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
+        }).join('');
         body = `<article class="query-detail"><h3 class="query-detail-title">第 ${selected.number} 卦｜${escapeQueryHtml(selected.name)}</h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}｜PDF 第 ${selected.page} 頁起</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<div class="query-detail-nav">${previous ? `<button type="button" data-query-number="${previous.number}">← 上一卦</button>` : '<span></span>'}${next ? `<button type="button" data-query-number="${next.number}">下一卦 →</button>` : '<span></span>'}</div><button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
       } else {
         const entries = normalized ? data.hexagrams.filter(item => `${item.name} ${item.text}`.toLocaleLowerCase().includes(normalized)) : data.hexagrams;
