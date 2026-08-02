@@ -86,6 +86,8 @@
     .quiz-choice.wrong { color: #fff; border-color: #b52d2d; background: #b52d2d; }
     .quiz-choice:disabled { opacity: 1; }
     .palace-choices .quiz-choice { min-height: 58px; font-size: calc(2rem * var(--scale)); }
+    .palace-choices.bagua-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: ". qian ." "dui . xun" "li . kan" "zhen . gen" ". kun ."; gap: 7px 10px; padding: 2px 0; }
+    .palace-choices.bagua-layout .quiz-choice { min-height: 48px; font-size: calc(1.65rem * var(--scale)); }
     .kin-choices { grid-template-columns: repeat(3, 1fr); }
     .kin-choices .quiz-choice { min-height: 56px; font-size: calc(1.72rem * var(--scale)); }
     .quiz-feedback { min-height: 1.8rem; margin: 7px 0 2px; font-size: calc(1.12rem * var(--scale)); font-weight: 950; }
@@ -231,13 +233,21 @@
     .speed-choices.bagua-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: ". qian ." "dui . xun" "li . kan" "zhen . gen" ". kun ."; gap: 7px 10px; padding: 2px 0; }
     .bagua-layout .speed-choice { min-height: 48px; font-size: calc(1.65rem * var(--scale)); }
     .bagua-layout [data-trigram-choice="乾"] { grid-area: qian; }
+    .bagua-layout [data-choice="乾"] { grid-area: qian; }
     .bagua-layout [data-trigram-choice="兌"] { grid-area: dui; }
+    .bagua-layout [data-choice="兌"] { grid-area: dui; }
     .bagua-layout [data-trigram-choice="巽"] { grid-area: xun; }
+    .bagua-layout [data-choice="巽"] { grid-area: xun; }
     .bagua-layout [data-trigram-choice="離"] { grid-area: li; }
+    .bagua-layout [data-choice="離"] { grid-area: li; }
     .bagua-layout [data-trigram-choice="坎"] { grid-area: kan; }
+    .bagua-layout [data-choice="坎"] { grid-area: kan; }
     .bagua-layout [data-trigram-choice="震"] { grid-area: zhen; }
+    .bagua-layout [data-choice="震"] { grid-area: zhen; }
     .bagua-layout [data-trigram-choice="艮"] { grid-area: gen; }
+    .bagua-layout [data-choice="艮"] { grid-area: gen; }
     .bagua-layout [data-trigram-choice="坤"] { grid-area: kun; }
+    .bagua-layout [data-choice="坤"] { grid-area: kun; }
     .speed-choice.correct { color: #fff; border-color: #19733e; background: #19733e; }
     .speed-choice.wrong { color: #fff; border-color: #b52d2d; background: #b52d2d; }
     .speed-choice:disabled { opacity: 1; }
@@ -525,7 +535,7 @@
       const answerTitle=isGeneration?`${generationLabel(r)}・${r.palace}宮`:isPalace?`${r.palace}宮・${r.holding}持世`:isWorldElement?`世爻 ${worldBranchElement}・${worldLine.element}行`:`${r.holding}持世・${lineName(r.world)}`;
       const answerNote=isWorldElement?`<div class="coordinate-note">${r.palace}宮（${r.element}）→ ${generationLabel(r)}，世在${lineName(r.world)}<br>${worldBranchElement} → ${sixKinRule(r.element,worldLine.element)} → ${r.holding}持世</div>`:'';
       const choices=isGeneration?generationChoices:isPalace?palaceChoices:isWorldElement?['木','火','土','金','水']:kinChoices;
-      const choiceClass=isPalace?'palace-choices':isGeneration?'':'kin-choices';
+      const choiceClass=isPalace?'palace-choices bagua-layout':isGeneration?'':'kin-choices';
       const choiceLabel=isGeneration?'幾世卦':isPalace?'八宮':isWorldElement?'世爻五行':'六親持世';
       const questionVisual=hexMarkup(r.bits);
       const answerHex='';
