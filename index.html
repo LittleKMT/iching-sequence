@@ -55,6 +55,16 @@
     .all-overview-copy .label { margin-bottom: 2px; }
     .all-overview-copy p { margin: 0; }
     .all-overview-reference { margin-top: 9px; padding-top: 6px; border-top: 1px solid #e1e8e1; color: #6b776e; font-size: calc(.78rem * var(--scale)); line-height: 1.4; }
+    .query-card { padding: 16px 14px 18px; }
+    .query-intro { margin: 0 0 12px; color: #526056; font-size: calc(.95rem * var(--scale)); line-height: 1.5; }
+    .query-form { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-bottom: 12px; }
+    .query-input { min-width: 0; min-height: 46px; padding: 8px 11px; border: 1px solid #b8c3ba; border-radius: 12px; background: #fff; color: var(--ink); font-size: calc(1rem * var(--scale)); }
+    .query-submit { min-height: 46px; padding: 7px 14px; border: 1px solid var(--green); border-radius: 12px; background: var(--green); color: #fff; font-size: calc(.95rem * var(--scale)); font-weight: 850; }
+    .query-result-count { margin: 4px 0 8px; color: #617064; font-size: calc(.84rem * var(--scale)); font-weight: 800; }
+    .query-result { margin-top: 8px; padding: 10px 11px; border: 1px solid #d5ded6; border-radius: 12px; background: #f8faf8; }
+    .query-result-title { color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 900; }
+    .query-result-page { margin-left: 5px; color: #6b776e; font-size: calc(.78rem * var(--scale)); font-weight: 700; }
+    .query-result-text { margin: 5px 0 0; color: #26352b; font-size: calc(.92rem * var(--scale)); line-height: 1.55; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card, .english-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
@@ -206,6 +216,9 @@
         <button class="control" data-mode="order">排序</button>
         <button class="control" data-mode="english">中英</button>
       </div>
+      <div class="control-row one">
+        <button class="control" data-mode="query">心法查詢</button>
+      </div>
       <div class="control-row three">
         <button class="control" id="font-down" aria-label="縮小文字">A−</button>
         <button class="control" id="font-reset">A 標準</button>
@@ -231,9 +244,11 @@
     <section id="flash-screen" class="screen" hidden></section>
     <section id="order-screen" class="screen" hidden></section>
     <section id="english-screen" class="screen" hidden></section>
+    <section id="query-screen" class="screen" hidden></section>
     <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）；混元禪師解釋整理參考：易經心法講座影片（序卦傳白話研究）；英文卦名採 Wilhelm–Baynes 常見譯名。</footer>
   </main>
 
+  <script src="heartmind-data.js"></script>
   <script>
     const names = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
     const englishTitles = [
@@ -426,13 +441,14 @@
     if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64 || englishTitles.length !== 64) throw new Error('六十四卦資料不完整');
     if (hexagramTrigrams.length !== 64 || new Set(hexagramTrigrams.map(pair => pair.join('-'))).size !== 64) throw new Error('八卦組合資料不完整');
 
-    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen'].map(id => document.getElementById(id));
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen','query-screen'].map(id => document.getElementById(id));
     const listScreen = document.getElementById('list-screen');
     const pickerScreen = document.getElementById('picker-screen');
     const singleScreen = document.getElementById('single-screen');
     const flashScreen = document.getElementById('flash-screen');
     const orderScreen = document.getElementById('order-screen');
     const englishScreen = document.getElementById('english-screen');
+    const queryScreen = document.getElementById('query-screen');
     let currentMode = 'all';
     let showPlain = true;
     const allViewFields = { symbol: false, name: true, original: false, plain: false };
@@ -655,6 +671,32 @@
       pickerScreen.hidden = false;
       setActive('picker');
       if (shouldScroll) scrollTopNow();
+    }
+    function escapeQueryHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+    function renderQuery(term = '') {
+      const query = term.trim();
+      const normalized = query.toLocaleLowerCase();
+      const results = normalized ? (window.heartMindPages || []).filter(page => page.text.toLocaleLowerCase().includes(normalized)).map(page => {
+        const lower = page.text.toLocaleLowerCase();
+        const at = lower.indexOf(normalized);
+        const start = Math.max(0, at - 90);
+        const end = Math.min(page.text.length, at + query.length + 170);
+        const snippet = `${start > 0 ? '…' : ''}${page.text.slice(start, end)}${end < page.text.length ? '…' : ''}`;
+        return `<article class="query-result"><div class="query-result-title">易經心法入門 <span class="query-result-page">第 ${page.page} 頁</span></div><p class="query-result-text">${escapeQueryHtml(snippet)}</p></article>`;
+      }) : [];
+      const body = query ? `<div class="query-result-count">找到 ${results.length} 頁</div>${results.join('') || '<p class="query-intro">找不到相符內容，請換一個卦名、爻名或關鍵字。</p>'}` : '<p class="query-intro">可查詢乾、坤、初九、君子、教育等卦名、爻名或關鍵字。</p>';
+      queryScreen.innerHTML = `<article class="query-card"><h2 class="section-title">易經心法入門・查詢</h2><p class="query-intro">資料來源：E50002《易經心法入門》PDF（混元禪師智庫）。</p><form class="query-form" id="query-form"><input class="query-input" id="query-input" type="search" inputmode="search" autocomplete="off" placeholder="輸入卦名或關鍵字" value="${escapeQueryHtml(query)}"><button class="query-submit" type="submit">查詢</button></form><div class="query-results">${body}</div></article>`;
+    }
+    function showQuery(shouldScroll = true, term = '') {
+      currentMode = 'query';
+      hideScreens();
+      queryScreen.hidden = false;
+      setActive('query');
+      renderQuery(term);
+      if (shouldScroll) scrollTopNow();
+      requestAnimationFrame(() => queryScreen.querySelector('#query-input')?.focus({ preventScroll: true }));
     }
     function openStudy(i) {
       i = (i + 64) % 64;
@@ -1074,6 +1116,7 @@
       if (mode === 'flash') showFlash(true);
       else if (mode === 'order') showOrder(true);
       else if (mode === 'english') showEnglish(true);
+      else if (mode === 'query') showQuery(true);
       else showList(mode);
     }));
     document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
@@ -1085,6 +1128,13 @@
     document.getElementById('picker-button').addEventListener('click', () => showPicker());
     document.getElementById('picker-grid').innerHTML = hexagrams.map((item, i) => `<button class="picker-item" type="button" data-index="${i}"><span class="hex-symbol">${item.symbol}</span><span class="picker-name">${item.name}</span><span class="picker-no">第 ${i + 1} 卦</span></button>`).join('');
     document.getElementById('picker-grid').addEventListener('click', event => { const button = event.target.closest('.picker-item'); if (button) openStudy(Number(button.dataset.index)); });
+    queryScreen.addEventListener('submit', event => {
+      if (event.target.id !== 'query-form') return;
+      event.preventDefault();
+      const input = queryScreen.querySelector('#query-input');
+      renderQuery(input?.value || '');
+      requestAnimationFrame(() => queryScreen.querySelector('#query-input')?.focus({ preventScroll: true }));
+    });
     listScreen.addEventListener('click', event => {
       const button = event.target.closest('[data-all-field]');
       const card = event.target.closest('[data-all-card]');
