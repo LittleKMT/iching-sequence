@@ -522,6 +522,8 @@
       controls.classList.toggle('all-focus', currentMode === 'all');
       controls.classList.toggle('english-focus', currentMode === 'english');
       controls.classList.toggle('order-focus', currentMode === 'order');
+      const flashOnlyRow = controls.querySelector('.flash-only-row');
+      if (flashOnlyRow) flashOnlyRow.hidden = currentMode !== 'flash';
     }
     function scrollTopNow() {
       window.scrollTo(0, 0);
