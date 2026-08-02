@@ -24,6 +24,7 @@
     .controls.all-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.order-focus { display: none; }
+    .controls:not(.flash-focus) .flash-only-row { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
     .control-row.six { grid-template-columns: repeat(6, 1fr); }
@@ -239,7 +240,7 @@
         <button class="control" id="font-reset">A 標準</button>
         <button class="control" id="font-up" aria-label="放大文字">A＋</button>
       </div>
-      <div class="control-row three">
+      <div class="control-row three flash-only-row">
         <button class="control" id="plain-toggle">隱藏白話</button>
         <button class="control" id="top-button">回頂端</button>
         <button class="control" id="restart-button">重頭練習</button>
