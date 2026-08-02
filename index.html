@@ -25,6 +25,7 @@
     .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.order-focus { display: none; }
     .controls.query-focus { display: none; }
+    header.query-focus-header { display: none; }
     .controls:not(.flash-focus) .flash-only-row { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
@@ -58,6 +59,7 @@
     .all-overview-copy p { margin: 0; }
     .all-overview-reference { margin-top: 9px; padding-top: 6px; border-top: 1px solid #e1e8e1; color: #6b776e; font-size: calc(.78rem * var(--scale)); line-height: 1.4; }
     .query-card { padding: 16px 14px 18px; }
+    .query-entry-button { width: 100%; min-height: 52px; margin: 0 0 12px; padding: 8px 12px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(1.12rem * var(--scale)); font-weight: 900; }
     .query-intro { margin: 0 0 12px; color: #526056; font-size: calc(.95rem * var(--scale)); line-height: 1.5; }
     .query-form { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-bottom: 12px; }
     .query-input { min-width: 0; min-height: 46px; padding: 8px 11px; border: 1px solid #b8c3ba; border-radius: 12px; background: #fff; color: var(--ink); font-size: calc(1rem * var(--scale)); }
@@ -82,6 +84,7 @@
     .query-index-name.single { font-size: min(calc(2.7rem * var(--scale)), 3.25rem); }
     .query-detail { padding: 12px 2px 4px; }
     .query-detail-title { margin: 0 0 4px; color: var(--green); font-size: calc(1.45rem * var(--scale)); }
+    .query-current-toggle { display: inline-block; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; font-weight: inherit; cursor: pointer; }
     .query-detail-page { margin-bottom: 10px; color: #6b776e; font-size: calc(.8rem * var(--scale)); font-weight: 750; }
     .query-detail-text { margin: 0; color: #26352b; font-size: calc(1rem * var(--scale)); line-height: 1.7; white-space: pre-wrap; }
     .query-meaning { margin: 0 0 10px; color: #526056; font-size: calc(.94rem * var(--scale)); line-height: 1.5; }
@@ -538,6 +541,8 @@
       controls.classList.toggle('english-focus', currentMode === 'english');
       controls.classList.toggle('order-focus', currentMode === 'order');
       controls.classList.toggle('query-focus', currentMode === 'query');
+      const header = document.querySelector('main > header');
+      if (header) header.classList.toggle('query-focus-header', currentMode === 'query');
       const flashOnlyRow = controls.querySelector('.flash-only-row');
       if (flashOnlyRow) flashOnlyRow.hidden = currentMode !== 'flash';
     }
@@ -745,13 +750,14 @@
           const transcript = escapeQueryHtml(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。');
           return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
         }).join('');
-        body = `<article class="query-detail"><h3 class="query-detail-title">第 ${selected.number} 卦｜${escapeQueryHtml(selected.name)}</h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}｜PDF 第 ${selected.page} 頁起</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<div class="query-detail-nav">${previous ? `<button type="button" data-query-number="${previous.number}">← 上一卦</button>` : '<span></span>'}${next ? `<button type="button" data-query-number="${next.number}">下一卦 →</button>` : '<span></span>'}</div><button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
+        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}｜PDF 第 ${selected.page} 頁起</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<div class="query-detail-nav">${previous ? `<button type="button" data-query-number="${previous.number}">← 上一卦</button>` : '<span></span>'}${next ? `<button type="button" data-query-number="${next.number}">下一卦 →</button>` : '<span></span>'}</div><button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
       } else {
         const entries = normalized ? data.hexagrams.filter(item => `${item.name} ${item.text}`.toLocaleLowerCase().includes(normalized)) : data.hexagrams;
         const cards = entries.map(item => `<button type="button" class="query-index-item" data-query-number="${item.number}"><span class="query-index-name${item.name.length === 1 ? ' single' : ''}">${escapeQueryHtml(item.name)}</span></button>`).join('');
-        body = `<div class="query-result-count">${query ? `找到 ${entries.length} 卦` : '六十四卦索引'}</div><div class="query-index-grid">${cards || '<p class="query-intro">找不到相符內容，請換一個卦名、爻名或關鍵字。</p>'}</div>`;
+        body = `<div class="query-index-grid">${cards || ''}</div>`;
       }
-      queryScreen.innerHTML = `<article class="query-card"><h2 class="section-title">易經心法入門・查詢</h2><p class="query-intro">資料來源：E50002《易經心法入門》PDF（混元禪師智庫）。點選卦名即可閱讀完整解釋。</p><form class="query-form" id="query-form"><input class="query-input" id="query-input" type="search" inputmode="search" autocomplete="off" placeholder="輸入卦名或關鍵字" value="${escapeQueryHtml(query)}"><button class="query-submit" type="submit">查詢</button></form>${body}</article>`;
+      queryScreen.dataset.selectedNumber = selected ? String(selected.number) : '';
+      queryScreen.innerHTML = `<article class="query-card"><button type="button" class="query-entry-button" disabled>查詢</button>${body}</article>`;
     }
     function showQuery(shouldScroll = true, term = '') {
       currentMode = 'query';
@@ -760,7 +766,7 @@
       setActive('query');
       renderQuery(term);
       if (shouldScroll) scrollTopNow();
-      requestAnimationFrame(() => queryScreen.querySelector('#query-input')?.focus({ preventScroll: true }));
+
     }
     function openStudy(i) {
       i = (i + 64) % 64;
@@ -1197,15 +1203,20 @@
       event.preventDefault();
       const input = queryScreen.querySelector('#query-input');
       renderQuery(input?.value || '');
-      requestAnimationFrame(() => queryScreen.querySelector('#query-input')?.focus({ preventScroll: true }));
+
     });
     queryScreen.addEventListener('click', event => {
       const item = event.target.closest('[data-query-number]');
       if (item) {
         const term = queryScreen.querySelector('#query-input')?.value || '';
         const number = Number(item.dataset.queryNumber);
-        renderQuery(term, number);
-        if (!window.heartMindLectureData) loadHeartMindLectureData().then(() => renderQuery(term, number)).catch(() => {});
+        const current = Number(queryScreen.dataset.selectedNumber || 0);
+        if (current === number) {
+          renderQuery(term);
+        } else {
+          renderQuery(term, number);
+          if (!window.heartMindLectureData) loadHeartMindLectureData().then(() => renderQuery(term, number)).catch(() => {});
+        }
         scrollTopNow();
       } else if (event.target.closest('[data-query-back]')) {
         renderQuery(queryScreen.querySelector('#query-input')?.value || '');
