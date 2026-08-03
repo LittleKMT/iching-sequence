@@ -41,6 +41,7 @@
     #flash-screen { scroll-margin-top: max(8px, env(safe-area-inset-top)); }
     .section-title { margin: 18px 0 10px; font-size: calc(1.25rem * var(--scale)); color: var(--green); }
     .all-view-options { position: sticky; top: max(0px, env(safe-area-inset-top)); z-index: 25; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 10px; padding: 6px 0; background: color-mix(in srgb, var(--cream) 96%, transparent); backdrop-filter: blur(10px); }
+    .all-view-options.non-sticky { position: static; background: transparent; backdrop-filter: none; }
     .all-view-options button { min-width: 0; min-height: 42px; padding: 6px 2px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 850; }
     .all-view-options button.active { border-color: var(--green); background: var(--green); color: #fff; }
     .all-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
@@ -674,8 +675,9 @@
       const withText = allViewFields.original || allViewFields.plain;
       const options = allViewChoices.map(choice => `<button type="button" data-all-field="${choice.key}" class="${allViewFields[choice.key] ? 'active' : ''}" aria-pressed="${allViewFields[choice.key]}">${choice.label}</button>`).join('');
       const cards = hexagrams.slice(start, end).map((item, offset) => allOverviewCardMarkup(item, start + offset)).join('');
+      const optionsClass = start === 0 && end === 64 ? 'all-view-options' : 'all-view-options non-sticky';
       const reference = start === 0 && end === 64 ? `<div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片（序卦傳白話研究）</div>` : '';
-      return `<h2 class="section-title">${title}</h2><div class="all-view-options" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>${reference}`;
+      return `<h2 class="section-title">${title}</h2><div class="${optionsClass}" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>${reference}`;
     }
     function revealNextAllCard(i) {
       const fields = allCardFields(i);
