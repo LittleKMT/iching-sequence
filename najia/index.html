@@ -45,9 +45,9 @@
     .hex-lines { display: grid; gap: 9px; width: min(76vw, 270px); margin: 0 auto; color: var(--blue); }
     .yao { display: flex; gap: 24px; height: 20px; }
     .yao span { display: block; flex: 1; border-radius: 1px; background: currentColor; }
-    .hex-lines.world-marked { gap: 9px; }
-    .yao-wrap { display: grid; grid-template-rows: 20px 18px; align-items: start; }
-    .hex-world-mark { display: block; color: #c22626; font-size: calc(1.22rem * var(--scale)); font-weight: 950; line-height: 1; text-align: center; }
+    .hex-lines.world-marked { gap: 0; }
+    .yao-wrap { position: relative; height: 32px; }
+    .hex-world-mark { position: absolute; top: 21px; left: 50%; transform: translateX(-50%); color: #c22626; font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap; }
     .hex-world-mark.marker-space { visibility: hidden; }
     .picker-hex { gap: 4px; width: 76px; }
     .picker-hex .yao { gap: 8px; height: 7px; }
@@ -79,7 +79,8 @@
     .flash-question { margin: 8px 0 10px; font-size: calc(1.32rem * var(--scale)); font-weight: 950; }
     .flash-card > .hex-lines { gap: 10px; width: min(84vw, 315px); margin-top: 0; }
     .flash-card > .hex-lines .yao { gap: 27px; height: 25px; }
-    .flash-card > .hex-lines.world-marked .yao-wrap { grid-template-rows: 25px 20px; }
+    .flash-card > .hex-lines.world-marked .yao-wrap, .flash-card .holding-flash-face .hex-lines.world-marked .yao-wrap { height: 40px; }
+    .flash-card > .hex-lines.world-marked .hex-world-mark, .flash-card .holding-flash-face .hex-lines.world-marked .hex-world-mark { top: 27px; font-size: 13px; }
     .flash-card .flash-question { margin: 8px 0 7px; font-size: calc(1.68rem * var(--scale)); line-height: 1.2; }
     .stage-badge { display: inline-block; margin-bottom: 4px; padding: 5px 10px; border-radius: 999px; color: #fff; background: var(--blue); font-size: calc(.82rem * var(--scale)); font-weight: 950; }
     .coordinate-note { margin: -2px 0 7px; color: #61727d; font-size: calc(.9rem * var(--scale)); font-weight: 900; line-height: 1.3; }
@@ -385,7 +386,7 @@
     function clearStats(){const button=document.getElementById('clear-stats');if(!clearPending){clearPending=true;button.textContent='再按一次確認清除';button.classList.add('confirm');return}stats=emptyStats();saveStats();showStats()}
     function hideScreens(){screens.forEach(s=>s.hidden=true)}
     function setActive(mode){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
-    function hexMarkup(bits,small=false,world=0,showWorld=true){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i)),line=i+1,yao=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`;rows+=world===line?`<div class="yao-wrap">${yao}<span class="hex-world-mark ${showWorld?'':'marker-space'}">世</span></div>`:yao}return`<div class="hex-lines ${small?'picker-hex':''} ${world?'world-marked':''}" aria-label="六爻卦象">${rows}</div>`}
+    function hexMarkup(bits,small=false,world=0,showWorld=true){let rows='';for(let i=5;i>=0;i--){const yang=Boolean(bits&(1<<i)),line=i+1,yao=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`,mark=world===line?`<span class="hex-world-mark ${showWorld?'':'marker-space'}">世</span>`:'';rows+=world?`<div class="yao-wrap">${yao}${mark}</div>`:yao}return`<div class="hex-lines ${small?'picker-hex':''} ${world?'world-marked':''}" aria-label="六爻卦象">${rows}</div>`}
     function trigramMarkup(bits){let rows='';for(let i=2;i>=0;i--){const yang=Boolean(bits&(1<<i));rows+=`<div class="yao">${yang?'<span></span>':'<span></span><span></span>'}</div>`}return`<div class="trigram-lines" aria-label="三爻八卦卦象">${rows}</div>`}
     function emptyTrigramDetail(){return{attempts:0,correct:0,totalMs:0,recent:[]}}
     const PERFORMANCE_HISTORY_LIMIT=500;
