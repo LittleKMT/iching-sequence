@@ -45,9 +45,9 @@
     .hex-lines { display: grid; gap: 9px; width: min(76vw, 270px); margin: 0 auto; color: var(--blue); }
     .yao { display: flex; gap: 24px; height: 20px; }
     .yao span { display: block; flex: 1; border-radius: 1px; background: currentColor; }
-    .hex-lines.world-marked { gap: 20px; }
-    .yao-wrap { position: relative; }
-    .hex-world-mark { position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%); color: #c22626; font-size: calc(1.22rem * var(--scale)); font-weight: 950; line-height: 1; }
+    .hex-lines.world-marked { gap: 9px; }
+    .yao-wrap { display: grid; grid-template-rows: 20px 18px; align-items: start; }
+    .hex-world-mark { display: block; color: #c22626; font-size: calc(1.22rem * var(--scale)); font-weight: 950; line-height: 1; text-align: center; }
     .picker-hex { gap: 4px; width: 76px; }
     .picker-hex .yao { gap: 8px; height: 7px; }
     .card { overflow: hidden; padding: 14px 12px; border: 1px solid #d1d5d3; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; text-align: center; }
@@ -78,6 +78,7 @@
     .flash-question { margin: 8px 0 10px; font-size: calc(1.32rem * var(--scale)); font-weight: 950; }
     .flash-card > .hex-lines { gap: 10px; width: min(84vw, 315px); margin-top: 0; }
     .flash-card > .hex-lines .yao { gap: 27px; height: 25px; }
+    .flash-card > .hex-lines.world-marked .yao-wrap { grid-template-rows: 25px 20px; }
     .flash-card .flash-question { margin: 8px 0 7px; font-size: calc(1.68rem * var(--scale)); line-height: 1.2; }
     .stage-badge { display: inline-block; margin-bottom: 4px; padding: 5px 10px; border-radius: 999px; color: #fff; background: var(--blue); font-size: calc(.82rem * var(--scale)); font-weight: 950; }
     .coordinate-note { margin: -2px 0 7px; color: #61727d; font-size: calc(.9rem * var(--scale)); font-weight: 900; line-height: 1.3; }
