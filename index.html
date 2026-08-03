@@ -94,10 +94,10 @@
     .query-yao-row { padding: 8px 9px; border-radius: 10px; background: #f3f7f3; color: #26352b; font-size: calc(.94rem * var(--scale)); line-height: 1.55; }
     .query-yao-row summary { cursor: pointer; list-style: none; }
     .query-yao-row summary::-webkit-details-marker { display: none; }
-    .query-yao-row[open] { background: #eef5ef; }
-    .query-yao-row[open] > summary { position: sticky; top: 0; z-index: 4; margin: -8px -9px 0; padding: 8px 9px; background: #eef5ef; box-shadow: 0 2px 6px rgba(18, 73, 45, .12); }
+    .query-yao-row[open] { background: #e3efe6; }
+    .query-yao-row[open] > summary { position: sticky; top: 0; z-index: 4; margin: -8px -9px 0; padding: 8px 9px; background: #d8eadc; box-shadow: 0 2px 6px rgba(18, 73, 45, .12); }
     .query-yao-row { scroll-margin-top: 12px; }
-    .query-yao-transcript { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid #d5ded6; color: #26352b; font-size: calc(.86rem * var(--scale)); line-height: 1.6; white-space: pre-wrap; }
+    .query-yao-transcript { margin: 8px -1px 0; padding: 10px; border-top: 1px solid #c5d8c9; border-radius: 8px; background: #f7fbf7; color: #26352b; font-size: calc(.86rem * var(--scale)); line-height: 1.6; white-space: pre-wrap; }
     .query-yao-label { display: inline-block; min-width: 3.1em; margin-right: 5px; color: var(--green); font-weight: 900; }
     .query-detail-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 13px; }
     .query-detail-nav button, .query-back { min-height: 44px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
@@ -754,7 +754,7 @@
           const transcript = escapeQueryHtml(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。');
           return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
         }).join('');
-        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}｜PDF 第 ${selected.page} 頁起</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
+        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
       } else {
         const entries = normalized ? data.hexagrams.filter(item => `${item.name} ${item.text}`.toLocaleLowerCase().includes(normalized)) : data.hexagrams;
         const cards = entries.map(item => `<button type="button" class="query-index-item" data-query-number="${item.number}"><span class="query-index-name${item.name.length === 1 ? ' single' : ''}">${escapeQueryHtml(item.name)}</span></button>`).join('');
