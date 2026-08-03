@@ -749,12 +749,12 @@
         const lecture = window.heartMindLectureData?.[String(selected.number)];
         const yaoRows = (selected.yao || []).map(yao => {
           const label = escapeQueryHtml(yao.label);
-          const explanation = escapeQueryHtml(yao.text);
+          const explanation = escapeQueryHtml(String(yao.text || '').replace(/^\s*[:\uFF1A]\s*/, ''));
           if (!lecture) return `<div class="query-yao-row"><span class="query-yao-label">${label}</span>${explanation}</div>`;
           const transcript = escapeQueryHtml(String(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。').replace(/^\s*[:\uFF1A]\s*/, ''));
           return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
         }).join('');
-        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}</div><p class="query-meaning">${escapeQueryHtml(selected.meaning || '')}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
+        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}</div><p class="query-meaning">${escapeQueryHtml(String(selected.meaning || '').replace(/^\s*[:\uFF1A]\s*/, ''))}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
       } else {
         const entries = normalized ? data.hexagrams.filter(item => `${item.name} ${item.text}`.toLocaleLowerCase().includes(normalized)) : data.hexagrams;
         const cards = entries.map(item => `<button type="button" class="query-index-item" data-query-number="${item.number}"><span class="query-index-name${item.name.length === 1 ? ' single' : ''}">${escapeQueryHtml(item.name)}</span></button>`).join('');
