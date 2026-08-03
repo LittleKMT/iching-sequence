@@ -539,7 +539,7 @@
       screens.forEach(screen => screen.hidden = true);
       const controls = document.querySelector('.controls');
       controls.classList.toggle('flash-focus', currentMode === 'flash');
-      controls.classList.toggle('all-focus', currentMode === 'all');
+      controls.classList.toggle('all-focus', ['all', 'upper', 'lower'].includes(currentMode));
       controls.classList.toggle('english-focus', currentMode === 'english');
       controls.classList.toggle('order-focus', currentMode === 'order');
       controls.classList.toggle('query-focus', currentMode === 'query');
