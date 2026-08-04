@@ -1281,7 +1281,6 @@
         const completedOrder = orderSelections.length === orderSequence.length;
         if (completedOrder) recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
         renderOrder();
-        if (completedOrder && orderLengthMode !== '2') alignOrderResult();
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
         showOrder(true, false);
