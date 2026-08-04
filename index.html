@@ -134,7 +134,7 @@
     .study-nav button { min-height: 46px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(.9rem * var(--scale)); font-weight: 800; }
     .back-button { width: 100%; margin-top: 10px; min-height: 48px; border: 0; border-radius: 14px; color: #fff; background: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; }
     .flash-card { padding: 14px 8px; text-align: center; }
-    .flash-count { color: #617064; font-size: calc(.9rem * var(--scale)); }
+    .flash-count, .flash-question, .build-prompt { display: none; }
     .flash-main .hex-symbol, .answer-cell .hex-symbol { display: block; margin: 18px auto 8px; }
     .flash-main .hex-symbol { margin-top: 8px; margin-bottom: -18px; }
     .flash-main .hex-symbol { font-size: calc(8rem * var(--scale)); }
@@ -152,8 +152,16 @@
     .build-value { display: block; margin-top: 2px; color: var(--green); font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(2.45rem * var(--scale)); font-weight: 900; line-height: 1; white-space: nowrap; }
     .build-value:empty { display: none; }
     .build-prompt { min-height: 1.5em; margin: 10px 0 7px; color: #526056; font-size: calc(.86rem * var(--scale)); font-weight: 800; }
-    .trigram-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-    .trigram-choice { min-width: 0; min-height: 92px; padding: 4px 1px; border: 2px solid #b8c3ba; border-radius: 14px; background: #fff; color: var(--green); }
+    .trigram-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(58px, auto)); gap: 6px; align-items: stretch; }
+    .trigram-choice { min-width: 0; min-height: 58px; padding: 3px 1px; border: 2px solid #b8c3ba; border-radius: 14px; background: #fff; color: var(--green); }
+    .trigram-choice:nth-child(1) { grid-column: 2; grid-row: 1; }
+    .trigram-choice:nth-child(2) { grid-column: 1; grid-row: 2; }
+    .trigram-choice:nth-child(3) { grid-column: 1; grid-row: 3; }
+    .trigram-choice:nth-child(4) { grid-column: 1; grid-row: 4; }
+    .trigram-choice:nth-child(5) { grid-column: 3; grid-row: 2; }
+    .trigram-choice:nth-child(6) { grid-column: 3; grid-row: 3; }
+    .trigram-choice:nth-child(7) { grid-column: 3; grid-row: 4; }
+    .trigram-choice:nth-child(8) { grid-column: 2; grid-row: 5; }
     .trigram-choice:active { transform: translateY(1px); }
     .trigram-symbol { display: block; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif; font-size: calc(3.2rem * var(--scale)); font-weight: 900; line-height: 1; }
     .flash-build-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
