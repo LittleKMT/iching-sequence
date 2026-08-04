@@ -1284,7 +1284,7 @@
         if (completedOrder && orderLengthMode !== '2') alignOrderResult();
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
-        showOrder(true, orderLengthMode !== '2');
+        showOrder(true, false);
       } else if (action?.dataset.orderAction === 'home') {
         showList('all');
       } else if (action?.dataset.orderAction === 'reset') {
@@ -1300,7 +1300,8 @@
         saveOrderEnhanced();
         renderOrder();
       } else if (action?.dataset.orderAction === 'next') {
-        showOrder(true, orderLengthMode !== '2');
+        // Changing to a random question should not move the viewport.
+        showOrder(true, false);
       }
     });
     englishScreen.addEventListener('click', event => {
