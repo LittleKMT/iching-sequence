@@ -223,6 +223,9 @@
     .english-tools button { min-width: 0; min-height: 44px; padding: 6px 4px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 850; }
     .english-tools button:disabled { opacity: .4; }
     .english-enhance.active { color: #fff; background: var(--green); }
+    .english-mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 0 0 8px; }
+    .english-mode-toggle button { min-width: 0; min-height: 40px; padding: 5px 3px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 850; }
+    .english-mode-toggle button.active { border-color: var(--green); background: var(--green); color: #fff; }
     .english-options { display: grid; gap: 9px; margin-top: 10px; }
     .english-option { width: 100%; min-height: 78px; padding: 11px 10px; border: 2px solid #b8c3ba; border-radius: 16px; background: #fff; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: calc(1.18rem * var(--scale)); font-weight: 800; line-height: 1.2; }
     .english-option:active { transform: translateY(1px); }
@@ -532,6 +535,7 @@
     const englishStatsStorageKey = 'iching-english-stats-v1';
     const englishQuestionStatsStorageKey = 'iching-english-question-stats-v1';
     const englishEnhancedStorageKey = 'iching-english-enhanced-v1';
+    const englishModeStorageKey = 'iching-english-mode-v1';
     let englishStats = loadEnglishStats();
     let englishQuestionStats = loadEnglishQuestionStats();
     let englishDeck = [];
@@ -541,6 +545,7 @@
     let englishAnswered = false;
     let englishSelectedIndex = null;
     let englishEnhanced = loadEnglishEnhanced();
+    let englishMode = 'random';
     let englishHistory = [];
     let englishHistoryPosition = -1;
     let touchStartX = null;
@@ -1023,7 +1028,9 @@
     }
     function refillEnglishDeck() {
       const previous = englishCurrentIndex;
-      englishDeck = shuffled(Array.from({ length: 64 }, (_, i) => i));
+      englishDeck = englishMode === 'sequence'
+        ? Array.from({ length: 64 }, (_, i) => i)
+        : shuffled(Array.from({ length: 64 }, (_, i) => i));
       if (previous !== null && englishDeck[0] === previous) {
         [englishDeck[0], englishDeck[1]] = [englishDeck[1], englishDeck[0]];
       }
@@ -1045,7 +1052,7 @@
       if (englishDeckPosition >= englishDeck.length) refillEnglishDeck();
       const remaining = englishDeck.slice(englishDeckPosition);
       const enhancedRemaining = remaining.filter(index => englishEnhanced.has(index));
-      if (enhancedRemaining.length && secureRandomInt(100) < 40) {
+      if (englishMode === 'random' && enhancedRemaining.length && secureRandomInt(100) < 40) {
         englishCurrentIndex = enhancedRemaining[secureRandomInt(enhancedRemaining.length)];
         englishDeck.splice(englishDeck.indexOf(englishCurrentIndex, englishDeckPosition), 1);
       } else {
@@ -1085,6 +1092,12 @@
           : `答錯。正確答案是 ${englishTitles[englishCurrentIndex]}`;
       const previousDisabled = englishHistoryPosition <= 0;
       englishScreen.innerHTML = `<article class="english-card"><div class="english-stats"><div class="english-stat">作答<strong>${englishStats.attempts}</strong></div><div class="english-stat">答對<strong>${englishStats.correct}</strong></div><div class="english-stat">答錯<strong>${englishStats.wrong}</strong></div></div><div class="english-prompt"><span class="hex-symbol" aria-hidden="true">${item.symbol}</span><h2 class="english-chinese-name">${item.name}</h2><p class="english-question">這一卦的英文名稱是？</p><p class="english-seen">本卦已練 ${questionStats.attempts} 次</p></div><div class="english-tools"><button type="button" data-english-action="previous" ${previousDisabled ? 'disabled' : ''}>← 上一題</button><button class="english-enhance${englishEnhanced.has(englishCurrentIndex) ? ' active' : ''}" type="button" data-english-action="enhance" aria-pressed="${englishEnhanced.has(englishCurrentIndex)}">${englishEnhanced.has(englishCurrentIndex) ? '已加強訓練' : '加強訓練'}</button></div><div class="english-options">${englishOptions.map(index => { const isCorrect = englishAnswered && index === englishCurrentIndex; const isWrong = englishAnswered && index === englishSelectedIndex && index !== englishCurrentIndex; return `<button class="english-option${isCorrect ? ' correct' : ''}${isWrong ? ' wrong' : ''}" type="button" data-english-index="${index}" ${englishAnswered ? 'disabled' : ''}>${englishTitles[index]}</button>`; }).join('')}</div><div class="english-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><button class="english-next" type="button" data-english-action="next" ${englishAnswered ? '' : 'disabled'}>下一題</button></article>`;
+      const modeToggle = document.createElement('div');
+      modeToggle.className = 'english-mode-toggle';
+      modeToggle.setAttribute('role', 'group');
+      modeToggle.setAttribute('aria-label', '英文出題順序');
+      modeToggle.innerHTML = `<button type="button" class="${englishMode === 'sequence' ? 'active' : ''}" data-english-action="mode" data-english-mode="sequence" aria-pressed="${englishMode === 'sequence'}">依六十四卦卦序</button><button type="button" class="${englishMode === 'random' ? 'active' : ''}" data-english-action="mode" data-english-mode="random" aria-pressed="${englishMode === 'random'}">隨機</button>`;
+      englishScreen.querySelector('.english-card')?.prepend(modeToggle);
       if (preserveScroll) requestAnimationFrame(() => window.scrollTo({ top: preservedScrollY, behavior: 'auto' }));
     }
     function showEnglish(newQuestion = true) {
@@ -1333,6 +1346,19 @@
         else englishEnhanced.add(englishCurrentIndex);
         saveEnglishEnhanced();
         renderEnglish();
+      } else if (action?.dataset.englishAction === 'mode') {
+        const nextMode = action.dataset.englishMode === 'sequence' ? 'sequence' : 'random';
+        if (englishMode === nextMode) return;
+        englishMode = nextMode;
+        try { localStorage.setItem(englishModeStorageKey, englishMode); } catch (_) {}
+        englishDeck = [];
+        englishDeckPosition = 0;
+        englishCurrentIndex = null;
+        englishHistory = [];
+        englishHistoryPosition = -1;
+        newEnglishQuestion();
+        renderEnglish();
+        alignEnglishCard();
       } else if (action?.dataset.englishAction === 'next' && englishAnswered) {
         if (englishHistoryPosition < englishHistory.length - 1) {
           englishHistoryPosition += 1;
@@ -1364,6 +1390,7 @@
       completeStudySwipe(event.clientX, event.clientY);
     });
     singleScreen.addEventListener('pointercancel', () => { touchStartX = null; touchStartY = null; });
+    try { const savedEnglishMode = localStorage.getItem(englishModeStorageKey); if (savedEnglishMode === 'sequence' || savedEnglishMode === 'random') englishMode = savedEnglishMode; } catch (_) {}
     try { const saved = localStorage.getItem(scaleStorageKey); if (saved !== null && ['0','1','2','3'].includes(saved)) scaleIndex = Number(saved); } catch (_) {}
     updateScale();
     updatePlain();
