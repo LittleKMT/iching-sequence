@@ -780,6 +780,9 @@
         });
       });
     }
+    function shouldAlignOrderViewport() {
+      return window.matchMedia ? window.matchMedia('(max-width: 500px)').matches : window.innerWidth <= 500;
+    }
     function showQuery(shouldScroll = true, term = '') {
       scaleIndex = scales.length - 1;
       updateScale();
@@ -1281,9 +1284,10 @@
         const completedOrder = orderSelections.length === orderSequence.length;
         if (completedOrder) recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
         renderOrder();
+        if (completedOrder && shouldAlignOrderViewport()) alignOrderResult();
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
-        showOrder(true, false);
+        showOrder(true, shouldAlignOrderViewport());
       } else if (action?.dataset.orderAction === 'home') {
         showList('all');
       } else if (action?.dataset.orderAction === 'reset') {
@@ -1299,8 +1303,7 @@
         saveOrderEnhanced();
         renderOrder();
       } else if (action?.dataset.orderAction === 'next') {
-        // Changing to a random question should not move the viewport.
-        showOrder(true, false);
+        showOrder(true, shouldAlignOrderViewport());
       }
     });
     englishScreen.addEventListener('click', event => {
