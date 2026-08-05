@@ -227,7 +227,7 @@
     .english-mode-toggle button { min-width: 0; min-height: 40px; padding: 5px 3px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 850; }
     .english-mode-toggle button.active { border-color: var(--green); background: var(--green); color: #fff; }
     .english-mode-toggle .english-flash-mode { grid-column: 1 / -1; }
-    .english-flip-card { width: 100%; min-height: 340px; padding: 20px 12px; display: grid; place-items: center; align-content: center; border: 2px solid var(--green); border-radius: 18px; background: #f7fbf7; color: var(--green); cursor: pointer; }
+    .english-flip-card { width: 100%; min-height: 340px; padding: 20px 12px; display: grid; place-items: center; align-content: center; border: 2px solid var(--green); border-radius: 18px; background: #f7fbf7; color: var(--green); cursor: pointer; touch-action: pan-y; user-select: none; }
     .english-flip-card .hex-symbol { display: block; margin: -10px 0 -18px; font-size: calc(9rem * var(--scale)); font-weight: 800; -webkit-text-stroke: .5px currentColor; }
     .english-flip-card .english-chinese-name { font-size: calc(2.7rem * var(--scale)); }
     .english-flip-answer { max-width: 100%; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: calc(2rem * var(--scale)); font-weight: 850; line-height: 1.2; overflow-wrap: anywhere; }
@@ -557,6 +557,9 @@
     let englishEnhanced = loadEnglishEnhanced();
     let englishMode = 'random';
     let englishFlashRevealed = false;
+    let englishFlashTouchStartX = null;
+    let englishFlashTouchStartY = null;
+    let englishFlashSuppressClick = false;
     let englishHistory = [];
     let englishHistoryPosition = -1;
     let touchStartX = null;
@@ -1354,6 +1357,10 @@
         updateEnglishHistoryCurrent();
         renderEnglish(true);
       } else if (action?.dataset.englishAction === 'flip' && englishMode === 'flashcard') {
+        if (englishFlashSuppressClick) {
+          englishFlashSuppressClick = false;
+          return;
+        }
         englishFlashRevealed = !englishFlashRevealed;
         updateEnglishHistoryCurrent();
         renderEnglish(true);
@@ -1391,6 +1398,32 @@
         renderEnglish();
         alignEnglishCard();
       }
+    });
+    englishScreen.addEventListener('pointerdown', event => {
+      if (englishMode !== 'flashcard' || !event.isPrimary || !event.target.closest('.english-flip-card')) return;
+      englishFlashTouchStartX = event.clientX;
+      englishFlashTouchStartY = event.clientY;
+    });
+    englishScreen.addEventListener('pointerup', event => {
+      if (englishMode !== 'flashcard' || !event.isPrimary || englishFlashTouchStartX === null || englishFlashTouchStartY === null) return;
+      const deltaX = event.clientX - englishFlashTouchStartX;
+      const deltaY = event.clientY - englishFlashTouchStartY;
+      englishFlashTouchStartX = null;
+      englishFlashTouchStartY = null;
+      if (deltaX <= 48 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
+      englishFlashSuppressClick = true;
+      if (englishHistoryPosition < englishHistory.length - 1) {
+        englishHistoryPosition += 1;
+        restoreEnglishSnapshot(englishHistory[englishHistoryPosition]);
+      } else {
+        newEnglishQuestion();
+      }
+      renderEnglish(true);
+      setTimeout(() => { englishFlashSuppressClick = false; }, 450);
+    });
+    englishScreen.addEventListener('pointercancel', () => {
+      englishFlashTouchStartX = null;
+      englishFlashTouchStartY = null;
     });
     singleScreen.addEventListener('touchstart', event => {
       if (event.touches.length !== 1) return;
