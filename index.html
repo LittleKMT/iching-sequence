@@ -230,7 +230,7 @@
     .english-flip-card { width: 100%; min-height: 340px; padding: 20px 12px; display: grid; place-items: center; align-content: center; border: 2px solid var(--green); border-radius: 18px; background: #f7fbf7; color: var(--green); cursor: pointer; touch-action: pan-y; user-select: none; }
     .english-flip-card .hex-symbol { display: block; margin: -10px 0 -18px; font-size: calc(9rem * var(--scale)); font-weight: 800; -webkit-text-stroke: .5px currentColor; }
     .english-flip-card .english-chinese-name { font-size: calc(2.7rem * var(--scale)); }
-    .english-flip-answer { max-width: 100%; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: calc(2rem * var(--scale)); font-weight: 850; line-height: 1.2; overflow-wrap: anywhere; }
+    .english-flip-answer { display: block; max-width: 100%; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: calc(2rem * var(--scale)); font-weight: 850; line-height: 1.2; overflow-wrap: anywhere; }
     .english-flip-hint { display: block; margin-top: 18px; color: #6d7b71; font-size: calc(.78rem * var(--scale)); font-weight: 800; }
     .english-flash-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .english-flash-nav button { min-width: 0; min-height: 48px; padding: 8px 4px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
@@ -1128,7 +1128,7 @@
       if (isEnglishFlashMode()) {
         const reverseFlash = englishMode === 'reverse-flashcard';
         const chineseFace = `<span><span class="hex-symbol" aria-hidden="true">${item.symbol}</span><span class="english-chinese-name">${item.name}</span></span>`;
-        const englishFace = `<span class="english-flip-answer">${englishTitles[englishCurrentIndex]}</span>`;
+        const englishFace = `<span><span class="hex-symbol" aria-hidden="true">${item.symbol}</span><span class="english-flip-answer">${englishTitles[englishCurrentIndex]}</span></span>`;
         const visibleFace = englishFlashRevealed
           ? (reverseFlash ? chineseFace : englishFace)
           : (reverseFlash ? englishFace : chineseFace);
@@ -1399,8 +1399,9 @@
       } else if (action?.dataset.englishAction === 'previous' && englishHistoryPosition > 0) {
         englishHistoryPosition -= 1;
         restoreEnglishSnapshot(englishHistory[englishHistoryPosition]);
-        renderEnglish();
-        alignEnglishCard();
+        const preserveFlashPosition = isEnglishFlashMode();
+        renderEnglish(preserveFlashPosition);
+        if (!preserveFlashPosition) alignEnglishCard();
       } else if (action?.dataset.englishAction === 'enhance') {
         if (englishEnhanced.has(englishCurrentIndex)) englishEnhanced.delete(englishCurrentIndex);
         else englishEnhanced.add(englishCurrentIndex);
@@ -1427,8 +1428,9 @@
         } else {
           newEnglishQuestion();
         }
-        renderEnglish();
-        alignEnglishCard();
+        const preserveFlashPosition = isEnglishFlashMode();
+        renderEnglish(preserveFlashPosition);
+        if (!preserveFlashPosition) alignEnglishCard();
       }
     });
     englishScreen.addEventListener('pointerdown', event => {
