@@ -1424,15 +1424,21 @@
       const deltaY = event.clientY - englishFlashTouchStartY;
       englishFlashTouchStartX = null;
       englishFlashTouchStartY = null;
-      if (deltaX <= 48 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
+      if (Math.abs(deltaX) <= 48 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
       englishFlashSuppressClick = true;
-      if (englishHistoryPosition < englishHistory.length - 1) {
-        englishHistoryPosition += 1;
+      if (deltaX > 0) {
+        if (englishHistoryPosition < englishHistory.length - 1) {
+          englishHistoryPosition += 1;
+          restoreEnglishSnapshot(englishHistory[englishHistoryPosition]);
+        } else {
+          newEnglishQuestion();
+        }
+        renderEnglish(true);
+      } else if (englishHistoryPosition > 0) {
+        englishHistoryPosition -= 1;
         restoreEnglishSnapshot(englishHistory[englishHistoryPosition]);
-      } else {
-        newEnglishQuestion();
+        renderEnglish(true);
       }
-      renderEnglish(true);
       setTimeout(() => { englishFlashSuppressClick = false; }, 450);
     });
     englishScreen.addEventListener('pointercancel', () => {
