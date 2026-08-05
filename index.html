@@ -532,6 +532,7 @@
     let orderChoices = [];
     let orderSelections = [];
     let orderTwoChoiceOrientationDeck = [];
+    const orderStartDecks = new Map();
     let orderLengthMode = '3';
     const orderStatsStorageKey = 'iching-order-stats-v1';
     const orderEnhancedStorageKey = 'iching-order-enhanced-v1';
@@ -956,13 +957,25 @@
     function randomOrderStart(length) {
       const possibleStarts = 65 - length;
       const previousKey = orderRecentQuestions.at(-1) || '';
-      const candidates = Array.from({ length: possibleStarts }, (_, start) => start)
-        .filter(start => `${length}:${start}` !== previousKey);
-      const enhancedStarts = enhancedOrderStarts(length, previousKey);
-      if (enhancedStarts.length > 0 && secureRandomInt(100) < 40) {
-        return enhancedStarts[secureRandomInt(enhancedStarts.length)];
+      let startDeck = orderStartDecks.get(length) || [];
+      if (startDeck.length === 0) {
+        const allStarts = Array.from({ length: possibleStarts }, (_, start) => start);
+        startDeck = shuffled(allStarts);
       }
-      return candidates[secureRandomInt(candidates.length)];
+      const enhancedStarts = enhancedOrderStarts(length, previousKey)
+        .filter(start => startDeck.includes(start));
+      if (enhancedStarts.length > 0 && secureRandomInt(100) < 40) {
+        const enhancedStart = enhancedStarts[secureRandomInt(enhancedStarts.length)];
+        const enhancedIndex = startDeck.indexOf(enhancedStart);
+        [startDeck[0], startDeck[enhancedIndex]] = [startDeck[enhancedIndex], startDeck[0]];
+      }
+      if (startDeck.length > 1 && `${length}:${startDeck[0]}` === previousKey) {
+        const swapIndex = 1 + secureRandomInt(startDeck.length - 1);
+        [startDeck[0], startDeck[swapIndex]] = [startDeck[swapIndex], startDeck[0]];
+      }
+      const start = startDeck.shift();
+      orderStartDecks.set(length, startDeck);
+      return start;
     }
     function rememberOrderQuestion() {
       orderRecentQuestions.push(currentOrderKey());
@@ -1342,6 +1355,7 @@
         if (orderEnhanced.has(key)) orderEnhanced.delete(key);
         else orderEnhanced.add(key);
         saveOrderEnhanced();
+        orderStartDecks.delete(orderSequence.length);
         renderOrder();
       } else if (action?.dataset.orderAction === 'next') {
         showOrder(true, shouldAlignOrderViewport());
