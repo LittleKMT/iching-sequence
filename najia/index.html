@@ -319,6 +319,49 @@
     .speed-score strong { display: block; margin-top: 3px; color: var(--blue); font-size: calc(1.65rem * var(--scale)); }
     #flash-screen { padding-bottom: 40vh; touch-action: pan-y; }
     #trigram-screen { padding-bottom: 32vh; }
+    #holding-flash-screen, #world-flash-screen, #draw-practice-screen { padding-bottom: max(34vh, calc(96px + env(safe-area-inset-bottom))); }
+    @media (max-width: 600px) and (max-height: 850px) {
+      .holding-flash-topics { gap: 5px; margin: 6px 0 9px; }
+      .holding-flash-topic { min-height: 41px; }
+      .holding-flash-face { min-height: 370px; padding-bottom: 20px; }
+      .draw-card { padding: 11px 9px; }
+      .draw-target-label { margin-top: 1px; }
+      .draw-help { margin-bottom: 6px; }
+      .draw-board { gap: 4px; margin: 6px auto 8px; }
+      .draw-row { height: 49px; }
+      .draw-feedback { min-height: 2.7rem; margin-bottom: 6px; padding: 7px; }
+      .draw-actions button { min-height: 46px; }
+    }
+    @media (max-width: 600px) and (max-height: 720px) {
+      .shell { padding-top: max(7px, env(safe-area-inset-top)); }
+      header { padding-bottom: 5px; }
+      header h1 { font-size: calc(1.34rem * var(--scale)); }
+      .subtitle { margin-top: 2px; }
+      .controls { margin-bottom: 5px; }
+      .holding-flash-topics { gap: 4px; margin: 4px 0 7px; }
+      .holding-flash-topic { min-height: 36px; font-size: calc(.92rem * var(--scale)); }
+      .holding-flash-face { min-height: 326px; padding: 6px 6px 14px; }
+      .holding-flash-face .hex-lines { width: min(76vw, 250px); }
+      .flash-card .holding-flash-face .hex-lines.world-marked .yao-wrap { height: 35px; }
+      .flash-card .holding-flash-face .hex-lines.world-marked .hex-world-mark { top: 23px; font-size: 13px; }
+      #world-flash-screen .holding-flash-face { min-height: 300px; padding-bottom: 8px; }
+      #world-flash-screen .holding-flash-face .hex-lines.world-marked .yao-wrap { height: 32px; }
+      #world-flash-screen .holding-flash-face .hex-lines.world-marked .hex-world-mark { top: 21px; }
+      #world-flash-screen .practice-tap { margin-top: 6px; margin-bottom: 2px; }
+      .holding-flash-name strong { font-size: calc(2.2rem * var(--scale)); }
+      .holding-flash-answer { margin: 8px 0 3px; font-size: calc(2.4rem * var(--scale)); }
+      .practice-answer-label { margin-top: 6px; }
+      .practice-answer { font-size: calc(2.15rem * var(--scale)); }
+      .practice-tap { margin: 9px 0 4px; font-size: calc(.84rem * var(--scale)); }
+      .draw-card { padding: 8px; }
+      .draw-target { font-size: calc(1.86rem * var(--scale)); }
+      .draw-help { margin-bottom: 4px; font-size: calc(.74rem * var(--scale)); }
+      .draw-board { gap: 3px; margin: 4px auto 6px; }
+      .draw-row { height: 43px; border-radius: 10px; }
+      .draw-feedback { min-height: 2.45rem; margin: 3px 1px 5px; padding: 6px; font-size: calc(.8rem * var(--scale)); }
+      .draw-actions { gap: 6px; }
+      .draw-actions button { min-height: 44px; font-size: calc(.96rem * var(--scale)); }
+    }
     @media (max-width: 370px) {
       .shell { padding-left: 7px; padding-right: 7px; }
       .control { font-size: calc(1.1rem * var(--scale)); }
@@ -666,7 +709,10 @@
       document.getElementById('boost-button').onclick=toggleBoost;
       if(shouldAlign)alignCard(flashScreen)
     }
-    function updateScale(){document.documentElement.style.setProperty('--scale',scales[scaleIndex])}
+    function viewportScaleFactor(){const height=window.visualViewport?.height||window.innerHeight,width=window.innerWidth;if(width<=600&&height<=700)return .86;if(width<=600&&height<=850)return .94;return 1}
+    function updateScale(){document.documentElement.style.setProperty('--scale',Math.round(scales[scaleIndex]*viewportScaleFactor()*1000)/1000)}
+    let scaleResizeFrame=0;const refreshResponsiveScale=()=>{cancelAnimationFrame(scaleResizeFrame);scaleResizeFrame=requestAnimationFrame(updateScale)};
+    window.addEventListener('resize',refreshResponsiveScale);window.addEventListener('orientationchange',refreshResponsiveScale);window.visualViewport?.addEventListener('resize',refreshResponsiveScale);
     document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{initialNavigationChosen=true;stopTrigramTimer();if(b.dataset.mode==='picker')showPicker();else if(b.dataset.mode==='stats')showStats();else if(b.dataset.mode==='trigram')showTrigramHome();else if(b.dataset.mode==='practice')showPractice();else if(b.dataset.mode==='holdingFlash')showHoldingFlash();else if(b.dataset.mode==='worldFlash')showWorldFlash();else if(b.dataset.mode==='drawPractice')showDrawPractice();else if(b.dataset.mode==='generation')showFlash(false,'generation','generation');else if(b.dataset.mode==='palace')showFlash(false,'palace','palace');else if(b.dataset.mode==='worldElement')showFlash(false,'worldElement','worldElement');else showFlash(false,'flash','holding')});
     document.getElementById('smaller').onclick=()=>{scaleIndex=Math.max(0,scaleIndex-1);updateScale()};document.getElementById('normal').onclick=()=>{scaleIndex=1;updateScale()};document.getElementById('larger').onclick=()=>{scaleIndex=Math.min(2,scaleIndex+1);updateScale()};
     studyScreen.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});studyScreen.addEventListener('touchend',e=>{if(touchX===null)return;const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;touchX=touchY=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25)openStudy(currentIndex+(dx<0?1:-1))},{passive:true});
