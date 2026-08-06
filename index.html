@@ -210,6 +210,48 @@
     .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .order-actions button { min-height: 48px; padding: 8px 4px; border: 1px solid var(--green); border-radius: 14px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 800; white-space: nowrap; }
     .order-actions .next-order { color: #fff; background: var(--green); }
+    @media (max-width: 500px) {
+      #order-screen { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+      .order-card { padding: 8px 8px calc(9px + env(safe-area-inset-bottom)); scroll-margin-top: max(6px, env(safe-area-inset-top)); }
+      .order-home { min-height: 40px; margin-bottom: 5px; padding: 5px 8px; font-size: calc(.82rem * var(--scale)); }
+      .order-title { font-size: calc(.9rem * var(--scale)); }
+      .order-status { gap: 5px; margin: 4px 0; }
+      .order-progress { min-height: 1.2em; font-size: calc(.72rem * var(--scale)); }
+      .order-symbol-toggle { min-height: 34px; padding: 4px 7px; font-size: calc(.69rem * var(--scale)); }
+      .order-length-control { gap: 3px; margin-bottom: 4px; }
+      .order-length-control button { min-height: 34px; font-size: calc(.67rem * var(--scale)); }
+      .order-practice-row { gap: 4px; margin-bottom: 5px; }
+      .order-stats { padding: 3px 6px; font-size: calc(.59rem * var(--scale)); }
+      .order-stats strong { font-size: calc(.64rem * var(--scale)); }
+      .order-stats small { font-size: calc(.54rem * var(--scale)); }
+      .order-enhance { min-width: 74px; min-height: 40px; padding: 4px 6px; font-size: calc(.62rem * var(--scale)); }
+      .order-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+      .order-choice { min-height: 56px; padding: 5px 3px; border-radius: 12px; }
+      .order-choice.with-symbol { min-height: 106px; padding: 3px 2px 5px; }
+      .order-hex { margin-top: -3px; font-size: calc(2.6rem * var(--scale)); }
+      .order-name { font-size: calc(1.22rem * var(--scale)); }
+      .order-name.single { font-size: calc(1.42rem * var(--scale)); }
+      .order-number { top: 4px; right: 4px; width: 23px; height: 23px; font-size: .75rem; }
+      .order-feedback { min-height: 1.8em; margin-top: 4px; font-size: calc(.78rem * var(--scale)); }
+      .order-feedback.correct { font-size: calc(.86rem * var(--scale)); }
+      .order-actions { gap: 5px; margin-top: 5px; }
+      .order-actions button { min-height: 44px; padding: 5px 3px; font-size: calc(.8rem * var(--scale)); }
+    }
+    @media (max-width: 500px) and (max-height: 700px) {
+      .order-card { padding-top: 6px; }
+      .order-home { min-height: 36px; margin-bottom: 3px; }
+      .order-status { margin: 2px 0; }
+      .order-length-control { margin-bottom: 3px; }
+      .order-practice-row { margin-bottom: 3px; }
+      .order-choice.with-symbol { min-height: 96px; }
+      .order-hex { font-size: calc(2.35rem * var(--scale)); }
+      .order-feedback { margin-top: 2px; }
+      .order-actions { margin-top: 3px; }
+    }
+    @media (min-width: 501px) {
+      #order-screen { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+      .order-card { scroll-margin-top: max(18px, env(safe-area-inset-top)); }
+    }
     .english-card { padding: 12px 14px 14px; text-align: center; }
     .english-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px; }
     .english-stat { padding: 5px 2px; border-radius: 10px; background: #edf4ee; color: #526056; font-size: calc(.7rem * var(--scale)); font-weight: 800; line-height: 1.15; }
@@ -634,26 +676,10 @@
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const card = orderScreen.querySelector('.order-card');
         if (!card) return;
-        card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        setTimeout(() => {
-          const controls = document.querySelector('.controls');
-          if (!controls) return;
-          const safeTop = controls.getBoundingClientRect().bottom + 10;
-          const cardTop = card.getBoundingClientRect().top;
-          window.scrollBy({ top: cardTop - safeTop, behavior: 'smooth' });
-        }, 450);
-      }));
-    }
-    function alignOrderResult() {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const result = orderScreen.querySelector('.order-result');
-        if (!result) return;
-        result.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
-        setTimeout(() => {
-          const resultBottom = result.getBoundingClientRect().bottom;
-          const safeBottom = window.innerHeight - 18;
-          if (resultBottom > safeBottom) window.scrollBy({ top: resultBottom - safeBottom, behavior: 'smooth' });
-        }, 450);
+        const compactPhone = window.innerWidth <= 500;
+        const targetTop = compactPhone ? (window.innerHeight <= 700 ? 4 : 10) : 18;
+        const safeTop = Math.max(targetTop, window.visualViewport?.offsetTop || 0);
+        window.scrollBy({ top: card.getBoundingClientRect().top - safeTop, behavior: 'auto' });
       }));
     }
     function alignEnglishCard() {
@@ -809,9 +835,6 @@
           }, 0);
         });
       });
-    }
-    function shouldAlignOrderViewport() {
-      return window.matchMedia ? window.matchMedia('(max-width: 500px)').matches : window.innerWidth <= 500;
     }
     function showQuery(shouldScroll = true, term = '') {
       scaleIndex = scales.length - 1;
@@ -992,7 +1015,8 @@
       orderSelections = [];
       rememberOrderQuestion();
     }
-    function renderOrder() {
+    function renderOrder(preserveScroll = false) {
+      const preservedScrollY = preserveScroll ? window.scrollY : null;
       const complete = orderSelections.length === orderSequence.length;
       const correct = complete && orderSelections.every((item, i) => item === orderSequence[i]);
       const progressText = `已選 ${orderSelections.length} / ${orderSequence.length}`;
@@ -1006,6 +1030,7 @@
       const questionStats = orderQuestionStats[currentOrderKey()] || { attempts: 0, correct: 0, wrong: 0 };
       const enhanced = orderEnhanced.has(currentOrderKey());
       orderScreen.innerHTML = `<article class="order-card"><button class="order-home" type="button" data-order-action="home">回到首頁</button><h2 class="order-title">1到64卦正確順序排列</h2><div class="order-status"><div class="order-progress">${progressText}</div><button class="order-symbol-toggle" type="button" data-order-action="symbols">${showOrderSymbols ? '隱藏卦象' : '顯示卦象'}</button></div><div class="order-length-control" aria-label="選擇排序題數">${lengthChoices.map(choice => `<button class="${orderLengthMode === choice.value ? 'active' : ''}" type="button" data-order-length="${choice.value}" aria-pressed="${orderLengthMode === choice.value}">${choice.label}</button>`).join('')}</div><div class="order-practice-row"><div class="order-stats"><strong>${orderSequence.length}卦統計</strong><span>作答 ${stats.attempts}　答對 ${stats.correct}　答錯 ${stats.wrong}</span><small>本題已做 ${questionStats.attempts} 次</small></div><button class="order-enhance${enhanced ? ' active' : ''}" type="button" data-order-action="enhance" aria-pressed="${enhanced}">${enhanced ? '已增強' : '增強練習'}</button></div><div class="order-grid">${orderChoices.map(i => { const position = orderSelections.indexOf(i); const item = hexagrams[i]; const selectionLabel = position >= 0 ? `，排序第 ${position + 1}` : ''; return `<button class="order-choice${showOrderSymbols ? ' with-symbol' : ''}${position >= 0 ? ' selected' : ''}" type="button" data-order-index="${i}" aria-label="${item.name}${selectionLabel}">${position >= 0 ? `<span class="order-number">${position + 1}</span>` : ''}${showOrderSymbols ? `<span class="order-hex" aria-hidden="true">${item.symbol}</span>` : ''}<span class="order-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span></button>`; }).join('')}</div><div class="order-result"><div class="order-feedback${correct ? ' correct' : ''}" aria-live="polite">${feedback}</div><div class="order-actions"><button type="button" data-order-action="reset">重新本題</button><button class="next-order" type="button" data-order-action="next">隨機下一題</button></div></div></article>`;
+      if (preserveScroll) requestAnimationFrame(() => window.scrollTo({ top: preservedScrollY, behavior: 'auto' }));
     }
     function showOrder(newQuestion = true, shouldAlign = true) {
       currentMode = 'order';
@@ -1355,28 +1380,29 @@
         else if (orderSelections.length < orderSequence.length) orderSelections.push(index);
         const completedOrder = orderSelections.length === orderSequence.length;
         if (completedOrder) recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
-        renderOrder();
-        if (completedOrder && shouldAlignOrderViewport()) alignOrderResult();
+        renderOrder(true);
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
-        showOrder(true, shouldAlignOrderViewport());
+        newOrderQuestion();
+        renderOrder(true);
       } else if (action?.dataset.orderAction === 'home') {
         showList('all');
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
-        renderOrder();
+        renderOrder(true);
       } else if (action?.dataset.orderAction === 'symbols') {
         showOrderSymbols = !showOrderSymbols;
-        renderOrder();
+        renderOrder(true);
       } else if (action?.dataset.orderAction === 'enhance') {
         const key = currentOrderKey();
         if (orderEnhanced.has(key)) orderEnhanced.delete(key);
         else orderEnhanced.add(key);
         saveOrderEnhanced();
         orderStartDecks.delete(orderSequence.length);
-        renderOrder();
+        renderOrder(true);
       } else if (action?.dataset.orderAction === 'next') {
-        showOrder(true, shouldAlignOrderViewport());
+        newOrderQuestion();
+        renderOrder(true);
       }
     });
     englishScreen.addEventListener('click', event => {
