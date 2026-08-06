@@ -101,6 +101,15 @@
     .query-yao-row { scroll-margin-top: 12px; }
     .query-yao-transcript { margin: 8px -1px 0; padding: 10px; border-top: 1px solid #c5d8c9; border-radius: 8px; background: #f7fbf7; color: #26352b; font-size: calc(.86rem * var(--scale)); line-height: 1.6; white-space: pre-wrap; }
     .query-yao-label { display: inline-block; min-width: 3.1em; margin-right: 5px; color: var(--green); font-weight: 900; }
+    .query-yao-summary-status { display: block; margin-top: 5px; color: #68756b; font-size: calc(.72rem * var(--scale)); font-weight: 800; }
+    .query-yao-summary-status.important { color: #a25a00; }
+    .query-yao-progress { margin-top: 8px; padding: 9px; border: 1px solid #c5d8c9; border-radius: 10px; background: #fff; }
+    .query-yao-progress-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .query-yao-progress-actions button { min-height: 44px; padding: 6px 5px; border: 1px solid var(--green); border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.78rem * var(--scale)); font-weight: 850; line-height: 1.25; }
+    .query-yao-progress-actions .important { border-color: #b97818; background: #fff8e8; color: #915400; }
+    .query-yao-read-count { margin: 8px 0 4px; color: #425148; font-size: calc(.8rem * var(--scale)); font-weight: 850; }
+    .query-yao-read-history { margin: 0; padding-left: 1.4em; color: #617064; font-size: calc(.73rem * var(--scale)); line-height: 1.5; }
+    .query-yao-read-empty { margin: 5px 0 0; color: #7b877e; font-size: calc(.73rem * var(--scale)); }
     .query-detail-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 13px; }
     .query-detail-nav button, .query-back { min-height: 44px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
     .query-detail-nav button:disabled { border-color: #ccd5cc; background: #f3f5f3; color: #8a958d; }
@@ -592,6 +601,8 @@
     const englishQuestionStatsStorageKey = 'iching-english-question-stats-v1';
     const englishEnhancedStorageKey = 'iching-english-enhanced-v1';
     const englishModeStorageKey = 'iching-english-mode-v1';
+    const queryYaoProgressStorageKey = 'iching-query-yao-progress-v1';
+    let queryYaoProgress = loadQueryYaoProgress();
     let englishStats = loadEnglishStats();
     let englishQuestionStats = loadEnglishQuestionStats();
     let englishDeck = [];
@@ -777,6 +788,59 @@
     function escapeQueryHtml(value) {
       return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     }
+    function loadQueryYaoProgress() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(queryYaoProgressStorageKey) || '{}');
+        return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+      } catch (_) {
+        return {};
+      }
+    }
+    function saveQueryYaoProgress() {
+      try { localStorage.setItem(queryYaoProgressStorageKey, JSON.stringify(queryYaoProgress)); } catch (_) {}
+    }
+    function queryYaoProgressKey(number, label) {
+      return `${number}:${label}`;
+    }
+    function getQueryYaoProgress(number, label) {
+      const entry = queryYaoProgress[queryYaoProgressKey(number, label)];
+      return {
+        reads: Array.isArray(entry?.reads) ? entry.reads.filter(value => !Number.isNaN(new Date(value).getTime())) : [],
+        important: Boolean(entry?.important)
+      };
+    }
+    function setQueryYaoProgress(number, label, entry) {
+      queryYaoProgress[queryYaoProgressKey(number, label)] = entry;
+      saveQueryYaoProgress();
+    }
+    function formatQueryYaoReadDate(value) {
+      return new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
+    }
+    function queryYaoSummaryStatus(number, label) {
+      const progress = getQueryYaoProgress(number, label);
+      return `${progress.reads.length ? `✓ 已讀 ${progress.reads.length} 次` : '尚未閱讀'}${progress.important ? '　★ 特別重要' : ''}`;
+    }
+    function queryYaoProgressInnerMarkup(number, label) {
+      const progress = getQueryYaoProgress(number, label);
+      const escapedLabel = escapeQueryHtml(label);
+      const history = progress.reads.length
+        ? `<ol class="query-yao-read-history">${progress.reads.map((date, index) => `<li>第 ${index + 1} 次：${escapeQueryHtml(formatQueryYaoReadDate(date))}</li>`).join('')}</ol>`
+        : '<p class="query-yao-read-empty">尚未記錄閱讀日期</p>';
+      return `<div class="query-yao-progress-actions"><button type="button" data-query-yao-read data-query-yao-number="${number}" data-query-yao-label="${escapedLabel}" aria-label="記錄 ${escapedLabel} 第 ${progress.reads.length + 1} 次已閱讀">✓ 記錄本次已閱讀</button><button type="button" class="${progress.important ? 'important' : ''}" data-query-yao-important data-query-yao-number="${number}" data-query-yao-label="${escapedLabel}" aria-pressed="${progress.important}">${progress.important ? '★ 已標為重要' : '☆ 標為特別重要'}</button></div><div class="query-yao-read-count">已閱讀 ${progress.reads.length} 次</div>${history}`;
+    }
+    function queryYaoProgressMarkup(number, label) {
+      return `<div class="query-yao-progress">${queryYaoProgressInnerMarkup(number, label)}</div>`;
+    }
+    function refreshQueryYaoProgressRow(row, number, label) {
+      const progress = getQueryYaoProgress(number, label);
+      const status = row?.querySelector('.query-yao-summary-status');
+      const panel = row?.querySelector('.query-yao-progress');
+      if (status) {
+        status.textContent = queryYaoSummaryStatus(number, label);
+        status.classList.toggle('important', progress.important);
+      }
+      if (panel) panel.innerHTML = queryYaoProgressInnerMarkup(number, label);
+    }
     let heartMindLectureLoad;
     function loadHeartMindLectureData() {
       if (window.heartMindLectureData) return Promise.resolve(window.heartMindLectureData);
@@ -809,9 +873,9 @@
         const yaoRows = (selected.yao || []).map(yao => {
           const label = escapeQueryHtml(yao.label);
           const explanation = escapeQueryHtml(String(yao.text || '').replace(/^\s*[:\uFF1A]\s*/, ''));
-          if (!lecture) return `<div class="query-yao-row"><span class="query-yao-label">${label}</span>${explanation}</div>`;
-          const transcript = escapeQueryHtml(String(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。').replace(/^\s*[:\uFF1A]\s*/, ''));
-          return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
+          const progress = getQueryYaoProgress(selected.number, yao.label);
+          const transcript = escapeQueryHtml(String(lecture ? (lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。') : '正在載入逐字稿……').replace(/^\s*[:\uFF1A]\s*/, ''));
+          return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}<span class="query-yao-summary-status${progress.important ? ' important' : ''}">${escapeQueryHtml(queryYaoSummaryStatus(selected.number, yao.label))}</span></summary><p class="query-yao-transcript">${transcript}</p>${queryYaoProgressMarkup(selected.number, yao.label)}</details>`;
         }).join('');
         const previousButton = previous
           ? `<button type="button" data-query-number="${previous.number}" aria-label="上一卦 ${escapeQueryHtml(previous.name)}">← 上一卦｜${escapeQueryHtml(previous.name)}</button>`
@@ -1336,6 +1400,20 @@
 
     });
     queryScreen.addEventListener('click', event => {
+      const readAction = event.target.closest('[data-query-yao-read]');
+      const importantAction = event.target.closest('[data-query-yao-important]');
+      if (readAction || importantAction) {
+        event.preventDefault();
+        const action = readAction || importantAction;
+        const number = Number(action.dataset.queryYaoNumber);
+        const label = action.dataset.queryYaoLabel || '';
+        const progress = getQueryYaoProgress(number, label);
+        if (readAction) progress.reads.push(new Date().toISOString());
+        else progress.important = !progress.important;
+        setQueryYaoProgress(number, label, progress);
+        refreshQueryYaoProgressRow(action.closest('.query-yao-row'), number, label);
+        return;
+      }
       if (event.target.closest('[data-query-home]')) {
         showList('all');
         return;
