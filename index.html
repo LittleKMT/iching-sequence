@@ -103,6 +103,7 @@
     .query-yao-label { display: inline-block; min-width: 3.1em; margin-right: 5px; color: var(--green); font-weight: 900; }
     .query-detail-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 13px; }
     .query-detail-nav button, .query-back { min-height: 44px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
+    .query-detail-nav button:disabled { border-color: #ccd5cc; background: #f3f5f3; color: #8a958d; }
     .query-back { width: 100%; margin-top: 8px; background: var(--green); color: #fff; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
@@ -812,7 +813,13 @@
           const transcript = escapeQueryHtml(String(lecture.yao?.[yao.label] || '此爻尚無逐字稿內容。').replace(/^\s*[:\uFF1A]\s*/, ''));
           return `<details class="query-yao-row"><summary><span class="query-yao-label">${label}</span>${explanation}</summary><p class="query-yao-transcript">${transcript}</p></details>`;
         }).join('');
-        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}</div><p class="query-meaning">${escapeQueryHtml(String(selected.meaning || '').replace(/^\s*[:\uFF1A]\s*/, ''))}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
+        const previousButton = previous
+          ? `<button type="button" data-query-number="${previous.number}" aria-label="上一卦 ${escapeQueryHtml(previous.name)}">← 上一卦｜${escapeQueryHtml(previous.name)}</button>`
+          : '<button type="button" disabled>已是第一卦</button>';
+        const nextButton = next
+          ? `<button type="button" data-query-number="${next.number}" aria-label="下一卦 ${escapeQueryHtml(next.name)}">下一卦｜${escapeQueryHtml(next.name)} →</button>`
+          : '<button type="button" disabled>已是第六十四卦</button>';
+        body = `<article class="query-detail"><h3 class="query-detail-title"><button type="button" class="query-current-toggle" data-query-number="${selected.number}">${escapeQueryHtml(selected.name)}</button></h3><div class="query-detail-page">${escapeQueryHtml(selected.fullName || '')}</div><p class="query-meaning">${escapeQueryHtml(String(selected.meaning || '').replace(/^\s*[:\uFF1A]\s*/, ''))}</p><div class="query-yao-list">${yaoRows}</div>${lectureMarkup(selected)}<nav class="query-detail-nav" aria-label="相鄰卦導覽">${previousButton}${nextButton}</nav><button type="button" class="query-back" data-query-back>回到六十四卦索引</button></article>`;
       } else {
         const entries = normalized ? data.hexagrams.filter(item => `${item.name} ${item.text}`.toLocaleLowerCase().includes(normalized)) : data.hexagrams;
         const cards = entries.map(item => `<button type="button" class="query-index-item" data-query-number="${item.number}"><span class="query-index-name${item.name.length === 1 ? ' single' : ''}">${escapeQueryHtml(item.name)}</span></button>`).join('');
