@@ -49,6 +49,7 @@
     .all-view-options.non-sticky { position: static; background: transparent; backdrop-filter: none; }
     .all-view-options button { min-width: 0; min-height: 42px; padding: 6px 2px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.86rem * var(--scale)); font-weight: 850; }
     .all-view-options button.active { border-color: var(--green); background: var(--green); color: #fff; }
+    .all-view-options .fu-plain-toggle { grid-column: 1 / -1; }
     .all-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
     .all-overview-grid.with-text { grid-template-columns: 1fr; gap: 10px; }
     .all-overview-card { min-width: 0; min-height: 84px; display: grid; place-items: center; align-content: center; padding: 7px 1px; border: 1px solid #ccd5cc; border-radius: 13px; background: #fff; color: var(--green); text-align: center; overflow: hidden; }
@@ -63,6 +64,10 @@
     .all-overview-copy { margin-top: 7px; color: #26352b; font-size: calc(1.06rem * var(--scale)); line-height: 1.55; overflow-wrap: anywhere; }
     .all-overview-copy .label { margin-bottom: 2px; }
     .all-overview-copy p { margin: 0; }
+    .fu-plain[hidden] { display: none; }
+    .fu-plain-toggle { width: 100%; min-height: 42px; margin: 9px 0 0; padding: 7px 8px; border: 1px solid #a86b13; border-radius: 11px; background: #fff8e8; color: #8b5100; font-size: calc(.82rem * var(--scale)); font-weight: 850; }
+    .fu-plain-toggle[aria-pressed="true"] { background: #8b5100; color: #fff; }
+    .fu-plain { margin-top: 9px; padding-top: 7px; border-top: 1px solid #ead9bb; }
     .all-overview-reference { margin-top: 9px; padding-top: 6px; border-top: 1px solid #e1e8e1; color: #6b776e; font-size: calc(.78rem * var(--scale)); line-height: 1.4; }
     .query-card { padding: 16px 14px 18px; }
     .query-home, .order-home { width: 100%; min-height: 44px; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--green); border-radius: 13px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 900; }
@@ -609,6 +614,7 @@
     const overviewScreen = document.getElementById('overview-screen');
     let currentMode = 'all';
     let showPlain = true;
+    let showFuPlain = false;
     const allViewFields = { symbol: false, name: true, original: false, plain: false };
     const allCardReveals = new Map();
     const allViewChoices = [
@@ -771,8 +777,27 @@
       document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
       document.getElementById('picker-button').classList.toggle('active', mode === 'picker');
     }
+    function fuPlainToggleMarkup(extraClass = '') {
+      return `<button type="button" class="fu-plain-toggle${extraClass ? ` ${extraClass}` : ''}" data-fu-plain-toggle aria-pressed="${showFuPlain}">${showFuPlain ? '隱藏傅佩榮白話' : '顯示傅佩榮白話'}</button>`;
+    }
+    function plainSourcesMarkup(item, i, withToggle = true) {
+      return `<div class="label">白話（混元禪師解釋）</div><p class="text">${masterPlains[i]}</p>${withToggle ? fuPlainToggleMarkup() : ''}<div class="fu-plain" ${showFuPlain ? '' : 'hidden'}><div class="label">白話（傅佩榮）</div><p class="text">${item.plain}</p></div>`;
+    }
+    function updateFuPlainVisibility() {
+      document.querySelectorAll('.fu-plain').forEach(element => { element.hidden = !showFuPlain; });
+      document.querySelectorAll('[data-fu-plain-toggle]').forEach(button => {
+        button.textContent = showFuPlain ? '隱藏傅佩榮白話' : '顯示傅佩榮白話';
+        button.setAttribute('aria-pressed', String(showFuPlain));
+      });
+    }
+    function toggleFuPlain() {
+      const preservedScrollY = window.scrollY;
+      showFuPlain = !showFuPlain;
+      updateFuPlainVisibility();
+      requestAnimationFrame(() => window.scrollTo({ top: preservedScrollY, behavior: 'auto' }));
+    }
     function studyMarkup(item, i) {
-      return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話</div><p class="text">${item.plain}</p></div></div></article>`;
+      return `<article class="study-card" id="hex-${i + 1}"><div class="study-head"><span class="hex-symbol">${item.symbol}</span><span class="ordinal">第 ${i + 1} 卦</span></div><div class="study-body"><h3 class="hex-name">${item.name}</h3><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}>${plainSourcesMarkup(item, i)}</div></div></article>`;
     }
     function allCardFields(i) {
       const fields = { ...allViewFields };
@@ -784,7 +809,7 @@
       const symbol = fields.symbol ? `<span class="all-overview-symbol">${item.symbol}</span>` : '';
       const name = fields.name ? `<span class="all-overview-name${item.name.length === 1 ? ' single' : ''}">${item.name}</span>` : '';
       const original = fields.original ? `<div class="all-overview-copy"><div class="label">序卦傳原文</div><p>${item.original}</p></div>` : '';
-      const plain = fields.plain ? `<div class="all-overview-copy"><div class="label">白話（混元禪師解釋）</div><p>${masterPlains[i]}</p><div class="label">白話（傅佩榮）</div><p>${item.plain}</p></div>` : '';
+      const plain = fields.plain ? `<div class="all-overview-copy">${plainSourcesMarkup(item, i, !allViewFields.plain)}</div>` : '';
       const expanded = fields.original || fields.plain;
       const nextLabel = fields.symbol && !fields.name ? '顯示卦名' : fields.name && !fields.original ? '顯示序文' : fields.original && !fields.plain ? '顯示白話' : '';
       const canCollapse = !nextLabel && Boolean(allCardReveals.get(i)?.size);
@@ -794,10 +819,11 @@
     function allOverviewMarkup(start = 0, end = 64, title = '六十四卦排列') {
       const withText = allViewFields.original || allViewFields.plain;
       const options = allViewChoices.map(choice => `<button type="button" data-all-field="${choice.key}" class="${allViewFields[choice.key] ? 'active' : ''}" aria-pressed="${allViewFields[choice.key]}">${choice.label}</button>`).join('');
+      const fuPlainToggle = allViewFields.plain ? fuPlainToggleMarkup('all-fu-plain-toggle') : '';
       const cards = hexagrams.slice(start, end).map((item, offset) => allOverviewCardMarkup(item, start + offset)).join('');
       const optionsClass = start === 0 && end === 64 ? 'all-view-options' : 'all-view-options non-sticky';
       const reference = start === 0 && end === 64 ? `<div class="all-overview-reference"><strong>Reference：</strong>易經心法講座影片（序卦傳白話研究）</div>` : '';
-      return `<h2 class="section-title">${title}</h2><div class="${optionsClass}" aria-label="選擇顯示內容">${options}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>${reference}`;
+      return `<h2 class="section-title">${title}</h2><div class="${optionsClass}" aria-label="選擇顯示內容">${options}${fuPlainToggle}</div><div class="all-overview-grid${withText ? ' with-text' : ''}">${cards}</div>${reference}`;
     }
     function revealNextAllCard(i) {
       const fields = allCardFields(i);
@@ -1063,7 +1089,7 @@
       singleScreen.hidden = false;
       setActive('');
       const item = hexagrams[i];
-      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}><div class="label">白話</div><p class="text">${item.plain}</p></div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
+      singleScreen.innerHTML = `<article class="single-card"><div class="ordinal">第 ${i + 1} 卦</div><div class="hex-symbol">${item.symbol}</div><h2 class="hex-name">${item.name}</h2><div class="single-copy"><div class="label">序卦傳原文</div><p class="text">${item.original}</p><div class="plain" ${showPlain ? '' : 'hidden'}>${plainSourcesMarkup(item, i)}</div></div><div class="swipe-hint">向右滑上一卦　·　向左滑下一卦</div><div class="study-nav"><button type="button" onclick="openStudy(${i - 1})">← 上一卦</button><button type="button" onclick="openStudy(${i + 1})">下一卦 →</button></div><button class="back-button" type="button" onclick="showPicker()">← 回六十四卦</button></article>`;
       alignStudyCard();
     }
     function completeStudySwipe(endX, endY) {
@@ -1598,8 +1624,13 @@
       }
     });
     listScreen.addEventListener('click', event => {
+      const fuPlainToggle = event.target.closest('[data-fu-plain-toggle]');
       const button = event.target.closest('[data-all-field]');
       const card = event.target.closest('[data-all-card]');
+      if (fuPlainToggle) {
+        toggleFuPlain();
+        return;
+      }
       if (!['all', 'upper', 'lower'].includes(currentMode)) return;
       if (button) {
         const key = button.dataset.allField;
@@ -1611,6 +1642,7 @@
       } else if (card) revealNextAllCard(Number(card.dataset.allCard));
     });
     listScreen.addEventListener('keydown', event => {
+      if (event.target.closest('[data-fu-plain-toggle]')) return;
       const card = event.target.closest('[data-all-card]');
       if (!card || !['all', 'upper', 'lower'].includes(currentMode) || (event.key !== 'Enter' && event.key !== ' ')) return;
       event.preventDefault();
@@ -1737,6 +1769,9 @@
     englishScreen.addEventListener('pointercancel', () => {
       englishFlashTouchStartX = null;
       englishFlashTouchStartY = null;
+    });
+    singleScreen.addEventListener('click', event => {
+      if (event.target.closest('[data-fu-plain-toggle]')) toggleFuPlain();
     });
     singleScreen.addEventListener('touchstart', event => {
       if (event.touches.length !== 1) return;
