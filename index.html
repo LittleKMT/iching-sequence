@@ -27,13 +27,16 @@
     .controls.english-focus { position: relative; top: auto; backdrop-filter: none; }
     .controls.order-focus { display: none; }
     .controls.query-focus { display: none; }
+    .controls.overview-focus { display: none; }
     header.query-focus-header { display: none; }
+    header.overview-focus-header { display: none; }
     .controls:not(.flash-focus) .flash-only-row { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
     .control-row.six { grid-template-columns: repeat(6, 1fr); }
     .control-row.four { grid-template-columns: repeat(4, 1fr); }
     .control-row.three { grid-template-columns: repeat(3, 1fr); }
+    .control-row.two { grid-template-columns: repeat(2, 1fr); }
     .control-row.one { grid-template-columns: 1fr; margin-bottom: 0; }
     .control { min-width: 0; min-height: 44px; padding: 9px 4px; border: 1px solid #bdc6bd; border-radius: 12px; background: #fff; color: #1c2820; font-size: calc(.92rem * var(--scale)); font-weight: 750; box-shadow: 0 1px 2px #0000000c; }
     .control:active { transform: translateY(1px); }
@@ -114,6 +117,34 @@
     .query-detail-nav button, .query-back { min-height: 44px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.92rem * var(--scale)); font-weight: 850; }
     .query-detail-nav button:disabled { border-color: #ccd5cc; background: #f3f5f3; color: #8a958d; }
     .query-back { width: 100%; margin-top: 8px; background: var(--green); color: #fff; }
+    .overview-card { padding: 12px 2px 20px; }
+    .overview-home { width: 100%; min-height: 44px; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--green); border-radius: 13px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 900; }
+    .overview-title { margin: 2px 0 5px; color: var(--green); font-size: calc(1.45rem * var(--scale)); text-align: center; }
+    .overview-intro { margin: 0 4px 12px; color: #526056; font-size: calc(.85rem * var(--scale)); line-height: 1.5; text-align: center; }
+    .overview-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+    .overview-summary-item { min-width: 0; padding: 8px 3px; border-radius: 12px; background: #e8f1ea; color: #526056; font-size: calc(.66rem * var(--scale)); font-weight: 800; line-height: 1.25; text-align: center; }
+    .overview-summary-item strong { display: block; margin-top: 3px; color: var(--green); font-size: calc(1rem * var(--scale)); }
+    .overview-filters { position: sticky; top: max(0px, env(safe-area-inset-top)); z-index: 8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 6px 0; background: color-mix(in srgb, var(--cream) 96%, transparent); backdrop-filter: blur(10px); }
+    .overview-filter { min-width: 0; min-height: 42px; padding: 5px 2px; border: 1px solid #b8c3ba; border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.7rem * var(--scale)); font-weight: 850; line-height: 1.15; }
+    .overview-filter.active { border-color: var(--green); background: var(--green); color: #fff; }
+    .overview-count { margin: 3px 2px 8px; color: #617064; font-size: calc(.75rem * var(--scale)); font-weight: 800; }
+    .overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .overview-item { min-width: 0; padding: 11px; border: 1px solid #d1dcd3; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px #2033250a; }
+    .overview-item-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .overview-number { color: #68756b; font-size: calc(.72rem * var(--scale)); font-weight: 850; }
+    .overview-name { margin: 0; color: var(--green); font-size: calc(1.5rem * var(--scale)); line-height: 1; }
+    .overview-book { padding: 3px 7px; border-radius: 999px; background: #e8f1ea; color: var(--green); font-size: calc(.66rem * var(--scale)); font-weight: 850; white-space: nowrap; }
+    .overview-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e1e8e2; }
+    .overview-section-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px; color: #425148; font-size: calc(.76rem * var(--scale)); font-weight: 900; }
+    .overview-enhanced { padding: 2px 6px; border-radius: 999px; background: #fff1d7; color: #925500; font-size: calc(.64rem * var(--scale)); }
+    .overview-metric { margin: 5px 0 0; color: #26352b; font-size: calc(.78rem * var(--scale)); line-height: 1.45; }
+    .overview-ranges { margin: 4px 0 0; color: #6a776d; font-size: calc(.68rem * var(--scale)); line-height: 1.45; overflow-wrap: anywhere; }
+    .overview-yao-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 7px; }
+    .overview-yao { min-width: 0; padding: 5px 2px; border: 1px solid #d8e0d9; border-radius: 8px; background: #f7f9f7; color: #7a867d; font-size: calc(.62rem * var(--scale)); font-weight: 800; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+    .overview-yao.read { border-color: #8ab097; background: #edf5ef; color: var(--green); }
+    .overview-yao.important { border-color: #d3a65c; background: #fff8e8; color: #925500; }
+    .overview-open-query { width: 100%; min-height: 42px; margin-top: 9px; border: 1px solid var(--green); border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.78rem * var(--scale)); font-weight: 850; }
+    .overview-empty { grid-column: 1 / -1; padding: 28px 12px; border: 1px dashed #b8c3ba; border-radius: 14px; color: #68756b; text-align: center; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card, .english-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
@@ -311,6 +342,12 @@
       .flash-main .hex-symbol { font-size: calc(6.2rem * var(--scale)); }
       .answer-cell .hex-symbol { font-size: calc(6.8rem * var(--scale)); }
     }
+    @media (max-width: 500px) {
+      .overview-card { padding-left: 0; padding-right: 0; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .overview-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-filter { font-size: calc(.64rem * var(--scale)); }
+    }
   </style>
 </head>
 <body>
@@ -330,8 +367,9 @@
         <button class="control" data-mode="order">排序</button>
         <button class="control" data-mode="english">中英</button>
       </div>
-      <div class="control-row one">
+      <div class="control-row two">
         <button class="control" data-mode="query">心法查詢</button>
+        <button class="control" data-mode="overview">學習總攬</button>
       </div>
       <div class="control-row three">
         <button class="control" id="font-down" aria-label="縮小文字">A−</button>
@@ -359,6 +397,7 @@
     <section id="order-screen" class="screen" hidden></section>
     <section id="english-screen" class="screen" hidden></section>
     <section id="query-screen" class="screen" hidden></section>
+    <section id="overview-screen" class="screen" hidden></section>
     <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）；混元禪師解釋整理參考：易經心法講座影片（序卦傳白話研究）；英文卦名採 Wilhelm–Baynes 常見譯名。</footer>
   </main>
 
@@ -555,7 +594,7 @@
     if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64 || englishTitles.length !== 64) throw new Error('六十四卦資料不完整');
     if (hexagramTrigrams.length !== 64 || new Set(hexagramTrigrams.map(pair => pair.join('-'))).size !== 64) throw new Error('八卦組合資料不完整');
 
-    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen','query-screen'].map(id => document.getElementById(id));
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen','query-screen','overview-screen'].map(id => document.getElementById(id));
     const listScreen = document.getElementById('list-screen');
     const pickerScreen = document.getElementById('picker-screen');
     const singleScreen = document.getElementById('single-screen');
@@ -563,6 +602,7 @@
     const orderScreen = document.getElementById('order-screen');
     const englishScreen = document.getElementById('english-screen');
     const queryScreen = document.getElementById('query-screen');
+    const overviewScreen = document.getElementById('overview-screen');
     let currentMode = 'all';
     let showPlain = true;
     const allViewFields = { symbol: false, name: true, original: false, plain: false };
@@ -603,6 +643,8 @@
     const englishModeStorageKey = 'iching-english-mode-v1';
     const queryYaoProgressStorageKey = 'iching-query-yao-progress-v1';
     let queryYaoProgress = loadQueryYaoProgress();
+    let overviewFilter = 'all';
+    let queryReturnMode = 'all';
     let englishStats = loadEnglishStats();
     let englishQuestionStats = loadEnglishQuestionStats();
     let englishDeck = [];
@@ -630,8 +672,12 @@
       controls.classList.toggle('english-focus', currentMode === 'english');
       controls.classList.toggle('order-focus', currentMode === 'order');
       controls.classList.toggle('query-focus', currentMode === 'query');
+      controls.classList.toggle('overview-focus', currentMode === 'overview');
       const header = document.querySelector('main > header');
-      if (header) header.classList.toggle('query-focus-header', currentMode === 'query');
+      if (header) {
+        header.classList.toggle('query-focus-header', currentMode === 'query');
+        header.classList.toggle('overview-focus-header', currentMode === 'overview');
+      }
       const flashOnlyRow = controls.querySelector('.flash-only-row');
       if (flashOnlyRow) flashOnlyRow.hidden = currentMode !== 'flash';
     }
@@ -890,7 +936,8 @@
         body = `<div class="query-index-grid">${cards || ''}</div>`;
       }
       queryScreen.dataset.selectedNumber = selected ? String(selected.number) : '';
-      queryScreen.innerHTML = `<article class="query-card"><button type="button" class="query-home" data-query-home>回到首頁</button><button type="button" class="query-entry-button" disabled>查詢</button>${body}</article>`;
+      const returnLabel = queryReturnMode === 'overview' ? '回到學習總攬' : '回到首頁';
+      queryScreen.innerHTML = `<article class="query-card"><button type="button" class="query-home" data-query-home>${returnLabel}</button><button type="button" class="query-entry-button" disabled>查詢</button>${body}</article>`;
       queryScreen.querySelectorAll('details.query-yao-row').forEach(details => {
         details.addEventListener('toggle', () => {
           if (details.open) {
@@ -907,9 +954,10 @@
         });
       });
     }
-    function showQuery(shouldScroll = true, term = '') {
+    function showQuery(shouldScroll = true, term = '', returnMode = 'all') {
       scaleIndex = scales.length - 1;
       updateScale();
+      queryReturnMode = returnMode;
       currentMode = 'query';
       hideScreens();
       queryScreen.hidden = false;
@@ -917,6 +965,91 @@
       renderQuery(term);
       if (shouldScroll) scrollTopNow();
 
+    }
+    function parsedOrderKey(key) {
+      const [length, start] = String(key).split(':').map(Number);
+      if (!Number.isInteger(length) || !Number.isInteger(start) || length < 2 || length > 6 || start < 0 || start + length > 64) return null;
+      return { length, start };
+    }
+    function overviewOrderStats(index) {
+      const total = { attempts: 0, correct: 0, wrong: 0, ranges: [], enhanced: false };
+      Object.entries(orderQuestionStats).forEach(([key, stats]) => {
+        const parsed = parsedOrderKey(key);
+        if (!parsed || index < parsed.start || index >= parsed.start + parsed.length) return;
+        total.attempts += Math.max(0, Number(stats.attempts) || 0);
+        total.correct += Math.max(0, Number(stats.correct) || 0);
+        total.wrong += Math.max(0, Number(stats.wrong) || 0);
+        if ((Number(stats.attempts) || 0) > 0) total.ranges.push(`${parsed.start + 1}–${parsed.start + parsed.length}`);
+      });
+      total.enhanced = [...orderEnhanced].some(key => {
+        const parsed = parsedOrderKey(key);
+        return parsed && index >= parsed.start && index < parsed.start + parsed.length;
+      });
+      total.ranges = [...new Set(total.ranges)];
+      return total;
+    }
+    function overviewYaoStats(number) {
+      const selected = window.heartMindData?.hexagrams?.find(item => item.number === number);
+      const yao = (selected?.yao || []).map(item => {
+        const progress = getQueryYaoProgress(number, item.label);
+        return { label: item.label, reads: progress.reads.length, important: progress.important };
+      });
+      return {
+        yao,
+        readYao: yao.filter(item => item.reads > 0).length,
+        readEvents: yao.reduce((sum, item) => sum + item.reads, 0),
+        important: yao.filter(item => item.important).length
+      };
+    }
+    function learningOverviewEntries() {
+      return hexagrams.map((item, index) => {
+        const order = overviewOrderStats(index);
+        const reading = overviewYaoStats(index + 1);
+        const english = englishQuestionStats[index] || { attempts: 0, correct: 0, wrong: 0 };
+        return { item, index, number: index + 1, order, reading, english, englishEnhanced: englishEnhanced.has(index) };
+      });
+    }
+    function overviewEntryVisible(entry) {
+      if (overviewFilter === 'unread') return entry.reading.readYao < entry.reading.yao.length;
+      if (overviewFilter === 'important') return entry.reading.important > 0;
+      if (overviewFilter === 'ordered') return entry.order.attempts > 0;
+      if (overviewFilter === 'enhanced') return entry.order.enhanced || entry.englishEnhanced;
+      return true;
+    }
+    function overviewEntryMarkup(entry) {
+      const book = entry.number <= 30 ? '上經' : '下經';
+      const ranges = entry.order.ranges.length ? entry.order.ranges.map(range => `第 ${range} 卦`).join('、') : '尚未出現在已完成的排序題';
+      const orderEnhanced = entry.order.enhanced ? '<span class="overview-enhanced">排序增強中</span>' : '';
+      const englishEnhanced = entry.englishEnhanced ? '<span class="overview-enhanced">中英加強中</span>' : '';
+      const yaoMarkup = entry.reading.yao.map(yao => {
+        const classes = ['overview-yao', yao.reads ? 'read' : '', yao.important ? 'important' : ''].filter(Boolean).join(' ');
+        const status = `${yao.important ? '★ ' : ''}${yao.reads ? `✓${yao.reads}` : '未讀'}`;
+        return `<span class="${classes}" title="${escapeQueryHtml(queryYaoSummaryStatus(entry.number, yao.label))}">${escapeQueryHtml(yao.label)}<br>${status}</span>`;
+      }).join('');
+      return `<article class="overview-item"><div class="overview-item-head"><span class="overview-number">第 ${entry.number} 卦</span><h3 class="overview-name">${escapeQueryHtml(entry.item.name)}</h3><span class="overview-book">${book}</span></div><section class="overview-section"><div class="overview-section-title"><span>排序練習</span>${orderEnhanced}</div><p class="overview-metric">涉及作答 ${entry.order.attempts} 次｜答對 ${entry.order.correct}｜答錯 ${entry.order.wrong}</p><p class="overview-ranges">練習區間：${ranges}</p></section><section class="overview-section"><div class="overview-section-title"><span>中英練習</span>${englishEnhanced}</div><p class="overview-metric">作答 ${entry.english.attempts || 0} 次｜答對 ${entry.english.correct || 0}｜答錯 ${entry.english.wrong || 0}</p></section><section class="overview-section"><div class="overview-section-title"><span>六爻閱讀 ${entry.reading.readYao}/${entry.reading.yao.length || 6}</span><span>${entry.reading.readEvents} 次紀錄${entry.reading.important ? `｜★ ${entry.reading.important}` : ''}</span></div><div class="overview-yao-grid">${yaoMarkup}</div></section><button type="button" class="overview-open-query" data-overview-number="${entry.number}">查看心法與六爻紀錄</button></article>`;
+    }
+    function renderLearningOverview() {
+      const entries = learningOverviewEntries();
+      const visibleEntries = entries.filter(overviewEntryVisible);
+      const orderAttempts = Object.values(orderStats).reduce((sum, stats) => sum + (Number(stats.attempts) || 0), 0);
+      const readYao = entries.reduce((sum, entry) => sum + entry.reading.readYao, 0);
+      const importantYao = entries.reduce((sum, entry) => sum + entry.reading.important, 0);
+      const filters = [
+        ['all', '全部'],
+        ['unread', '待閱讀'],
+        ['important', '有重要'],
+        ['ordered', '已排序'],
+        ['enhanced', '加強中']
+      ];
+      overviewScreen.innerHTML = `<article class="overview-card"><button type="button" class="overview-home" data-overview-home>回到首頁</button><h2 class="overview-title">學習總攬</h2><p class="overview-intro">排序統計按「曾包含此卦的已完成題目」累計；閱讀與重要標記保存在目前這台裝置。</p><div class="overview-summary"><div class="overview-summary-item">六十四卦<strong>64 卦</strong></div><div class="overview-summary-item">排序作答<strong>${orderAttempts} 次</strong></div><div class="overview-summary-item">已讀爻<strong>${readYao} / 384</strong></div><div class="overview-summary-item">重要爻<strong>${importantYao} 爻</strong></div></div><div class="overview-filters" aria-label="篩選學習進度">${filters.map(([value, label]) => `<button type="button" class="overview-filter${overviewFilter === value ? ' active' : ''}" data-overview-filter="${value}" aria-pressed="${overviewFilter === value}">${label}</button>`).join('')}</div><div class="overview-count">目前顯示 ${visibleEntries.length} / 64 卦</div><div class="overview-grid">${visibleEntries.length ? visibleEntries.map(overviewEntryMarkup).join('') : '<div class="overview-empty">目前沒有符合這個條件的卦。</div>'}</div></article>`;
+    }
+    function showLearningOverview(shouldScroll = true) {
+      currentMode = 'overview';
+      hideScreens();
+      overviewScreen.hidden = false;
+      setActive('overview');
+      renderLearningOverview();
+      if (shouldScroll) scrollTopNow();
     }
     function openStudy(i) {
       i = (i + 64) % 64;
@@ -1380,7 +1513,8 @@
       if (mode === 'flash') showFlash(true);
       else if (mode === 'order') showOrder(true);
       else if (mode === 'english') showEnglish(true);
-      else if (mode === 'query') showQuery(true);
+      else if (mode === 'query') showQuery(true, '', 'all');
+      else if (mode === 'overview') showLearningOverview(true);
       else showList(mode);
     }));
     document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
@@ -1415,7 +1549,8 @@
         return;
       }
       if (event.target.closest('[data-query-home]')) {
-        showList('all');
+        if (queryReturnMode === 'overview') showLearningOverview();
+        else showList('all');
         return;
       }
       const item = event.target.closest('[data-query-number]');
@@ -1433,6 +1568,29 @@
       } else if (event.target.closest('[data-query-back]')) {
         renderQuery(queryScreen.querySelector('#query-input')?.value || '');
         scrollTopNow();
+      }
+    });
+    overviewScreen.addEventListener('click', event => {
+      const filter = event.target.closest('[data-overview-filter]');
+      const selected = event.target.closest('[data-overview-number]');
+      if (event.target.closest('[data-overview-home]')) {
+        showList('all');
+      } else if (filter) {
+        overviewFilter = filter.dataset.overviewFilter || 'all';
+        renderLearningOverview();
+        scrollTopNow();
+      } else if (selected) {
+        const number = Number(selected.dataset.overviewNumber);
+        showQuery(false, '', 'overview');
+        renderQuery('', number);
+        if (!window.heartMindLectureData) loadHeartMindLectureData().then(() => {
+          renderQuery('', number);
+          scrollTopNow();
+          requestAnimationFrame(scrollTopNow);
+        }).catch(() => {});
+        scrollTopNow();
+        requestAnimationFrame(scrollTopNow);
+        setTimeout(scrollTopNow, 0);
       }
     });
     listScreen.addEventListener('click', event => {
