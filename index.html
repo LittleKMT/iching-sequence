@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="序卦傳">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=book-2">
-  <link rel="icon" type="image/png" href="apple-touch-icon.png?v=book-2">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=book-2">
   <title>序卦傳・六十四卦記憶</title>
   <style>
     :root { --scale: 1; --green: #0b4f2c; --cream: #f5f1e8; --ink: #172019; }
@@ -69,6 +69,7 @@
     .fu-plain-toggle[aria-pressed="true"] { background: #8b5100; color: #fff; }
     .fu-plain { margin-top: 9px; padding-top: 7px; border-top: 1px solid #ead9bb; }
     .all-overview-reference { margin-top: 9px; padding-top: 6px; border-top: 1px solid #e1e8e1; color: #6b776e; font-size: calc(.78rem * var(--scale)); line-height: 1.4; }
+    #query-screen { --scale: 1.55; }
     .query-card { padding: 16px 14px 18px; }
     .query-home, .order-home { width: 100%; min-height: 44px; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--green); border-radius: 13px; background: #fff; color: var(--green); font-size: calc(1rem * var(--scale)); font-weight: 900; }
     .query-entry-button { width: 100%; min-height: 52px; margin: 0 0 12px; padding: 8px 12px; border: 1px solid #b8c3ba; border-radius: 13px; background: #fff; color: var(--green); font-size: calc(1.12rem * var(--scale)); font-weight: 900; }
@@ -635,6 +636,7 @@
     let orderSequence = [];
     let orderChoices = [];
     let orderSelections = [];
+    let orderAttemptRecorded = false;
     let orderTwoChoiceOrientationDeck = [];
     const orderStartDecks = new Map();
     let orderLengthMode = '3';
@@ -985,8 +987,6 @@
       });
     }
     function showQuery(shouldScroll = true, term = '', returnMode = 'all') {
-      scaleIndex = scales.length - 1;
-      updateScale();
       queryReturnMode = returnMode;
       currentMode = 'query';
       hideScreens();
@@ -1176,17 +1176,20 @@
         return [];
       }
     }
+    function persist(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+    }
     function saveOrderStats() {
-      localStorage.setItem(orderStatsStorageKey, JSON.stringify(orderStats));
+      persist(orderStatsStorageKey, orderStats);
     }
     function saveOrderEnhanced() {
-      localStorage.setItem(orderEnhancedStorageKey, JSON.stringify([...orderEnhanced]));
+      persist(orderEnhancedStorageKey, [...orderEnhanced]);
     }
     function saveOrderQuestionStats() {
-      localStorage.setItem(orderQuestionStatsStorageKey, JSON.stringify(orderQuestionStats));
+      persist(orderQuestionStatsStorageKey, orderQuestionStats);
     }
     function saveOrderRecentQuestions() {
-      localStorage.setItem(orderRecentStorageKey, JSON.stringify(orderRecentQuestions));
+      persist(orderRecentStorageKey, orderRecentQuestions);
     }
     function currentOrderKey() {
       return orderSequence.length ? `${orderSequence.length}:${orderSequence[0]}` : '';
@@ -1247,6 +1250,7 @@
       orderSequence = Array.from({ length }, (_, i) => start + i);
       orderChoices = orderChoiceShuffle(orderSequence);
       orderSelections = [];
+      orderAttemptRecorded = false;
       rememberOrderQuestion();
     }
     function renderOrder(preserveScroll = false) {
@@ -1308,11 +1312,11 @@
       }
     }
     function saveEnglishStats() {
-      localStorage.setItem(englishStatsStorageKey, JSON.stringify(englishStats));
-      localStorage.setItem(englishQuestionStatsStorageKey, JSON.stringify(englishQuestionStats));
+      persist(englishStatsStorageKey, englishStats);
+      persist(englishQuestionStatsStorageKey, englishQuestionStats);
     }
     function saveEnglishEnhanced() {
-      localStorage.setItem(englishEnhancedStorageKey, JSON.stringify([...englishEnhanced]));
+      persist(englishEnhancedStorageKey, [...englishEnhanced]);
     }
     function isEnglishFlashMode(mode = englishMode) {
       return mode === 'flashcard' || mode === 'reverse-flashcard';
@@ -1658,7 +1662,10 @@
         if (selectedPosition >= 0) orderSelections.splice(selectedPosition, 1);
         else if (orderSelections.length < orderSequence.length) orderSelections.push(index);
         const completedOrder = orderSelections.length === orderSequence.length;
-        if (completedOrder) recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
+        if (completedOrder && !orderAttemptRecorded) {
+          orderAttemptRecorded = true;
+          recordOrderAttempt(orderSelections.every((item, i) => item === orderSequence[i]));
+        }
         renderOrder(true);
       } else if (lengthChoice) {
         orderLengthMode = lengthChoice.dataset.orderLength;
@@ -1668,6 +1675,7 @@
         showList('all');
       } else if (action?.dataset.orderAction === 'reset') {
         orderSelections = [];
+        orderAttemptRecorded = false;
         renderOrder(true);
       } else if (action?.dataset.orderAction === 'symbols') {
         showOrderSymbols = !showOrderSymbols;
