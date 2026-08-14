@@ -28,8 +28,10 @@
     .controls.order-focus { display: none; }
     .controls.query-focus { display: none; }
     .controls.overview-focus { display: none; }
+    .controls.eightfold-focus { display: none; }
     header.query-focus-header { display: none; }
     header.overview-focus-header { display: none; }
+    header.eightfold-focus-header { display: none; }
     .controls:not(.flash-focus) .flash-only-row { display: none; }
     .control-row { display: grid; gap: 5px; margin-bottom: 3px; }
     .control-row.five { grid-template-columns: repeat(5, 1fr); }
@@ -151,6 +153,17 @@
     .overview-yao.important { border-color: #d3a65c; background: #fff8e8; color: #925500; }
     .overview-open-query { width: 100%; min-height: 42px; margin-top: 9px; border: 1px solid var(--green); border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.78rem * var(--scale)); font-weight: 850; }
     .overview-empty { grid-column: 1 / -1; padding: 28px 12px; border: 1px dashed #b8c3ba; border-radius: 14px; color: #68756b; text-align: center; }
+    .eightfold-reader { padding: 0 0 24px; }
+    .eightfold-toolbar { position: sticky; top: max(0px, env(safe-area-inset-top)); z-index: 18; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-bottom: 12px; padding: 6px 0; background: color-mix(in srgb, var(--cream) 96%, transparent); backdrop-filter: blur(10px); }
+    .eightfold-toolbar button, .eightfold-toolbar select { min-width: 0; min-height: 44px; padding: 7px 8px; border: 1px solid var(--green); border-radius: 12px; background: #fff; color: var(--green); font-size: calc(.82rem * var(--scale)); font-weight: 850; }
+    .eightfold-toolbar select { width: 100%; }
+    .eightfold-title { margin: 4px 0 7px; color: var(--green); font-size: calc(1.45rem * var(--scale)); line-height: 1.3; text-align: center; }
+    .eightfold-note { margin: 0 0 14px; padding: 11px 12px; border: 1px solid #d5ded6; border-radius: 13px; background: #edf4ee; color: #526056; font-size: calc(.78rem * var(--scale)); line-height: 1.55; }
+    .eightfold-page { scroll-margin-top: calc(108px + env(safe-area-inset-top)); margin: 0 0 12px; padding: 14px; border: 1px solid #d9d4c8; border-radius: 17px; background: #fff; box-shadow: 0 4px 14px #2033250b; }
+    .eightfold-page h2 { margin: 0 0 9px; color: var(--green); font-size: calc(1.05rem * var(--scale)); }
+    .eightfold-page-text { color: #26352b; font-size: calc(1.02rem * var(--scale)); line-height: 1.78; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .eightfold-loading, .eightfold-error { padding: 32px 14px; border: 1px solid #d5ded6; border-radius: 14px; background: #fff; color: #526056; font-size: calc(.92rem * var(--scale)); line-height: 1.6; text-align: center; }
+    .eightfold-error button { min-height: 44px; margin-top: 10px; padding: 8px 18px; border: 1px solid var(--green); border-radius: 12px; background: var(--green); color: #fff; font-weight: 850; }
     .site-reference { margin: 22px 0 calc(18px + env(safe-area-inset-bottom)); color: #66736a; font-size: calc(.72rem * var(--scale)); line-height: 1.45; text-align: center; }
     .study-list { display: grid; gap: 12px; }
     .study-card, .single-card, .flash-card, .order-card, .english-card { overflow: hidden; border: 1px solid #d9d4c8; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px #2033250d; }
@@ -377,9 +390,10 @@
         <button class="control" data-mode="order">排序</button>
         <button class="control" data-mode="english">中英</button>
       </div>
-      <div class="control-row two">
+      <div class="control-row three">
         <button class="control" data-mode="query">心法查詢</button>
         <button class="control" data-mode="overview">學習總攬</button>
+        <button class="control" data-mode="eightfold">八正道</button>
       </div>
       <div class="control-row three">
         <button class="control" id="font-down" aria-label="縮小文字">A−</button>
@@ -408,6 +422,7 @@
     <section id="english-screen" class="screen" hidden></section>
     <section id="query-screen" class="screen" hidden></section>
     <section id="overview-screen" class="screen" hidden></section>
+    <section id="eightfold-screen" class="screen" hidden></section>
     <footer class="site-reference" aria-label="資料來源">白話翻譯來源：傅佩榮（臺大網站公開資訊）；混元禪師解釋整理參考：易經心法講座影片（序卦傳白話研究）；英文卦名採 Wilhelm–Baynes 常見譯名。</footer>
   </main>
 
@@ -604,7 +619,7 @@
     if (hexagrams.length !== 64 || originals.length !== 64 || plains.length !== 64 || englishTitles.length !== 64) throw new Error('六十四卦資料不完整');
     if (hexagramTrigrams.length !== 64 || new Set(hexagramTrigrams.map(pair => pair.join('-'))).size !== 64) throw new Error('八卦組合資料不完整');
 
-    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen','query-screen','overview-screen'].map(id => document.getElementById(id));
+    const screens = ['list-screen','picker-screen','single-screen','flash-screen','order-screen','english-screen','query-screen','overview-screen','eightfold-screen'].map(id => document.getElementById(id));
     const listScreen = document.getElementById('list-screen');
     const pickerScreen = document.getElementById('picker-screen');
     const singleScreen = document.getElementById('single-screen');
@@ -613,6 +628,7 @@
     const englishScreen = document.getElementById('english-screen');
     const queryScreen = document.getElementById('query-screen');
     const overviewScreen = document.getElementById('overview-screen');
+    const eightfoldScreen = document.getElementById('eightfold-screen');
     let currentMode = 'all';
     let showPlain = true;
     let showFuPlain = false;
@@ -657,6 +673,7 @@
     let queryYaoProgress = loadQueryYaoProgress();
     let overviewFilter = 'all';
     let queryReturnMode = 'all';
+    let eightfoldText = null;
     let englishStats = loadEnglishStats();
     let englishQuestionStats = loadEnglishQuestionStats();
     let englishDeck = [];
@@ -685,10 +702,12 @@
       controls.classList.toggle('order-focus', currentMode === 'order');
       controls.classList.toggle('query-focus', currentMode === 'query');
       controls.classList.toggle('overview-focus', currentMode === 'overview');
+      controls.classList.toggle('eightfold-focus', currentMode === 'eightfold');
       const header = document.querySelector('main > header');
       if (header) {
         header.classList.toggle('query-focus-header', currentMode === 'query');
         header.classList.toggle('overview-focus-header', currentMode === 'overview');
+        header.classList.toggle('eightfold-focus-header', currentMode === 'eightfold');
       }
       const flashOnlyRow = controls.querySelector('.flash-only-row');
       if (flashOnlyRow) flashOnlyRow.hidden = currentMode !== 'flash';
@@ -865,6 +884,50 @@
     }
     function escapeQueryHtml(value) {
       return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+    function eightfoldToolbarMarkup(ready = false) {
+      const pageOptions = Array.from({ length: 152 }, (_, index) => `<option value="${index + 1}">第 ${index + 1} 頁</option>`).join('');
+      return `<nav class="eightfold-toolbar" aria-label="八正道閱讀工具"><button type="button" data-eightfold-home>回到首頁</button><select data-eightfold-page aria-label="跳到原書頁碼" ${ready ? '' : 'disabled'}><option value="">跳到頁碼</option>${pageOptions}</select><button type="button" data-eightfold-scale="down" aria-label="縮小八正道文字">A− 縮小</button><button type="button" data-eightfold-scale="up" aria-label="放大八正道文字">A＋ 放大</button></nav>`;
+    }
+    function renderEightfoldText(markdown) {
+      const normalized = String(markdown).replace(/\r\n?/g, '\n');
+      const segments = normalized.split(/^## 第 (\d+) 頁\s*$/m);
+      if (segments.length < 3) throw new Error('八正道全文格式不完整');
+      const introLines = segments[0].trim().split('\n');
+      const title = (introLines.find(line => line.startsWith('# ')) || '# 《八正道修行法門》OCR 全文').replace(/^#\s+/, '');
+      const sourceNotes = introLines.filter(line => line.startsWith('> ')).map(line => escapeQueryHtml(line.slice(2))).join('<br>');
+      const pages = [];
+      for (let index = 1; index < segments.length; index += 2) {
+        const pageNumber = Number(segments[index]);
+        const pageText = (segments[index + 1] || '').trim();
+        pages.push(`<article class="eightfold-page" id="eightfold-page-${pageNumber}"><h2>第 ${pageNumber} 頁</h2><div class="eightfold-page-text">${escapeQueryHtml(pageText)}</div></article>`);
+      }
+      if (pages.length !== 152) throw new Error('八正道全文頁數不完整');
+      eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup(true)}<h1 class="eightfold-title">${escapeQueryHtml(title)}</h1><p class="eightfold-note">${sourceNotes}${sourceNotes ? '<br>' : ''}全冊 152 頁已完成 AI 視覺複核；OCR 仍可能有零星形似字或標點誤差。</p>${pages.join('')}</article>`;
+    }
+    async function loadEightfoldText(force = false) {
+      if (!force && eightfoldText !== null) {
+        renderEightfoldText(eightfoldText);
+        return;
+      }
+      eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup()}<div class="eightfold-loading" role="status">正在載入《八正道修行法門》全文…</div></article>`;
+      try {
+        const response = await fetch('eightfold-path.md', { cache: 'no-cache' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        eightfoldText = await response.text();
+        renderEightfoldText(eightfoldText);
+      } catch (_) {
+        eightfoldText = null;
+        eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup()}<div class="eightfold-error" role="alert">八正道全文目前載入失敗，請檢查網路後再試一次。<br><button type="button" data-eightfold-retry>重新載入</button></div></article>`;
+      }
+    }
+    function showEightfold(shouldScroll = true) {
+      currentMode = 'eightfold';
+      hideScreens();
+      eightfoldScreen.hidden = false;
+      setActive('eightfold');
+      loadEightfoldText();
+      if (shouldScroll) scrollTopNow();
     }
     function loadQueryYaoProgress() {
       try {
@@ -1549,6 +1612,7 @@
       else if (mode === 'english') showEnglish(true);
       else if (mode === 'query') showQuery(true, '', 'all');
       else if (mode === 'overview') showLearningOverview(true);
+      else if (mode === 'eightfold') showEightfold(true);
       else showList(mode);
     }));
     document.getElementById('font-down').addEventListener('click', () => { scaleIndex = Math.max(0, scaleIndex - 1); updateScale(); });
@@ -1626,6 +1690,33 @@
         requestAnimationFrame(scrollTopNow);
         setTimeout(scrollTopNow, 0);
       }
+    });
+    eightfoldScreen.addEventListener('click', event => {
+      if (event.target.closest('[data-eightfold-home]')) {
+        showList('all');
+      } else if (event.target.closest('[data-eightfold-retry]')) {
+        loadEightfoldText(true);
+      } else {
+        const scaleAction = event.target.closest('[data-eightfold-scale]')?.dataset.eightfoldScale;
+        if (scaleAction === 'down') {
+          scaleIndex = Math.max(0, scaleIndex - 1);
+          updateScale();
+        } else if (scaleAction === 'up') {
+          scaleIndex = Math.min(scales.length - 1, scaleIndex + 1);
+          updateScale();
+        }
+      }
+    });
+    eightfoldScreen.addEventListener('change', event => {
+      const select = event.target.closest('[data-eightfold-page]');
+      if (!select || !select.value) return;
+      const target = eightfoldScreen.querySelector(`#eightfold-page-${select.value}`);
+      const toolbar = eightfoldScreen.querySelector('.eightfold-toolbar');
+      if (target) {
+        const top = window.scrollY + target.getBoundingClientRect().top - (toolbar?.offsetHeight || 0) - 8;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+      }
+      select.value = '';
     });
     listScreen.addEventListener('click', event => {
       const fuPlainToggle = event.target.closest('[data-fu-plain-toggle]');
