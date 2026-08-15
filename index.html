@@ -203,7 +203,7 @@
     .eightfold-reading-copy { min-width: 0; color: #526056; font-size: calc(.72rem * var(--scale)); line-height: 1.4; }
     .eightfold-reading-count { display: block; color: var(--green); font-size: calc(.85rem * var(--scale)); font-weight: 900; }
     .eightfold-reading-latest { display: block; margin-top: 3px; overflow-wrap: anywhere; }
-    .eightfold-reading-button { min-width: 94px; min-height: 46px; padding: 7px 9px; border: 1px solid var(--green); border-radius: 11px; background: var(--green); color: #fff; font-size: calc(.76rem * var(--scale)); font-weight: 900; white-space: nowrap; }
+    .eightfold-reading-button { min-width: 94px; min-height: 46px; padding: 7px 9px; border: 1px solid var(--green); border-radius: 11px; background: #fff; color: var(--green); font-size: calc(.76rem * var(--scale)); font-weight: 900; white-space: nowrap; }
     .eightfold-page-fragment { color: #26352b; font-size: calc(1.02rem * var(--scale)); line-height: 1.78; overflow-wrap: anywhere; white-space: pre-wrap; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
     .eightfold-page-fragment + .eightfold-page-fragment { margin-top: 1.2em; padding-top: 1.2em; border-top: 1px dashed #d8e0d9; }
     mark.eightfold-highlight { padding: 0 .04em; border-radius: 3px; background: #ffe06a; color: inherit; box-shadow: 0 0 0 1px #d6ad20 inset; }
@@ -723,12 +723,14 @@
     const queryYaoProgressStorageKey = 'iching-query-yao-progress-v1';
     const eightfoldHighlightStorageKey = 'iching-eightfold-highlights-v1';
     const eightfoldReadingStorageKey = 'iching-eightfold-reading-v1';
+    const eightfoldLastReadingStorageKey = 'iching-eightfold-last-reading-v1';
     let queryYaoProgress = loadQueryYaoProgress();
     let overviewFilter = 'all';
     let queryReturnMode = 'all';
     let eightfoldText = null;
     let eightfoldHighlights = loadEightfoldHighlights();
     let eightfoldReadingHistory = loadEightfoldReadingHistory();
+    let eightfoldLastReading = loadEightfoldLastReading();
     let eightfoldPendingHighlight = null;
     const eightfoldLectures = [
       { label: '第一講', title: '修行之法－真理和真法', startPage: 1 },
@@ -986,6 +988,36 @@
     function saveEightfoldReadingHistory() {
       try { localStorage.setItem(eightfoldReadingStorageKey, JSON.stringify(eightfoldReadingHistory)); } catch (_) {}
     }
+    function loadEightfoldLastReading() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(eightfoldLastReadingStorageKey) || 'null');
+        const lectureNumber = Number(saved?.lectureNumber);
+        const fragmentIndex = Number(saved?.fragmentIndex);
+        if (!Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > 10) return null;
+        return { lectureNumber, fragmentIndex: Number.isInteger(fragmentIndex) && fragmentIndex >= 0 ? fragmentIndex : 0 };
+      } catch (_) {
+        return null;
+      }
+    }
+    function saveEightfoldLastReading() {
+      try { localStorage.setItem(eightfoldLastReadingStorageKey, JSON.stringify(eightfoldLastReading)); } catch (_) {}
+    }
+    function currentEightfoldReadingLocation(lectureNumber) {
+      const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${lectureNumber}`);
+      const fragments = [...(lecture?.querySelectorAll('.eightfold-page-fragment') || [])];
+      if (!fragments.length) return { lectureNumber, fragmentIndex: 0 };
+      const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0) + (lecture.querySelector('summary')?.offsetHeight || 0);
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+      fragments.forEach((fragment, index) => {
+        const distance = Math.abs(fragment.getBoundingClientRect().top - safeTop);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+      return { lectureNumber, fragmentIndex: closestIndex };
+    }
     function getEightfoldReadingHistory(lectureNumber) {
       const reads = eightfoldReadingHistory[String(lectureNumber)];
       return Array.isArray(reads) ? reads : [];
@@ -1013,6 +1045,8 @@
       if (!Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > eightfoldLectures.length) return;
       const reads = getEightfoldReadingHistory(lectureNumber);
       eightfoldReadingHistory[String(lectureNumber)] = [...reads, new Date().toISOString()];
+      eightfoldLastReading = currentEightfoldReadingLocation(lectureNumber);
+      saveEightfoldLastReading();
       saveEightfoldReadingHistory();
       refreshEightfoldReadingPanels(lectureNumber);
     }
@@ -1141,7 +1175,7 @@
         const lectureNumber = lectureIndex + 1;
         return `<details class="eightfold-lecture" id="eightfold-lecture-${lectureNumber}"><summary><span class="eightfold-lecture-number">第 ${lectureNumber} 講</span><strong class="eightfold-lecture-name">${escapeQueryHtml(lecture.title)}</strong><span class="eightfold-lecture-action"><span class="eightfold-lecture-action-expand">展開 ＋</span><span class="eightfold-lecture-action-collapse">收合 −</span></span></summary><div class="eightfold-lecture-body">${eightfoldReadingPanelMarkup(lectureNumber)}${fragments}${eightfoldReadingPanelMarkup(lectureNumber, 'bottom')}</div></details>`;
       }).join('');
-      eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup(true)}<h1 class="eightfold-title">${escapeQueryHtml(title)}</h1><p class="eightfold-note">先從下拉選單選擇講次，或直接點選下方標題展開。每講可按「✓ 已閱讀」累計次數與日期；內容中長按選取文字，可標記重點。<br>${sourceNotes}${sourceNotes ? '<br>' : ''}全冊 152 頁已完成 AI 視覺複核；OCR 仍可能有零星形似字或標點誤差。</p><section class="eightfold-lecture-list" aria-label="八正道十講">${lectures}</section><aside class="eightfold-highlight-bar" data-eightfold-highlight-bar hidden aria-label="標記八正道重點"><div class="eightfold-highlight-preview" data-eightfold-highlight-preview></div><div class="eightfold-highlight-actions"><button type="button" data-eightfold-highlight-save>標記重點</button><button type="button" data-eightfold-highlight-cancel>取消</button></div></aside></article>`;
+      eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup(true)}<h1 class="eightfold-title">${escapeQueryHtml(title)}</h1><p class="eightfold-note">先從下拉選單選擇講次，或直接點選下方標題展開。按「✓ 已閱讀」會累計次數與日期，下次進入八正道會接續上次閱讀位置；內容中長按選取文字，可標記重點。<br>${sourceNotes}${sourceNotes ? '<br>' : ''}全冊 152 頁已完成 AI 視覺複核；OCR 仍可能有零星形似字或標點誤差。</p><section class="eightfold-lecture-list" aria-label="八正道十講">${lectures}</section><aside class="eightfold-highlight-bar" data-eightfold-highlight-bar hidden aria-label="標記八正道重點"><div class="eightfold-highlight-preview" data-eightfold-highlight-preview></div><div class="eightfold-highlight-actions"><button type="button" data-eightfold-highlight-save>標記重點</button><button type="button" data-eightfold-highlight-cancel>取消</button></div></aside></article>`;
     }
     async function loadEightfoldText(force = false) {
       if (!force && eightfoldText !== null) {
@@ -1159,19 +1193,35 @@
         eightfoldScreen.innerHTML = `<article class="eightfold-reader">${eightfoldToolbarMarkup()}<div class="eightfold-error" role="alert">八正道全文目前載入失敗，請檢查網路後再試一次。<br><button type="button" data-eightfold-retry>重新載入</button></div></article>`;
       }
     }
-    function showEightfold(shouldScroll = true) {
+    function resumeEightfoldReading() {
+      const last = eightfoldLastReading;
+      if (!last) return;
+      const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${last.lectureNumber}`);
+      if (!lecture) return;
+      eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const fragments = lecture.querySelectorAll('.eightfold-page-fragment');
+        const target = fragments[last.fragmentIndex] || fragments[0] || lecture;
+        const summaryHeight = lecture.querySelector('summary')?.offsetHeight || 0;
+        const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0) + summaryHeight + 10;
+        const top = window.scrollY + target.getBoundingClientRect().top - safeTop;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+      }));
+    }
+    function showEightfold(shouldScroll = true, resume = true) {
       currentMode = 'eightfold';
       hideScreens();
       eightfoldScreen.hidden = false;
       setActive('eightfold');
       const loading = loadEightfoldText();
+      if (resume) loading.then(resumeEightfoldReading).catch(() => {});
       if (shouldScroll) scrollTopNow();
       return loading;
     }
     async function showEightfoldHighlight(id) {
       const highlight = eightfoldHighlights.find(item => item.id === id);
       if (!highlight) return;
-      await showEightfold(true);
+      await showEightfold(true, false);
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${highlight.lectureNumber}`);
       if (!lecture) return;
       eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
@@ -1186,7 +1236,7 @@
     }
     async function showEightfoldLecture(lectureNumber) {
       if (!Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > eightfoldLectures.length) return;
-      await showEightfold(true);
+      await showEightfold(true, false);
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${lectureNumber}`);
       if (!lecture) return;
       eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
