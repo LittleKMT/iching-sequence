@@ -731,6 +731,9 @@
     let eightfoldHighlights = loadEightfoldHighlights();
     let eightfoldReadingHistory = loadEightfoldReadingHistory();
     let eightfoldLastReading = loadEightfoldLastReading();
+    let eightfoldScrollSaveTimer = null;
+    let eightfoldCurrentLectureNumber = null;
+    let eightfoldResumeInProgress = false;
     let eightfoldPendingHighlight = null;
     const eightfoldLectures = [
       { label: '第一講', title: '修行之法－真理和真法', startPage: 1 },
@@ -993,8 +996,9 @@
         const saved = JSON.parse(localStorage.getItem(eightfoldLastReadingStorageKey) || 'null');
         const lectureNumber = Number(saved?.lectureNumber);
         const fragmentIndex = Number(saved?.fragmentIndex);
+        const scrollY = Number(saved?.scrollY);
         if (!Number.isInteger(lectureNumber) || lectureNumber < 1 || lectureNumber > 10) return null;
-        return { lectureNumber, fragmentIndex: Number.isInteger(fragmentIndex) && fragmentIndex >= 0 ? fragmentIndex : 0 };
+        return { lectureNumber, fragmentIndex: Number.isInteger(fragmentIndex) && fragmentIndex >= 0 ? fragmentIndex : 0, scrollY: Number.isFinite(scrollY) && scrollY >= 0 ? scrollY : null };
       } catch (_) {
         return null;
       }
@@ -1005,7 +1009,7 @@
     function currentEightfoldReadingLocation(lectureNumber) {
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${lectureNumber}`);
       const fragments = [...(lecture?.querySelectorAll('.eightfold-page-fragment') || [])];
-      if (!fragments.length) return { lectureNumber, fragmentIndex: 0 };
+      if (!fragments.length) return { lectureNumber, fragmentIndex: 0, scrollY: Math.round(window.scrollY) };
       const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0) + (lecture.querySelector('summary')?.offsetHeight || 0);
       let closestIndex = 0;
       let closestDistance = Infinity;
@@ -1016,7 +1020,25 @@
           closestIndex = index;
         }
       });
-      return { lectureNumber, fragmentIndex: closestIndex };
+      return { lectureNumber, fragmentIndex: closestIndex, scrollY: Math.round(window.scrollY) };
+    }
+    function saveEightfoldScrollPosition() {
+      if (eightfoldResumeInProgress || currentMode !== 'eightfold' || eightfoldScreen.hidden) return;
+      if (window.scrollY < 20) return;
+      const lecture = eightfoldScreen.querySelector('.eightfold-lecture[open]');
+      const lectureNumber = eightfoldCurrentLectureNumber || Number(lecture?.id.replace('eightfold-lecture-', ''));
+      if (!lectureNumber) return;
+      const next = currentEightfoldReadingLocation(lectureNumber);
+      if (eightfoldLastReading?.lectureNumber === next.lectureNumber && eightfoldLastReading?.fragmentIndex === next.fragmentIndex && eightfoldLastReading?.scrollY === next.scrollY) return;
+      eightfoldLastReading = next;
+      saveEightfoldLastReading();
+    }
+    function queueEightfoldScrollSave() {
+      if (eightfoldScrollSaveTimer !== null) return;
+      eightfoldScrollSaveTimer = setTimeout(() => {
+        eightfoldScrollSaveTimer = null;
+        saveEightfoldScrollPosition();
+      }, 250);
     }
     function getEightfoldReadingHistory(lectureNumber) {
       const reads = eightfoldReadingHistory[String(lectureNumber)];
@@ -1195,17 +1217,36 @@
     }
     function resumeEightfoldReading() {
       const last = eightfoldLastReading;
-      if (!last) return;
+      if (!last) {
+        eightfoldResumeInProgress = false;
+        return;
+      }
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${last.lectureNumber}`);
       if (!lecture) return;
+      eightfoldCurrentLectureNumber = last.lectureNumber;
       eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const fragments = lecture.querySelectorAll('.eightfold-page-fragment');
+        if (Number.isFinite(last.scrollY)) {
+          const top = Math.max(0, last.scrollY);
+          const restoreScroll = () => {
+            window.scrollTo(0, top);
+            document.documentElement.scrollTop = top;
+            document.body.scrollTop = top;
+          };
+          restoreScroll();
+          setTimeout(restoreScroll, 120);
+          setTimeout(restoreScroll, 420);
+          setTimeout(restoreScroll, 900);
+          setTimeout(() => { eightfoldResumeInProgress = false; }, 1100);
+          return;
+        }
         const target = fragments[last.fragmentIndex] || fragments[0] || lecture;
         const summaryHeight = lecture.querySelector('summary')?.offsetHeight || 0;
         const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0) + summaryHeight + 10;
         const top = window.scrollY + target.getBoundingClientRect().top - safeTop;
         window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+        setTimeout(() => { eightfoldResumeInProgress = false; }, 1100);
       }));
     }
     function showEightfold(shouldScroll = true, resume = true) {
@@ -1213,6 +1254,7 @@
       hideScreens();
       eightfoldScreen.hidden = false;
       setActive('eightfold');
+      eightfoldResumeInProgress = Boolean(resume && eightfoldLastReading);
       const loading = loadEightfoldText();
       if (resume) loading.then(resumeEightfoldReading).catch(() => {});
       if (shouldScroll) scrollTopNow();
@@ -1224,6 +1266,7 @@
       await showEightfold(true, false);
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${highlight.lectureNumber}`);
       if (!lecture) return;
+      eightfoldCurrentLectureNumber = highlight.lectureNumber;
       eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const mark = [...eightfoldScreen.querySelectorAll('[data-eightfold-highlight-id]')].find(item => item.dataset.eightfoldHighlightId === id);
@@ -1239,6 +1282,7 @@
       await showEightfold(true, false);
       const lecture = eightfoldScreen.querySelector(`#eightfold-lecture-${lectureNumber}`);
       if (!lecture) return;
+      eightfoldCurrentLectureNumber = lectureNumber;
       eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(item => { item.open = item === lecture; });
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0);
@@ -2057,6 +2101,11 @@
         return;
       }
       const openLectureSummary = event.target.closest('.eightfold-lecture[open] > summary');
+      const anyLectureSummary = event.target.closest('.eightfold-lecture > summary');
+      if (anyLectureSummary) {
+        eightfoldCurrentLectureNumber = Number(anyLectureSummary.parentElement?.id.replace('eightfold-lecture-', '')) || null;
+        setTimeout(saveEightfoldScrollPosition, 0);
+      }
       if (openLectureSummary) {
         const lecture = openLectureSummary.parentElement;
         requestAnimationFrame(() => {
@@ -2087,6 +2136,7 @@
       if (!select || !select.value) return;
       const target = eightfoldScreen.querySelector(`#eightfold-lecture-${select.value}`);
       if (target) {
+        eightfoldCurrentLectureNumber = Number(select.value);
         eightfoldScreen.querySelectorAll('.eightfold-lecture').forEach(lecture => { lecture.open = lecture === target; });
         const safeTop = Math.max(8, window.visualViewport?.offsetTop || 0);
         const top = window.scrollY + target.getBoundingClientRect().top - safeTop;
@@ -2097,6 +2147,12 @@
     document.addEventListener('selectionchange', () => setTimeout(updateEightfoldHighlightSelection, 0));
     eightfoldScreen.addEventListener('pointerup', () => setTimeout(updateEightfoldHighlightSelection, 80));
     eightfoldScreen.addEventListener('touchend', () => setTimeout(updateEightfoldHighlightSelection, 250), { passive: true });
+    window.addEventListener('scroll', queueEightfoldScrollSave, { passive: true });
+    window.addEventListener('wheel', queueEightfoldScrollSave, { passive: true });
+    window.addEventListener('touchmove', queueEightfoldScrollSave, { passive: true });
+    window.addEventListener('pagehide', saveEightfoldScrollPosition);
+    window.addEventListener('beforeunload', saveEightfoldScrollPosition);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveEightfoldScrollPosition(); });
     listScreen.addEventListener('click', event => {
       const fuPlainToggle = event.target.closest('[data-fu-plain-toggle]');
       const button = event.target.closest('[data-all-field]');
