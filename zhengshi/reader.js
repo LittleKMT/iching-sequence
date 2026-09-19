@@ -53,6 +53,25 @@ function splitCells(line) {
   return line.slice(1, -1).split(/(?<!\\)\|/).map(cell => cell.trim().replace(/\\\|/g, '|'));
 }
 
+function isPairLine(line) {
+  const trimmed = line.trim();
+  return trimmed.startsWith('|') && trimmed.endsWith('|')
+    && !/^\|\s*:?-+:?\s*\|/.test(trimmed)
+    && !/^\|\s*原文\s*\|\s*白話文\s*\|/.test(trimmed)
+    && splitCells(trimmed).length >= 2;
+}
+
+function attachReviews(parsed, reviewed) {
+  let row = 0;
+  for (const chapter of parsed) {
+    chapter.reviewed = chapter.lines.map(line => isPairLine(line) ? reviewed[row++] : null);
+  }
+  if (row !== reviewed.length || parsed.some(chapter => chapter.reviewed.some((value, index) => isPairLine(chapter.lines[index]) && typeof value !== 'string'))) {
+    throw new Error('白話審訂資料與原文列數不符');
+  }
+  return parsed;
+}
+
 function parseVolume(markdown) {
   const result = [];
   let chapter = null;
@@ -123,7 +142,7 @@ function renderChapter() {
   content.replaceChildren();
   appendText('h2', chapter.topic || chapter.title);
   if (chapter.summary) appendText('p', `${chapter.summary}${chapter.speaker ? `｜${chapter.speaker}` : ''}`, content, 'chapter-subtitle');
-  for (const line of chapter.lines) {
+  for (const [lineIndex, line] of chapter.lines.entries()) {
     const trimmed = line.trim();
     if (!trimmed || /^\|\s*:?-+:?\s*\|/.test(trimmed) || /^\|\s*原文\s*\|\s*白話文\s*\|/.test(trimmed)) continue;
     if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
@@ -135,7 +154,7 @@ function renderChapter() {
       appendText('p', cells[0], original);
       const plain = appendText('div', '', card);
       appendText('span', '白話', plain, 'label');
-      appendText('p', cells.slice(1).join(' | '), plain);
+      appendText('p', chapter.reviewed[lineIndex], plain);
     } else if (!trimmed.startsWith('>')) {
       appendText('p', trimmed, content, 'note');
     }
@@ -156,10 +175,12 @@ async function openVolume(index, chapterIndex = 0) {
   try {
     if (!cache.has(index)) {
       const file = `volume-${String(index + 1).padStart(2, '0')}.md`;
-      const response = await fetch(file);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const reviewFile = `reviewed-${String(index + 1).padStart(2, '0')}.json`;
+      const [response, reviewResponse] = await Promise.all([fetch(file), fetch(reviewFile)]);
+      if (!response.ok || !reviewResponse.ok) throw new Error(`HTTP ${!response.ok ? response.status : reviewResponse.status}`);
       const parsed = parseVolume(await response.text());
-      cache.set(index, index === 0 ? labelFirstVolume(parsed) : parsed);
+      const labeled = index === 0 ? labelFirstVolume(parsed) : parsed;
+      cache.set(index, attachReviews(labeled, await reviewResponse.json()));
     }
     if (request !== requestNumber) return;
     chapters = cache.get(index);
