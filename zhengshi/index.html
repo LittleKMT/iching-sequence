@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f2c">
+  <title>易經證釋－白話</title>
+  <style>
+    :root { --ink: #172019; --green: #0b4f2c; --cream: #f5f1e8; --size: 1.15rem; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--cream); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif; }
+    button, select { font: inherit; }
+    .shell { max-width: 720px; margin: auto; padding: max(14px, env(safe-area-inset-top)) 12px calc(40px + env(safe-area-inset-bottom)); }
+    header { margin-bottom: 16px; }
+    h1 { margin: 10px 0 5px; color: var(--green); font-size: 1.7rem; }
+    .intro, .source { color: #546458; line-height: 1.55; }
+    .home { display: inline-block; padding: 9px 12px; border: 1px solid var(--green); border-radius: 10px; color: var(--green); background: white; font-weight: 800; text-decoration: none; }
+    .toolbar { position: sticky; top: 0; z-index: 2; display: grid; gap: 8px; padding: 10px 0; background: var(--cream); }
+    .selectors, .actions { display: flex; gap: 7px; }
+    select { min-width: 0; flex: 1; height: 46px; padding: 0 8px; border: 1px solid #a8b9ab; border-radius: 10px; background: white; color: var(--ink); }
+    button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--green); border-radius: 10px; background: white; color: var(--green); font-weight: 800; }
+    button:disabled { opacity: .4; }
+    .actions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+    .actions button { min-width: 0; padding: 6px 2px; font-size: .85rem; }
+    .status { min-height: 1.5em; color: #5f6f63; }
+    h2 { margin: 18px 0 12px; color: var(--green); font-size: 1.35rem; }
+    h3 { margin: 20px 0 8px; color: #344c38; font-size: 1.1rem; }
+    .pair { margin: 0 0 10px; padding: 13px; border: 1px solid #d5dfd5; border-radius: 13px; background: #fff; }
+    .pair p { margin: 0; font-size: var(--size); line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .pair .original { margin-bottom: 10px; padding-bottom: 9px; border-bottom: 1px solid #e3eae3; color: #57665a; }
+    .pair .label { display: block; margin-bottom: 3px; color: #607664; font-size: .8rem; font-weight: 800; }
+    body.plain-only .original { display: none; }
+    .note { margin: 10px 0; line-height: 1.6; overflow-wrap: anywhere; }
+    .source { margin-top: 24px; font-size: .82rem; }
+    @media (max-width: 390px) { .shell { padding-left: 10px; padding-right: 10px; } .selectors { flex-direction: column; } }
+  </style>
+</head>
+<body class="plain-only">
+  <main class="shell">
+    <header>
+      <a class="home" href="../">← 回到首頁</a>
+      <h1>易經證釋－白話</h1>
+      <p class="intro">目前收錄上經第一至第三冊。選擇冊別與篇章閱讀白話；可切換顯示原文，逐句對照。</p>
+    </header>
+    <nav class="toolbar" aria-label="閱讀工具">
+      <div class="selectors"><select id="volume" aria-label="選擇冊別"></select><select id="chapter" aria-label="選擇篇章"></select></div>
+      <div class="actions"><button id="previous" type="button">上一篇</button><button id="toggle" type="button" aria-pressed="false">顯示原文</button><button id="decrease" type="button" aria-label="縮小文字">A−</button><button id="increase" type="button" aria-label="放大文字">A＋</button><button id="next" type="button">下一篇</button></div>
+    </nav>
+    <p id="status" class="status" role="status"></p>
+    <article id="content" aria-live="polite"></article>
+    <p class="source">內容複製自唯心資料庫《易經證釋》白話文第一至第三冊正式逐句對照 Markdown。原始文字與白話按來源檔保留；此頁為手機閱讀副本。</p>
+  </main>
+  <script src="reader.js"></script>
+</body>
+</html>
