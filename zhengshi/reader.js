@@ -7,7 +7,7 @@ const cache = new Map();
 let chapters = [];
 let currentVolume = 0;
 let currentChapter = 0;
-let textSize = 1.15;
+let textSize = 1.25;
 let requestNumber = 0;
 
 volumeNames.forEach((name, index) => volumeSelect.add(new Option(name, index)));
@@ -115,11 +115,11 @@ document.getElementById('toggle').addEventListener('click', event => {
   event.currentTarget.setAttribute('aria-pressed', String(!visible));
 });
 document.getElementById('decrease').addEventListener('click', () => {
-  textSize = Math.max(.95, textSize - .1);
+  textSize = Math.max(1.1, textSize - .1);
   document.documentElement.style.setProperty('--size', `${textSize}rem`);
 });
 document.getElementById('increase').addEventListener('click', () => {
-  textSize = Math.min(1.75, textSize + .1);
+  textSize = Math.min(2, textSize + .1);
   document.documentElement.style.setProperty('--size', `${textSize}rem`);
 });
 openVolume(0);
