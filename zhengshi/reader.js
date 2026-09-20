@@ -4,6 +4,22 @@ const chapterSelect = document.getElementById('chapter');
 const content = document.getElementById('content');
 const status = document.getElementById('status');
 const cache = new Map();
+// Each string lists the lines from top to bottom: 1 is an unbroken yang line.
+const figurePatterns = new Map([
+  ['陽爻圖', ['1']], ['陰爻圖', ['0']], ['二陽爻圖', ['11']], ['陰三爻圖', ['000']],
+  ['乾三爻圖', ['111']], ['乾卦三爻圖', ['111']], ['乾卦圖', ['111']],
+  ['坤三爻圖', ['000']], ['坤卦三爻圖', ['000']],
+  ['離三爻圖', ['101']], ['坎三爻圖', ['010']],
+  ['震三爻圖', ['001']], ['艮三爻圖', ['100']],
+  ['巽三爻圖', ['110']], ['兌三爻圖', ['011']],
+  ['乾六爻圖', ['111111']], ['坤六爻圖', ['000000']],
+  ['泰卦六爻圖', ['000111']], ['否卦六爻圖', ['111000']],
+  ['復卦六爻圖', ['000001']], ['姤卦六爻圖', ['111110']],
+  ['震六爻圖', ['001001']],
+  ['四象圖共四', ['11', '10', '01', '00']],
+  ['八卦圖共八', ['111', '011', '101', '001', '110', '010', '100', '000']],
+]);
+const svgNamespace = 'http://www.w3.org/2000/svg';
 const firstVolumeLabels = [
   ['本冊導覽', '書名與資料來源'],
   ['列聖名稱', '參與講述的聖賢'],
@@ -137,6 +153,67 @@ function appendText(tag, value, parent = content, className = '') {
   return element;
 }
 
+function appendFigure(parent, label, patterns) {
+  const svg = document.createElementNS(svgNamespace, 'svg');
+  const width = patterns.length * 32;
+  const height = Math.max(...patterns.map(pattern => pattern.length)) * 8 + 2;
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', label);
+  svg.setAttribute('class', 'figure-symbol');
+  svg.style.width = patterns.length === 1 ? '1.6em' : `${patterns.length * 1.6}em`;
+  const title = document.createElementNS(svgNamespace, 'title');
+  title.textContent = label;
+  svg.append(title);
+  patterns.forEach((pattern, column) => {
+    [...pattern].forEach((line, row) => {
+      const pieces = line === '1' ? [[2, 28]] : [[2, 12], [18, 12]];
+      pieces.forEach(([offset, pieceWidth]) => {
+        const bar = document.createElementNS(svgNamespace, 'rect');
+        bar.setAttribute('x', String(column * 32 + offset));
+        bar.setAttribute('y', String(row * 8 + 2));
+        bar.setAttribute('width', String(pieceWidth));
+        bar.setAttribute('height', '4');
+        svg.append(bar);
+      });
+    });
+  });
+  parent.append(svg);
+}
+
+function appendIllustratedText(parent, value) {
+  const tokens = /\[([^\]\r\n]+)\]/g;
+  let last = 0;
+  for (const match of value.matchAll(tokens)) {
+    const patterns = figurePatterns.get(match[1]);
+    if (!patterns && match[1] !== '特殊圖') continue;
+    parent.append(document.createTextNode(value.slice(last, match.index)));
+    if (patterns) appendFigure(parent, match[1], patterns);
+    else appendText('span', '特殊圖（原稿未辨識）', parent, 'figure-unresolved');
+    last = match.index + match[0].length;
+  }
+  parent.append(document.createTextNode(value.slice(last)));
+}
+
+function appendMissingFigures(parent, original, reviewed) {
+  const figureTokens = /\[([^\]\r\n]+)\]/g;
+  const reviewedCounts = new Map();
+  for (const match of reviewed.matchAll(figureTokens)) {
+    reviewedCounts.set(match[1], (reviewedCounts.get(match[1]) || 0) + 1);
+  }
+  const missing = [];
+  for (const match of original.matchAll(figureTokens)) {
+    if (!figurePatterns.has(match[1])) continue;
+    const remaining = reviewedCounts.get(match[1]) || 0;
+    if (remaining) reviewedCounts.set(match[1], remaining - 1);
+    else missing.push(match[1]);
+  }
+  if (!missing.length) return;
+  const supplement = appendText('div', '', parent, 'figure-supplement');
+  appendText('span', '圖示：', supplement, 'figure-supplement-label');
+  missing.forEach(label => appendFigure(supplement, label, figurePatterns.get(label)));
+}
+
 function renderChapter() {
   const chapter = chapters[currentChapter];
   content.replaceChildren();
@@ -151,10 +228,11 @@ function renderChapter() {
       const card = appendText('div', '', content, 'pair');
       const original = appendText('div', '', card, 'original');
       appendText('span', '原文', original, 'label');
-      appendText('p', cells[0], original);
+      appendIllustratedText(appendText('p', '', original), cells[0]);
       const plain = appendText('div', '', card);
       appendText('span', '白話', plain, 'label');
-      appendText('p', chapter.reviewed[lineIndex], plain);
+      appendIllustratedText(appendText('p', '', plain), chapter.reviewed[lineIndex]);
+      appendMissingFigures(plain, cells[0], chapter.reviewed[lineIndex]);
     } else if (!trimmed.startsWith('>')) {
       appendText('p', trimmed, content, 'note');
     }
