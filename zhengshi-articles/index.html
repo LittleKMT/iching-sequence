@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta name="theme-color" content="#0b4f2c">
   <title>易經證釋 白話文章</title>
   <style>
@@ -29,8 +30,8 @@
     .history-panel summary { padding:12px 14px; color:var(--green); cursor:pointer; font-weight:800; }
     .history-list { display:grid; gap:7px; padding:0 10px 10px; }
     .history-item { min-height:44px; padding:8px 10px; text-align:left; font-size:.88rem; line-height:1.4; }
-    article { height:64svh; min-height:480px; max-height:700px; margin-top:12px; padding:0; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; border:1px solid #d5dfd5; border-radius:14px; background:var(--paper); }
-    .book-pages { width:100%; min-height:100%; padding-top:20px; }
+    article { height:auto; min-height:0; max-height:none; margin-top:12px; padding:0; overflow:visible; border:1px solid #d5dfd5; border-radius:14px; background:var(--paper); }
+    .book-pages { width:100%; min-height:0; padding-top:16px; padding-bottom:4px; }
     .book-pages > * { margin-left:18px; margin-right:18px; }
     article h2 { margin-top:0; margin-bottom:18px; color:var(--green); font-size:1.5rem; line-height:1.4; }
     article h3 { margin-top:1.3em; margin-bottom:.7em; color:#526b57; font-size:1.05rem; line-height:1.5; }
@@ -60,8 +61,6 @@
       .selectors { grid-template-columns:1fr; }
       .actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .status { margin:8px 2px; font-size:.84rem; }
-      article { height:auto; min-height:0; max-height:none; overflow:visible; }
-      .book-pages { min-height:0; padding-top:16px; padding-bottom:4px; }
       .page-navigation { position:sticky; bottom:0; z-index:4; margin-top:8px; padding:7px 0 calc(7px + env(safe-area-inset-bottom)); background:var(--cream); }
       .history-panel { margin-top:12px; }
       .source { display:none; }
@@ -97,6 +96,6 @@
     <details id="history-panel" class="history-panel"><summary id="history-summary">閱讀紀錄</summary><div id="history-list" class="history-list"></div></details>
     <p class="source">內容取自唯心資料庫正式「易經證釋 白話文章」連續閱讀版；與逐句對照的「白話」欄分開。要逐句查看原文與白話，請開啟<a href="../zhengshi/">易經證釋－白話</a>。</p>
   </main>
-  <script src="reader.js?v=ebook-3"></script>
+  <script src="reader.js?v=ebook-4"></script>
 </body>
 </html>

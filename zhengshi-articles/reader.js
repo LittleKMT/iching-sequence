@@ -28,7 +28,7 @@ const historyList = document.getElementById('history-list');
 const readerSettings = document.getElementById('reader-settings');
 const offlineButton = document.getElementById('offline-download');
 const offlineStatus = document.getElementById('offline-status');
-const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-1';
+const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-2';
 const cache = new Map();
 let sourceFigureLabels = new Set();
 let articles = [];
@@ -448,7 +448,7 @@ async function downloadForOffline() {
   offlineButton.textContent = '正在準備離線下載…';
   offlineStatus.textContent = '請保持此頁開啟，下載完成前不要關閉。';
   try {
-    await navigator.serviceWorker.register('sw.js?v=offline-1', { scope: './' });
+    await navigator.serviceWorker.register('sw.js?v=offline-2', { scope: './', updateViaCache: 'none' });
     await navigator.serviceWorker.ready;
     const urls = await offlineAssetUrls();
     const cache = await caches.open(offlineCacheName);
@@ -484,7 +484,8 @@ async function initializeOfflineReading() {
       offlineStatus.textContent = '已可離線閱讀；按此按鈕可重新下載最新內容。';
       offlineButton.disabled = false;
     }
-    await navigator.serviceWorker.register('sw.js?v=offline-1', { scope: './' });
+    const registration = await navigator.serviceWorker.register('sw.js?v=offline-2', { scope: './', updateViaCache: 'none' });
+    await registration.update();
   } catch {}
 }
 
@@ -536,6 +537,13 @@ if (document.fonts?.ready) document.fonts.ready.then(() => {
 });
 
 renderReadingLog();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (sessionStorage.getItem('zhengshi-articles-reloaded-for-update')) return;
+    sessionStorage.setItem('zhengshi-articles-reloaded-for-update', '1');
+    location.reload();
+  });
+}
 initializeOfflineReading();
 const startingPosition = readStartingPosition();
 openVolume(
