@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f2c">
+  <title>易經證釋 白話文章</title>
+  <style>
+    :root { --ink:#172019; --green:#0b4f2c; --cream:#f5f1e8; --paper:#fff; --size:1.25rem; font-size:20px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; overflow-x:hidden; background:var(--cream); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif; }
+    button,select { font:inherit; }
+    .shell { max-width:760px; margin:auto; padding:max(14px,env(safe-area-inset-top)) 12px calc(50px + env(safe-area-inset-bottom)); }
+    .home { display:inline-block; padding:11px 15px; border:1px solid var(--green); border-radius:10px; color:var(--green); background:white; font-weight:800; text-decoration:none; }
+    h1 { margin:14px 0 8px; color:var(--green); font-size:1.9rem; line-height:1.25; }
+    .intro,.source { color:#546458; font-size:1rem; line-height:1.6; }
+    .toolbar { position:sticky; top:0; z-index:3; display:grid; gap:8px; padding:10px 0; background:var(--cream); }
+    .selectors { display:flex; min-width:0; gap:8px; }
+    select { min-width:0; flex:1; height:58px; padding:0 12px; border:1px solid #a8b9ab; border-radius:10px; background:white; color:var(--ink); font-size:1.05rem; font-weight:750; }
+    .actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; }
+    button,.compare { min-height:52px; padding:9px 6px; border:1px solid var(--green); border-radius:10px; background:white; color:var(--green); font-size:1rem; font-weight:800; }
+    button:disabled { opacity:.4; }
+    .compare { display:grid; place-items:center; text-decoration:none; }
+    .status { min-height:1.5em; color:#5f6f63; font-size:1rem; line-height:1.5; }
+    article { margin-top:14px; padding:20px 18px; border:1px solid #d5dfd5; border-radius:14px; background:var(--paper); }
+    article h2 { margin:0 0 18px; color:var(--green); font-size:1.5rem; line-height:1.4; }
+    article h3 { margin:1.8em 0 .7em; color:#526b57; font-size:1.05rem; line-height:1.5; }
+    .paragraph { margin:0 0 .8em; font-family:"PMingLiU","Noto Serif TC",serif; font-size:var(--size); line-height:1.7; overflow-wrap:anywhere; }
+    .note { margin:.5em 0 1em; padding:10px 12px; border-left:4px solid #a9b99d; background:#f8f8f1; color:#5d674d; font-size:.92rem; line-height:1.65; overflow-wrap:anywhere; }
+    .note summary { cursor:pointer; font-weight:800; }
+    .figure-symbol { display:inline-block; height:auto; fill:currentColor; vertical-align:middle; margin:0 .08em; overflow:visible; }
+    .source-figure { width:1.25em; height:1.25em; object-fit:contain; vertical-align:-.2em; margin:0 .06em; }
+    .figure-unresolved { color:#775d32; font-size:.8em; }
+    .source { margin-top:24px; font-size:.9rem; }
+    .source a { color:var(--green); font-weight:800; }
+    @media(max-width:600px) {
+      .shell { padding-left:10px; padding-right:10px; }
+      .selectors { flex-direction:column; }
+      article { padding:18px 15px; }
+      .actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <a class="home" href="../">← 回到首頁</a>
+      <h1>易經證釋 白話文章</h1>
+      <p class="intro">這是連續閱讀版：把逐列審訂白話依文意接成完整段落，按原書一千二百零三篇文章閱讀。</p>
+    </header>
+    <nav class="toolbar" aria-label="閱讀工具">
+      <div class="selectors"><select id="volume" aria-label="選擇冊別"></select><select id="chapter" aria-label="選擇文章"></select></div>
+      <div class="actions">
+        <button id="previous" type="button">上一篇</button><button id="next" type="button">下一篇</button>
+        <button id="decrease" type="button" aria-label="縮小文字">A−</button><button id="increase" type="button" aria-label="放大文字">A＋</button>
+      </div>
+    </nav>
+    <p id="status" class="status" role="status"></p>
+    <article id="content" aria-live="polite"></article>
+    <p class="source">內容取自唯心資料庫正式「易經證釋 白話文章」連續閱讀版；與逐句對照的「白話」欄分開。要逐句查看原文與白話，請開啟<a href="../zhengshi/">易經證釋－白話</a>。</p>
+  </main>
+  <script src="reader.js?v=continuous-1"></script>
+</body>
+</html>
