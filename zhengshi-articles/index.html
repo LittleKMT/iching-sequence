@@ -45,6 +45,10 @@
     .page-navigation { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; margin-top:10px; }
     .page-navigation button { min-height:58px; }
     .page-indicator { min-width:72px; color:#526357; text-align:center; font-weight:800; }
+    .offline-box { margin:12px 0; }
+    .offline-download { width:100%; min-height:58px; background:var(--green); color:#fff; }
+    .offline-download:disabled { opacity:.68; }
+    .offline-status { min-height:1.4em; margin:6px 4px 0; color:#526357; font-size:.86rem; line-height:1.45; }
     @media(max-width:600px) {
       .shell { padding-left:10px; padding-right:10px; }
       header { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; }
@@ -86,9 +90,13 @@
     <nav class="page-navigation" aria-label="翻頁">
       <button id="bottom-previous" type="button">← 上一頁</button><span id="page-indicator" class="page-indicator">1 / 1</span><button id="bottom-next" type="button">下一頁 →</button>
     </nav>
+    <section class="offline-box" aria-label="離線閱讀">
+      <button id="offline-download" class="offline-download" type="button">↓ 下載全 20 冊・離線閱讀</button>
+      <p id="offline-status" class="offline-status" role="status" aria-live="polite"></p>
+    </section>
     <details id="history-panel" class="history-panel"><summary id="history-summary">閱讀紀錄</summary><div id="history-list" class="history-list"></div></details>
     <p class="source">內容取自唯心資料庫正式「易經證釋 白話文章」連續閱讀版；與逐句對照的「白話」欄分開。要逐句查看原文與白話，請開啟<a href="../zhengshi/">易經證釋－白話</a>。</p>
   </main>
-  <script src="reader.js?v=ebook-2"></script>
+  <script src="reader.js?v=ebook-3"></script>
 </body>
 </html>

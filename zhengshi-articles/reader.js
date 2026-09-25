@@ -26,6 +26,9 @@ const nextButtons = [document.getElementById('next'), document.getElementById('b
 const historySummary = document.getElementById('history-summary');
 const historyList = document.getElementById('history-list');
 const readerSettings = document.getElementById('reader-settings');
+const offlineButton = document.getElementById('offline-download');
+const offlineStatus = document.getElementById('offline-status');
+const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-1';
 const cache = new Map();
 let sourceFigureLabels = new Set();
 let articles = [];
@@ -421,12 +424,77 @@ function nextPage() {
   }
 }
 
+async function offlineAssetUrls() {
+  const response = await fetch('data/figures.json', { cache: 'no-store' });
+  if (!response.ok) throw new Error(`圖形清單 HTTP ${response.status}`);
+  const figureLabels = await response.json();
+  return [
+    './',
+    'index.html',
+    'reader.js',
+    'sw.js',
+    'data/figures.json',
+    ...Array.from({ length: 20 }, (_, index) => `data/volume-${String(index + 1).padStart(2, '0')}.json`),
+    ...figureLabels.map(label => `figures/${encodeURIComponent(label)}.png`),
+  ];
+}
+
+async function downloadForOffline() {
+  if (!('serviceWorker' in navigator) || !('caches' in window)) {
+    offlineStatus.textContent = '此瀏覽器不支援離線下載。請改用最新版 Safari 或 Chrome。';
+    return;
+  }
+  offlineButton.disabled = true;
+  offlineButton.textContent = '正在準備離線下載…';
+  offlineStatus.textContent = '請保持此頁開啟，下載完成前不要關閉。';
+  try {
+    await navigator.serviceWorker.register('sw.js?v=offline-1', { scope: './' });
+    await navigator.serviceWorker.ready;
+    const urls = await offlineAssetUrls();
+    const cache = await caches.open(offlineCacheName);
+    let completed = 0;
+    for (let start = 0; start < urls.length; start += 5) {
+      const group = urls.slice(start, start + 5);
+      await Promise.all(group.map(async path => {
+        const url = new URL(path, location.href);
+        url.hash = '';
+        const response = await fetch(url, { cache: 'reload' });
+        if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+        await cache.put(url, response);
+        completed++;
+        offlineStatus.textContent = `正在下載：${completed} / ${urls.length}`;
+      }));
+    }
+    localStorage.setItem('zhengshi-articles-offline-version', offlineCacheName);
+    offlineButton.textContent = '✓ 全 20 冊已下載';
+    offlineStatus.textContent = '下載完成。關閉網路後仍可從同一網址閱讀。';
+  } catch (error) {
+    offlineButton.disabled = false;
+    offlineButton.textContent = '重新下載全 20 冊・離線閱讀';
+    offlineStatus.textContent = `下載未完成：${error.message}`;
+  }
+}
+
+async function initializeOfflineReading() {
+  if (!('serviceWorker' in navigator) || !('caches' in window)) return;
+  try {
+    if (localStorage.getItem('zhengshi-articles-offline-version') === offlineCacheName
+      && await caches.has(offlineCacheName)) {
+      offlineButton.textContent = '✓ 全 20 冊已下載';
+      offlineStatus.textContent = '已可離線閱讀；按此按鈕可重新下載最新內容。';
+      offlineButton.disabled = false;
+    }
+    await navigator.serviceWorker.register('sw.js?v=offline-1', { scope: './' });
+  } catch {}
+}
+
 volumeSelect.addEventListener('change', () => openVolume(Number(volumeSelect.value)));
 chapterSelect.addEventListener('change', () => {
   currentArticle = Number(chapterSelect.value);
   renderArticle(0, true);
 });
 pageSelect.addEventListener('change', () => showPage(Number(pageSelect.value), true));
+offlineButton.addEventListener('click', downloadForOffline);
 previousButtons.forEach(button => button.addEventListener('click', previousPage));
 nextButtons.forEach(button => button.addEventListener('click', nextPage));
 document.getElementById('decrease').addEventListener('click', () => {
@@ -468,6 +536,7 @@ if (document.fonts?.ready) document.fonts.ready.then(() => {
 });
 
 renderReadingLog();
+initializeOfflineReading();
 const startingPosition = readStartingPosition();
 openVolume(
   startingPosition.volume,
