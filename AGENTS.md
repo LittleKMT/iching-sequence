@@ -2,7 +2,7 @@
 
 ## 專案與範圍
 
-這是部署在 GitHub Pages 的靜態網站，沒有建置框架。根目錄 `index.html` 是《序卦傳・六十四卦記憶》主 App，內含版面、資料與互動程式。`heartmind-data.js` 是心法基礎資料，`heartmind-lecture-data.js` 供心法查詢使用。`eightfold-path.md` 是八正道閱讀內容。`zhengshi/` 是《易經證釋－白話》手機閱讀頁，目前收錄上經第一至第三冊的正式逐句對照 Markdown 副本。`najia/` 是另一個獨立 App，使用自己的 HTML、manifest 與圖示。
+這是部署在 GitHub Pages 的靜態網站，沒有建置框架。根目錄 `index.html` 是《序卦傳・六十四卦記憶》主 App，內含版面、資料與互動程式。`heartmind-data.js` 是心法基礎資料，`heartmind-lecture-data.js` 供心法查詢使用。`eightfold-path.md` 是八正道閱讀內容。`zhengshi/` 是《易經證釋－白話》手機閱讀頁，收錄上經十二冊、下經八冊的正式逐句對照 Markdown 副本，並使用第三欄「白話審訂」資料。`najia/` 是另一個獨立 App，使用自己的 HTML、manifest 與圖示。
 
 ## 修改原則
 

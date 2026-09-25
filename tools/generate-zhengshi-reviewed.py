@@ -1,7 +1,7 @@
-"""Copy the reviewed third column into the first three Zhengshi web volumes.
+"""Copy the reviewed third column into all Zhengshi web volumes.
 
 Usage: python tools/generate-zhengshi-reviewed.py <path-to-3_原始備份【勿刪】>
-The source directory is read only. Output is the three reviewed-*.json files.
+The source directory is read only. Output is one reviewed-*.json per volume.
 """
 
 import difflib
@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 
 
-VOLUMES = ((1, range(1, 11)), (2, range(11, 16)), (3, range(16, 35)))
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -31,17 +30,21 @@ def main(source):
     raw_dir = source / "唯心逐字稿_JSON_5963集" / "yijing_zhengshi_baihua"
     review_dir = source / "易經證釋 白話文" / "審訂"
     reviews = {}
+    articles_by_volume = {}
+    for path in raw_dir.glob("*.json"):
+        article = json.loads(path.read_text(encoding="utf-8-sig"))
+        article_id = int(article["id"].rsplit("-", 1)[1])
+        articles_by_volume.setdefault(int(article["volume_no"]), []).append((article_id, article))
     for path in review_dir.glob("*.json"):
         review = json.loads(path.read_text(encoding="utf-8-sig"))
         article_id = review.get("article_id", "")
         if article_id.startswith("yijing_zhengshi_baihua-"):
             reviews[int(article_id.rsplit("-", 1)[1])] = review
 
-    for volume, article_ids in VOLUMES:
+    for volume in sorted(articles_by_volume):
         pairs = pairs_from_markdown(ROOT / "zhengshi" / f"volume-{volume:02}.md")
         originals, revised = [], []
-        for article_id in article_ids:
-            article = json.loads((raw_dir / f"{article_id}.json").read_text(encoding="utf-8-sig"))
+        for article_id, article in sorted(articles_by_volume[volume]):
             original_rows = [line[4:] for line in article["content"].splitlines() if line.startswith("【原文】")]
             review = reviews[article_id]["rows"]
             if len(original_rows) != article["pair_count"] or len(review) != len(original_rows):

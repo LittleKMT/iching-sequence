@@ -1,4 +1,7 @@
-const volumeNames = ['01｜上經第一冊', '02｜上經第二冊', '03｜上經第三冊'];
+const volumeNames = [
+  ...Array.from({ length: 12 }, (_, index) => `${String(index + 1).padStart(2, '0')}｜上經第${['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'][index]}冊`),
+  ...Array.from({ length: 8 }, (_, index) => `${String(index + 13).padStart(2, '0')}｜下經第${['一', '二', '三', '四', '五', '六', '七', '八'][index]}冊`),
+];
 const volumeSelect = document.getElementById('volume');
 const chapterSelect = document.getElementById('chapter');
 const content = document.getElementById('content');
@@ -7,6 +10,7 @@ const cache = new Map();
 // Each string lists the lines from top to bottom: 1 is an unbroken yang line.
 const figurePatterns = new Map([
   ['陽爻圖', ['1']], ['陰爻圖', ['0']], ['二陽爻圖', ['11']], ['陰三爻圖', ['000']],
+  ['乾爻圖', ['1']],
   ['乾三爻圖', ['111']], ['乾卦三爻圖', ['111']], ['乾卦圖', ['111']],
   ['坤三爻圖', ['000']], ['坤卦三爻圖', ['000']],
   ['離三爻圖', ['101']], ['坎三爻圖', ['010']],
@@ -16,8 +20,19 @@ const figurePatterns = new Map([
   ['泰卦六爻圖', ['000111']], ['否卦六爻圖', ['111000']],
   ['復卦六爻圖', ['000001']], ['姤卦六爻圖', ['111110']],
   ['震六爻圖', ['001001']],
+  ['觀六爻圖', ['110000']],
   ['四象圖共四', ['11', '10', '01', '00']],
   ['八卦圖共八', ['111', '011', '101', '001', '110', '010', '100', '000']],
+]);
+const figureGlyphs = new Map([
+  ['陽爻圖', '⚊'], ['陰爻圖', '⚋'], ['二陽爻圖', '⚊⚊'], ['乾爻圖', '⚊'],
+  ['乾三爻圖', '☰'], ['乾卦三爻圖', '☰'], ['乾卦圖', '☰'],
+  ['坤三爻圖', '☷'], ['坤卦三爻圖', '☷'], ['陰三爻圖', '☷'],
+  ['離三爻圖', '☲'], ['坎三爻圖', '☵'], ['震三爻圖', '☳'], ['艮三爻圖', '☶'],
+  ['巽三爻圖', '☴'], ['兌三爻圖', '☱'], ['乾六爻圖', '䷀'], ['坤六爻圖', '䷁'],
+  ['泰卦六爻圖', '䷊'], ['否卦六爻圖', '䷋'], ['復卦六爻圖', '䷗'], ['姤卦六爻圖', '䷫'],
+  ['震六爻圖', '䷲'], ['觀六爻圖', '䷓'],
+  ['四象圖共四', '⚌⚍⚎⚏'], ['八卦圖共八', '☰☱☲☳☴☵☶☷'],
 ]);
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const firstVolumeLabels = [
@@ -201,12 +216,21 @@ function appendMissingFigures(parent, original, reviewed) {
   for (const match of reviewed.matchAll(figureTokens)) {
     reviewedCounts.set(match[1], (reviewedCounts.get(match[1]) || 0) + 1);
   }
+  const glyphCounts = new Map();
+  for (const glyph of new Set(figureGlyphs.values())) {
+    glyphCounts.set(glyph, reviewed.split(glyph).length - 1);
+  }
   const missing = [];
   for (const match of original.matchAll(figureTokens)) {
     if (!figurePatterns.has(match[1])) continue;
     const remaining = reviewedCounts.get(match[1]) || 0;
     if (remaining) reviewedCounts.set(match[1], remaining - 1);
-    else missing.push(match[1]);
+    else {
+      const glyph = figureGlyphs.get(match[1]);
+      const glyphRemaining = glyphCounts.get(glyph) || 0;
+      if (glyphRemaining) glyphCounts.set(glyph, glyphRemaining - 1);
+      else missing.push(match[1]);
+    }
   }
   if (!missing.length) return;
   const supplement = appendText('div', '', parent, 'figure-supplement');
