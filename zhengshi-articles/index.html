@@ -15,6 +15,8 @@
     .home { display:inline-block; padding:11px 15px; border:1px solid var(--green); border-radius:10px; color:var(--green); background:white; font-weight:800; text-decoration:none; }
     h1 { margin:14px 0 8px; color:var(--green); font-size:1.9rem; line-height:1.25; }
     .intro,.source { color:#546458; font-size:1rem; line-height:1.6; }
+    .reader-settings { margin-top:8px; }
+    .reader-settings > summary { display:none; padding:12px 14px; border:1px solid var(--green); border-radius:10px; background:white; color:var(--green); cursor:pointer; font-weight:800; }
     .toolbar { position:sticky; top:0; z-index:3; display:grid; gap:8px; padding:10px 0; background:var(--cream); }
     .selectors { display:grid; grid-template-columns:1fr 1.35fr .65fr; min-width:0; gap:8px; }
     select { min-width:0; flex:1; height:58px; padding:0 12px; border:1px solid #a8b9ab; border-radius:10px; background:white; color:var(--ink); font-size:1.05rem; font-weight:750; }
@@ -45,9 +47,20 @@
     .page-indicator { min-width:72px; color:#526357; text-align:center; font-weight:800; }
     @media(max-width:600px) {
       .shell { padding-left:10px; padding-right:10px; }
+      header { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; }
+      .home { padding:9px 11px; font-size:.88rem; }
+      h1 { margin:0; font-size:1.32rem; }
+      .intro { display:none; }
+      .reader-settings > summary { display:block; }
       .toolbar { position:static; }
       .selectors { grid-template-columns:1fr; }
       .actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .status { margin:8px 2px; font-size:.84rem; }
+      article { height:auto; min-height:0; max-height:none; overflow:visible; }
+      .book-pages { min-height:0; padding-top:16px; padding-bottom:4px; }
+      .page-navigation { position:sticky; bottom:0; z-index:4; margin-top:8px; padding:7px 0 calc(7px + env(safe-area-inset-bottom)); background:var(--cream); }
+      .history-panel { margin-top:12px; }
+      .source { display:none; }
     }
   </style>
 </head>
@@ -58,21 +71,24 @@
       <h1>易經證釋 白話文章</h1>
       <p class="intro">這是白話文章電子書版：依文意接成完整段落，再按手機畫面逐頁閱讀，共一千二百零三篇。</p>
     </header>
-    <nav class="toolbar" aria-label="閱讀工具">
-      <div class="selectors"><select id="volume" aria-label="選擇冊別"></select><select id="chapter" aria-label="選擇文章"></select><select id="page" aria-label="選擇頁碼"></select></div>
-      <div class="actions">
-        <button id="previous" type="button">上一頁</button><button id="next" type="button">下一頁</button>
-        <button id="decrease" type="button" aria-label="縮小文字">A−</button><button id="increase" type="button" aria-label="放大文字">A＋</button>
-      </div>
-    </nav>
+    <details id="reader-settings" class="reader-settings">
+      <summary>選擇冊別、文章、頁碼與字級</summary>
+      <nav class="toolbar" aria-label="閱讀工具">
+        <div class="selectors"><select id="volume" aria-label="選擇冊別"></select><select id="chapter" aria-label="選擇文章"></select><select id="page" aria-label="選擇頁碼"></select></div>
+        <div class="actions">
+          <button id="previous" type="button">上一頁</button><button id="next" type="button">下一頁</button>
+          <button id="decrease" type="button" aria-label="縮小文字">A−</button><button id="increase" type="button" aria-label="放大文字">A＋</button>
+        </div>
+      </nav>
+    </details>
     <p id="status" class="status" role="status"></p>
-    <details id="history-panel" class="history-panel"><summary id="history-summary">閱讀紀錄</summary><div id="history-list" class="history-list"></div></details>
     <article id="content" aria-live="polite"><div id="pages" class="book-pages"></div></article>
     <nav class="page-navigation" aria-label="翻頁">
       <button id="bottom-previous" type="button">← 上一頁</button><span id="page-indicator" class="page-indicator">1 / 1</span><button id="bottom-next" type="button">下一頁 →</button>
     </nav>
+    <details id="history-panel" class="history-panel"><summary id="history-summary">閱讀紀錄</summary><div id="history-list" class="history-list"></div></details>
     <p class="source">內容取自唯心資料庫正式「易經證釋 白話文章」連續閱讀版；與逐句對照的「白話」欄分開。要逐句查看原文與白話，請開啟<a href="../zhengshi/">易經證釋－白話</a>。</p>
   </main>
-  <script src="reader.js?v=ebook-1"></script>
+  <script src="reader.js?v=ebook-2"></script>
 </body>
 </html>

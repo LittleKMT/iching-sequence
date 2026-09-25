@@ -25,6 +25,7 @@ const previousButtons = [document.getElementById('previous'), document.getElemen
 const nextButtons = [document.getElementById('next'), document.getElementById('bottom-next')];
 const historySummary = document.getElementById('history-summary');
 const historyList = document.getElementById('history-list');
+const readerSettings = document.getElementById('reader-settings');
 const cache = new Map();
 let sourceFigureLabels = new Set();
 let articles = [];
@@ -41,6 +42,7 @@ let resizeTimer;
 
 volumeNames.forEach((name, index) => volumeSelect.add(new Option(name, index)));
 document.documentElement.style.setProperty('--size', `${textSize}rem`);
+readerSettings.open = !window.matchMedia('(max-width:600px)').matches;
 
 function readJson(key, fallback) {
   try {
@@ -253,11 +255,12 @@ function takeText(value, limit) {
 function buildArticlePages(article) {
   const fontPixels = textSize * 20;
   const usableWidth = Math.max(180, content.clientWidth - 42);
-  const usableHeight = Math.max(300, content.clientHeight - 48);
+  const usableHeight = Math.max(420, Math.min(680, window.innerHeight * .7));
   const charactersPerLine = usableWidth / fontPixels;
   const lineCount = usableHeight / (fontPixels * 1.7);
   const paragraphOverhead = Math.ceil(charactersPerLine * .55);
-  const budget = Math.max(100, Math.floor(charactersPerLine * lineCount * .76));
+  const minimumBudget = Math.max(90, Math.floor(160 * 1.25 / textSize));
+  const budget = Math.max(minimumBudget, Math.floor(charactersPerLine * lineCount * .88));
   const result = [[]];
   let used = 0;
   const newPage = () => {
@@ -369,7 +372,7 @@ async function openVolume(index, articleIndex = 0, pageIndex = 0, articleId = nu
     currentArticle = matchedArticle >= 0
       ? matchedArticle
       : Math.max(0, Math.min(articleIndex, articles.length - 1));
-    renderArticle(pageIndex);
+    renderArticle(pageIndex, window.matchMedia('(max-width:600px)').matches);
   } catch (error) {
     if (request !== requestNumber) return;
     status.textContent = '載入失敗，請確認網路後重新選擇冊別。';
