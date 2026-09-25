@@ -16,22 +16,41 @@ const figurePatterns = new Map([
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const volumeSelect = document.getElementById('volume');
 const chapterSelect = document.getElementById('chapter');
+const pageSelect = document.getElementById('page');
 const content = document.getElementById('content');
+const pages = document.getElementById('pages');
 const status = document.getElementById('status');
-const previousButton = document.getElementById('previous');
-const nextButton = document.getElementById('next');
+const pageIndicator = document.getElementById('page-indicator');
+const previousButtons = [document.getElementById('previous'), document.getElementById('bottom-previous')];
+const nextButtons = [document.getElementById('next'), document.getElementById('bottom-next')];
+const historySummary = document.getElementById('history-summary');
+const historyList = document.getElementById('history-list');
 const cache = new Map();
 let sourceFigureLabels = new Set();
 let articles = [];
 let currentVolume = 0;
 let currentArticle = 0;
+let currentPage = 0;
+let pageCount = 1;
+let articlePages = [[]];
 let textSize = Number(localStorage.getItem('zhengshi-articles-text-size-v1')) || 1.25;
+let readingLog = readJson('zhengshi-articles-reading-log-v1', {});
 let requestNumber = 0;
+let paginationNumber = 0;
+let resizeTimer;
 
 volumeNames.forEach((name, index) => volumeSelect.add(new Option(name, index)));
 document.documentElement.style.setProperty('--size', `${textSize}rem`);
 
-function appendText(tag, value, parent = content, className = '') {
+function readJson(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function appendText(tag, value, parent = pages, className = '') {
   const element = document.createElement(tag);
   element.textContent = value;
   if (className) element.className = className;
@@ -99,52 +118,222 @@ function cleanTitle(title) {
   return title.replace(/^[上下]經第[一二三四五六七八九十]+冊[｜|]/, '');
 }
 
-function savePosition() {
-  localStorage.setItem('zhengshi-articles-position-v1', JSON.stringify({ volume: currentVolume, article: currentArticle }));
-  const params = new URLSearchParams({ volume: String(currentVolume + 1), article: String(articles[currentArticle]?.id || 1) });
-  history.replaceState(null, '', `#${params}`);
+function updateReadingLog() {
+  const article = articles[currentArticle];
+  if (!article) return;
+  const key = String(article.id);
+  const progress = (currentPage + 1) / pageCount;
+  const old = readingLog[key] || {};
+  readingLog[key] = {
+    volume: currentVolume,
+    article: currentArticle,
+    title: cleanTitle(article.title),
+    page: currentPage,
+    totalPages: pageCount,
+    furthest: Math.max(old.furthest || 0, progress),
+    completed: Boolean(old.completed) || currentPage === pageCount - 1,
+    updatedAt: Date.now(),
+  };
+  localStorage.setItem('zhengshi-articles-reading-log-v1', JSON.stringify(readingLog));
+  renderReadingLog();
 }
 
-function renderArticle() {
-  const article = articles[currentArticle];
-  content.replaceChildren();
-  appendText('h2', cleanTitle(article.title));
-  let paragraph = null;
-  let paragraphLength = 0;
+function renderReadingLog() {
+  const entries = Object.values(readingLog).sort((a, b) => b.updatedAt - a.updatedAt);
+  const completed = entries.filter(entry => entry.completed).length;
+  historySummary.textContent = `閱讀紀錄：已讀 ${entries.length} 篇｜完成 ${completed} 篇`;
+  historyList.replaceChildren();
+  if (!entries.length) {
+    appendText('p', '開始閱讀後，這裡會保存最近讀到的文章和頁碼。', historyList);
+    return;
+  }
+  entries.slice(0, 8).forEach(entry => {
+    const button = appendText(
+      'button',
+      `${volumeNames[entry.volume]}｜${entry.title}｜第 ${entry.page + 1} / ${entry.totalPages} 頁${entry.completed ? '｜已完成' : ''}`,
+      historyList,
+      'history-item',
+    );
+    button.type = 'button';
+    button.addEventListener('click', () => {
+      document.getElementById('history-panel').open = false;
+      openVolume(entry.volume, entry.article, entry.page);
+    });
+  });
+}
 
+function savePosition() {
+  const article = articles[currentArticle];
+  if (!article) return;
+  localStorage.setItem('zhengshi-articles-position-v1', JSON.stringify({
+    volume: currentVolume,
+    article: currentArticle,
+    page: currentPage,
+  }));
+  const params = new URLSearchParams({
+    volume: String(currentVolume + 1),
+    article: String(article.id),
+    page: String(currentPage + 1),
+  });
+  window.history.replaceState(null, '', `#${params}`);
+}
+
+function updatePageControls() {
+  const article = articles[currentArticle];
+  pageSelect.value = String(currentPage);
+  pageIndicator.textContent = `${currentPage + 1} / ${pageCount}`;
+  const atStart = currentVolume === 0 && currentArticle === 0 && currentPage === 0;
+  const atEnd = currentVolume === volumeNames.length - 1
+    && currentArticle === articles.length - 1
+    && currentPage === pageCount - 1;
+  previousButtons.forEach(button => { button.disabled = atStart; });
+  nextButtons.forEach(button => { button.disabled = atEnd; });
+  status.textContent = `${volumeNames[currentVolume]}｜第 ${currentArticle + 1} / ${articles.length} 篇｜全書第 ${article.id} 篇｜第 ${currentPage + 1} / ${pageCount} 頁`;
+}
+
+function showPage(index, scrollToPage = false) {
+  currentPage = Math.max(0, Math.min(index, pageCount - 1));
+  renderCurrentPage();
+  updatePageControls();
+  savePosition();
+  updateReadingLog();
+  if (scrollToPage) {
+    window.scrollTo({ top: Math.max(0, content.offsetTop - 10), behavior: 'smooth' });
+  }
+}
+
+function paragraphBlocks(article) {
+  const blocks = [{ type: 'title', text: cleanTitle(article.title) }];
+  let paragraph = '';
+  let paragraphLength = 0;
+  const flushParagraph = () => {
+    if (paragraph) blocks.push({ type: 'paragraph', text: paragraph });
+    paragraph = '';
+    paragraphLength = 0;
+  };
   for (const row of article.rows) {
     if (row.heading) {
-      paragraph = null;
-      paragraphLength = 0;
-      appendText('h3', row.heading);
+      flushParagraph();
+      blocks.push({ type: 'heading', text: row.heading });
     }
-    if (!paragraph) {
-      paragraph = appendText('p', '', content, 'paragraph');
-      paragraphLength = 0;
-    }
-    appendRichText(paragraph, row.text);
+    paragraph += row.text;
     paragraphLength += row.text.length;
-
     if (row.note) {
-      const note = document.createElement('details');
-      note.className = 'note';
-      appendText('summary', row.note.kind, note);
-      appendRichText(appendText('p', '', note), row.note.text);
-      content.append(note);
-      paragraph = null;
-      paragraphLength = 0;
+      flushParagraph();
+      blocks.push({ type: 'note', kind: row.note.kind, text: row.note.text });
     } else if (!row.continues || (paragraphLength > 650 && /[。！？]$/.test(row.text.trim()))) {
-      paragraph = null;
-      paragraphLength = 0;
+      flushParagraph();
     }
   }
+  flushParagraph();
+  return blocks;
+}
 
+function takeText(value, limit) {
+  if (value.length <= limit) return [value, ''];
+  let cut = Math.max(1, Math.min(limit, value.length));
+  const lowerBound = Math.floor(cut * .58);
+  for (let index = cut; index >= lowerBound; index--) {
+    if ('。！？；，、'.includes(value[index - 1])) {
+      cut = index;
+      break;
+    }
+  }
+  for (const [opening, closing] of [['[', ']'], ['〔', '〕']]) {
+    const lastOpening = value.lastIndexOf(opening, cut - 1);
+    const lastClosing = value.lastIndexOf(closing, cut - 1);
+    if (lastOpening > lastClosing) {
+      const nextClosing = value.indexOf(closing, cut);
+      cut = nextClosing === -1 ? lastOpening : nextClosing + 1;
+    }
+  }
+  return [value.slice(0, cut), value.slice(cut)];
+}
+
+function buildArticlePages(article) {
+  const fontPixels = textSize * 20;
+  const usableWidth = Math.max(180, content.clientWidth - 42);
+  const usableHeight = Math.max(300, content.clientHeight - 48);
+  const charactersPerLine = usableWidth / fontPixels;
+  const lineCount = usableHeight / (fontPixels * 1.7);
+  const paragraphOverhead = Math.ceil(charactersPerLine * .55);
+  const budget = Math.max(100, Math.floor(charactersPerLine * lineCount * .76));
+  const result = [[]];
+  let used = 0;
+  const newPage = () => {
+    if (result.at(-1).length) result.push([]);
+    used = 0;
+  };
+  const add = (block, weight) => {
+    if (used && used + weight > budget) newPage();
+    result.at(-1).push(block);
+    used += weight;
+  };
+
+  for (const block of paragraphBlocks(article)) {
+    if (block.type === 'title') {
+      add(block, Math.min(budget, block.text.length + 52));
+    } else if (block.type === 'heading') {
+      if (used > budget - 50) newPage();
+      add(block, block.text.length + 28);
+    } else if (block.type === 'note') {
+      add(block, 34);
+    } else {
+      let remaining = block.text;
+      while (remaining) {
+        const wholeLineWeight = Math.ceil(remaining.length / charactersPerLine) * charactersPerLine + paragraphOverhead;
+        if (used && wholeLineWeight <= budget && wholeLineWeight > budget - used) newPage();
+        if (budget - used < 45 + paragraphOverhead) newPage();
+        const available = Math.max(45, budget - used - paragraphOverhead - charactersPerLine);
+        const [part, rest] = takeText(remaining, available);
+        const lineWeight = Math.ceil(part.length / charactersPerLine) * charactersPerLine;
+        add({ type: 'paragraph', text: part }, lineWeight + paragraphOverhead);
+        remaining = rest;
+        if (remaining) newPage();
+      }
+    }
+  }
+  return result.filter(page => page.length);
+}
+
+function renderCurrentPage() {
+  pages.replaceChildren();
+  content.scrollTop = 0;
+  for (const block of articlePages[currentPage] || []) {
+    if (block.type === 'title') {
+      appendText('h2', block.text);
+    } else if (block.type === 'heading') {
+      appendText('h3', block.text);
+    } else if (block.type === 'paragraph') {
+      appendRichText(appendText('p', '', pages, 'paragraph'), block.text);
+    } else if (block.type === 'note') {
+      const note = document.createElement('details');
+      note.className = 'note';
+      appendText('summary', block.kind, note);
+      appendRichText(appendText('p', '', note), block.text);
+      pages.append(note);
+    }
+  }
+}
+
+function paginate(requestedPage = 0, scrollToPage = false) {
+  const pagination = ++paginationNumber;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (pagination !== paginationNumber) return;
+    articlePages = buildArticlePages(articles[currentArticle]);
+    pageCount = Math.max(1, articlePages.length);
+    pageSelect.replaceChildren();
+    for (let index = 0; index < pageCount; index++) {
+      pageSelect.add(new Option(`第 ${index + 1} / ${pageCount} 頁`, index));
+    }
+    showPage(requestedPage, scrollToPage);
+  }));
+}
+
+function renderArticle(requestedPage = 0, scrollToPage = false) {
+  pages.replaceChildren();
   chapterSelect.value = String(currentArticle);
-  previousButton.disabled = currentVolume === 0 && currentArticle === 0;
-  nextButton.disabled = currentVolume === volumeNames.length - 1 && currentArticle === articles.length - 1;
-  status.textContent = `${volumeNames[currentVolume]}｜第 ${currentArticle + 1} / ${articles.length} 篇｜全書第 ${article.id} 篇`;
-  savePosition();
-  window.scrollTo(0, 0);
+  paginate(requestedPage, scrollToPage);
 }
 
 async function loadSourceFigureLabels() {
@@ -154,11 +343,11 @@ async function loadSourceFigureLabels() {
   sourceFigureLabels = new Set(await response.json());
 }
 
-async function openVolume(index, articleIndex = 0) {
+async function openVolume(index, articleIndex = 0, pageIndex = 0, articleId = null) {
   const request = ++requestNumber;
   currentVolume = index;
   volumeSelect.value = String(index);
-  content.replaceChildren();
+  pages.replaceChildren();
   status.textContent = '正在載入本冊…';
   try {
     await loadSourceFigureLabels();
@@ -176,8 +365,11 @@ async function openVolume(index, articleIndex = 0) {
     articles.forEach((article, articleNumber) => {
       chapterSelect.add(new Option(`${articleNumber + 1}. ${cleanTitle(article.title)}`, articleNumber));
     });
-    currentArticle = Math.max(0, Math.min(articleIndex, articles.length - 1));
-    renderArticle();
+    const matchedArticle = articleId ? articles.findIndex(article => article.id === articleId) : -1;
+    currentArticle = matchedArticle >= 0
+      ? matchedArticle
+      : Math.max(0, Math.min(articleIndex, articles.length - 1));
+    renderArticle(pageIndex);
   } catch (error) {
     if (request !== requestNumber) return;
     status.textContent = '載入失敗，請確認網路後重新選擇冊別。';
@@ -189,55 +381,94 @@ function readStartingPosition() {
   const hash = new URLSearchParams(location.hash.slice(1));
   const requestedVolume = Number(hash.get('volume'));
   const requestedArticleId = Number(hash.get('article'));
+  const requestedPage = Number(hash.get('page'));
   if (requestedVolume >= 1 && requestedVolume <= volumeNames.length) {
-    return { volume: requestedVolume - 1, articleId: requestedArticleId };
+    return {
+      volume: requestedVolume - 1,
+      articleId: requestedArticleId,
+      page: requestedPage >= 1 ? requestedPage - 1 : 0,
+    };
   }
-  try {
-    const saved = JSON.parse(localStorage.getItem('zhengshi-articles-position-v1'));
-    if (Number.isInteger(saved?.volume) && Number.isInteger(saved?.article)) return saved;
-  } catch {}
-  return { volume: 0, article: 0 };
+  const saved = readJson('zhengshi-articles-position-v1', {});
+  if (Number.isInteger(saved.volume) && Number.isInteger(saved.article)) {
+    return { volume: saved.volume, article: saved.article, page: saved.page || 0 };
+  }
+  return { volume: 0, article: 0, page: 0 };
+}
+
+function previousPage() {
+  if (currentPage > 0) {
+    showPage(currentPage - 1, true);
+  } else if (currentArticle > 0) {
+    currentArticle--;
+    renderArticle(Number.MAX_SAFE_INTEGER, true);
+  } else if (currentVolume > 0) {
+    openVolume(currentVolume - 1, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  }
+}
+
+function nextPage() {
+  if (currentPage < pageCount - 1) {
+    showPage(currentPage + 1, true);
+  } else if (currentArticle < articles.length - 1) {
+    currentArticle++;
+    renderArticle(0, true);
+  } else if (currentVolume < volumeNames.length - 1) {
+    openVolume(currentVolume + 1, 0, 0);
+  }
 }
 
 volumeSelect.addEventListener('change', () => openVolume(Number(volumeSelect.value)));
 chapterSelect.addEventListener('change', () => {
   currentArticle = Number(chapterSelect.value);
-  renderArticle();
+  renderArticle(0, true);
 });
-previousButton.addEventListener('click', () => {
-  if (currentArticle > 0) {
-    currentArticle--;
-    renderArticle();
-  } else if (currentVolume > 0) {
-    openVolume(currentVolume - 1, Number.MAX_SAFE_INTEGER);
-  }
-});
-nextButton.addEventListener('click', () => {
-  if (currentArticle < articles.length - 1) {
-    currentArticle++;
-    renderArticle();
-  } else if (currentVolume < volumeNames.length - 1) {
-    openVolume(currentVolume + 1);
-  }
-});
+pageSelect.addEventListener('change', () => showPage(Number(pageSelect.value), true));
+previousButtons.forEach(button => button.addEventListener('click', previousPage));
+nextButtons.forEach(button => button.addEventListener('click', nextPage));
 document.getElementById('decrease').addEventListener('click', () => {
   textSize = Math.max(1.1, Math.round((textSize - .1) * 10) / 10);
   document.documentElement.style.setProperty('--size', `${textSize}rem`);
   localStorage.setItem('zhengshi-articles-text-size-v1', String(textSize));
+  paginate(currentPage);
 });
 document.getElementById('increase').addEventListener('click', () => {
   textSize = Math.min(2, Math.round((textSize + .1) * 10) / 10);
   document.documentElement.style.setProperty('--size', `${textSize}rem`);
   localStorage.setItem('zhengshi-articles-text-size-v1', String(textSize));
+  paginate(currentPage);
 });
 
-const startingPosition = readStartingPosition();
-openVolume(startingPosition.volume, startingPosition.article || 0).then(() => {
-  if (startingPosition.articleId) {
-    const found = articles.findIndex(article => article.id === startingPosition.articleId);
-    if (found !== -1) {
-      currentArticle = found;
-      renderArticle();
-    }
+let touchStartX = 0;
+let touchStartY = 0;
+content.addEventListener('touchstart', event => {
+  touchStartX = event.changedTouches[0].clientX;
+  touchStartY = event.changedTouches[0].clientY;
+}, { passive: true });
+content.addEventListener('touchend', event => {
+  const differenceX = event.changedTouches[0].clientX - touchStartX;
+  const differenceY = event.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(differenceX) > 55 && Math.abs(differenceX) > Math.abs(differenceY)) {
+    if (differenceX < 0) nextPage();
+    else previousPage();
   }
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (articles[currentArticle]) paginate(currentPage);
+  }, 180);
 });
+if (document.fonts?.ready) document.fonts.ready.then(() => {
+  if (articles[currentArticle]) paginate(currentPage);
+});
+
+renderReadingLog();
+const startingPosition = readStartingPosition();
+openVolume(
+  startingPosition.volume,
+  startingPosition.article || 0,
+  startingPosition.page || 0,
+  startingPosition.articleId || null,
+);
