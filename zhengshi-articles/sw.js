@@ -1,4 +1,4 @@
-const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-2';
+const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-3';
 const cachePrefix = 'zhengshi-articles-offline-';
 const shellFiles = ['./', './index.html', './reader.js', './data/figures.json'];
 

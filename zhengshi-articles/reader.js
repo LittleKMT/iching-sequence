@@ -13,6 +13,48 @@ const figurePatterns = new Map([
   ['四象圖共四', ['11', '10', '01', '00']],
   ['八卦圖共八', ['111', '011', '101', '001', '110', '010', '100', '000']],
 ]);
+const hexagramSymbols = Object.freeze({
+  乾: '䷀', 坤: '䷁', 屯: '䷂', 蒙: '䷃', 需: '䷄', 訟: '䷅', 師: '䷆', 比: '䷇',
+  小畜: '䷈', 履: '䷉', 泰: '䷊', 否: '䷋', 同人: '䷌', 大有: '䷍', 謙: '䷎', 豫: '䷏',
+  隨: '䷐', 蠱: '䷑', 臨: '䷒', 觀: '䷓', 噬嗑: '䷔', 賁: '䷕', 剝: '䷖', 復: '䷗',
+  無妄: '䷘', 无妄: '䷘', 大畜: '䷙', 頤: '䷚', 大過: '䷛', 坎: '䷜', 離: '䷝', 咸: '䷞',
+  恆: '䷟', 恒: '䷟', 遯: '䷠', 大壯: '䷡', 晉: '䷢', 明夷: '䷣', 家人: '䷤', 睽: '䷥', 蹇: '䷦',
+  解: '䷧', 損: '䷨', 益: '䷩', 夬: '䷪', 姤: '䷫', 萃: '䷬', 升: '䷭', 困: '䷮',
+  井: '䷯', 革: '䷰', 鼎: '䷱', 震: '䷲', 艮: '䷳', 漸: '䷴', 歸妹: '䷵', 豐: '䷶',
+  旅: '䷷', 巽: '䷸', 兌: '䷹', 渙: '䷺', 節: '䷻', 中孚: '䷼', 小過: '䷽', 既濟: '䷾', 未濟: '䷿',
+});
+const hexagramNames = Object.keys(hexagramSymbols).sort((a, b) => b.length - a.length);
+const singleHexagramNames = new Set(hexagramNames.filter(name => name.length === 1));
+const hexagramExplicitPairs = [
+  '乾坤', '坎離', '離坎', '震巽', '巽震', '艮兌', '兌艮', '震艮', '艮震', '巽兌', '兌巽',
+  '屯蒙', '需訟', '泰否', '咸恆', '恆咸', '咸恒', '恒咸', '損益', '益損', '夬姤', '姤夬', '剝復', '復剝', '鼎革', '革鼎',
+];
+const hexagramCommonWords = [
+  '需要', '需求', '理解', '了解', '解釋', '解決', '解說', '解開', '離開', '分離', '相離', '不離', '偏離',
+  '往復', '回復', '恢復', '反復', '上升', '升降', '升起', '隨之', '隨時', '隨著', '比較', '比方', '比例',
+  '比類', '相比', '觀察', '觀看', '客觀', '困難', '困境', '困窮', '改革', '變革', '革新', '革故', '豐收',
+  '豐歉', '豐富', '節氣', '時節', '季節', '末節', '節制', '收益', '增益', '利益', '損害', '損失', '減損',
+  '蒙蔽', '蒙昧', '老師', '教師', '否則', '能否', '是否', '可否', '臨時', '面臨', '逐漸', '履行', '履歷',
+  '謙虛', '謙讓', '恆常', '恒常', '恒久', '永恒', '持恒', '恒心', '恒定', '泰然', '鼎新',
+  '乾燥', '乾淨', '乾脆', '乾枯', '乾旱', '乾涸', '屯兵', '屯積', '屯田', '屯駐', '童蒙', '啟蒙',
+  '必需', '所需', '無需', '急需', '供需', '訴訟', '爭訟', '興訟', '軍師', '法師', '大師', '師長', '師生', '出師',
+  '比如', '比喻', '比擬', '比作', '可比', '對比', '類比', '排比', '比重', '比值', '比賽', '比照', '比起',
+  '履約', '履職', '步履', '否定', '謙卑', '謙遜', '謙下', '自謙', '跟隨', '相隨', '隨意', '隨同', '隨機',
+  '隨身', '隨處', '隨後', '隨即', '隨便', '來臨', '降臨', '臨危', '觀念', '觀點', '觀測', '觀賞', '觀望',
+  '主觀', '反觀', '世界觀', '剝落', '剝削', '剝離', '剝奪', '復原', '復興', '復習', '重復', '脫離', '乖離',
+  '遠離', '離散', '距離', '隔離', '背離', '晉升', '損傷', '耗損', '受損', '有損', '受益', '有益', '公益',
+  '日益', '提升', '升高', '升級', '受困', '窮困', '困住', '水井', '井水', '井口', '井中', '井田', '井泉',
+  '革命', '沿革', '震動', '震驚', '地震', '漸漸', '漸進', '豐盛', '豐滿', '豐厚', '旅行', '旅人', '旅途',
+  '旅客', '行旅', '軍旅', '商旅', '調節', '禮節', '細節', '關節', '環節', '章節', '節奏',
+  '講解', '詳解', '誤解', '解讀', '化解', '難解', '分解', '解析', '註解', '拆解', '瓦解', '調解', '和解',
+  '排解', '解答', '解脫', '解放', '解散', '求解', '見解', '曲解', '破解', '解為', '解作', '如此解',
+  '可解', '解《易》', '損及', '缺損', '折損', '助益', '補益', '無益', '康復', '照臨', '君臨',
+  '隱遯', '退遯', '豐盈', '豐碩', '豐年', '好比', '困在',
+];
+const hexagramMultiCommonWords = [
+  '如同人', '同人們', '同人類', '家人教育', '家人培養', '家人關係', '家人生活', '家人團聚',
+  '大有可為', '大有作為', '大有文章', '犯大過', '鑄成大過', '小過失', '小過錯',
+];
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const volumeSelect = document.getElementById('volume');
 const chapterSelect = document.getElementById('chapter');
@@ -28,7 +70,7 @@ const historyList = document.getElementById('history-list');
 const readerSettings = document.getElementById('reader-settings');
 const offlineButton = document.getElementById('offline-download');
 const offlineStatus = document.getElementById('offline-status');
-const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-2';
+const offlineCacheName = 'zhengshi-articles-offline-2026-09-25-3';
 const cache = new Map();
 let sourceFigureLabels = new Set();
 let articles = [];
@@ -42,6 +84,7 @@ let readingLog = readJson('zhengshi-articles-reading-log-v1', {});
 let requestNumber = 0;
 let paginationNumber = 0;
 let resizeTimer;
+let primaryHexagramSymbols = new Set();
 
 volumeNames.forEach((name, index) => volumeSelect.add(new Option(name, index)));
 document.documentElement.style.setProperty('--size', `${textSize}rem`);
@@ -91,6 +134,128 @@ function appendFigure(parent, label, patterns) {
   parent.append(svg);
 }
 
+function occurrenceInside(text, start, end, phrases) {
+  return phrases.some(phrase => {
+    let at = text.indexOf(phrase);
+    while (at >= 0) {
+      if (start >= at && end <= at + phrase.length) return true;
+      at = text.indexOf(phrase, at + 1);
+    }
+    return false;
+  });
+}
+
+function singleHexagramHasWordBoundary(text, start, end) {
+  const before = start > 0 ? text[start - 1] : '';
+  const after = end < text.length ? text[end] : '';
+  const following = text.slice(end, end + 8);
+  const punctuation = /[，。；：、！？（）「」『』《》\n]/;
+  const beforeOk = !before || punctuation.test(before) || /[與及和由以為是說稱對本此其將把成從則乃上下]/.test(before);
+  const afterOk = !after || punctuation.test(after) || /^(?:是|為|主|與|及|和|之|的|以|由|在|接|承|相|反|互|顛|變|配|居|能|可|不|上|下|先|後|道|義|用|表示|象徵)/.test(following);
+  return beforeOk && afterOk;
+}
+
+function singleHexagramIsExplicit(text, start, name) {
+  const end = start + name.length;
+  const before = start > 0 ? text[start - 1] : '';
+  const after = end < text.length ? text[end] : '';
+  const following = text.slice(end, end + 8);
+  const explicitShiFou = after === '卦' && name === '否' && before === '是' && /[這此即乃]/.test(text[start - 2] || '');
+  if (explicitShiFou) return true;
+  if (occurrenceInside(text, start, end, hexagramCommonWords)) return false;
+  if (after === '卦' || after === '宮' || before === '卦') return true;
+  if (/^上[乾坤坎離震巽艮兌](?:、|，)?下[乾坤坎離震巽艮兌]/.test(following)) return true;
+  if (/^(?:初[六九]|[六九][二三四五]|上[六九])/.test(following)) return true;
+  if (occurrenceInside(text, start, end, hexagramExplicitPairs)) return true;
+  const hasWordBoundary = singleHexagramHasWordBoundary(text, start, end);
+  if (primaryHexagramSymbols.has(hexagramSymbols[name]) && hasWordBoundary) return true;
+  const listMarks = (text.match(/、/g) || []).length;
+  if (listMarks >= 2 && (before === '、' || after === '、' || before === '' || after === '')) return true;
+  const hasHexagramContext = /(?:卦|八宮|六十四|本宮|本卦|卦序|爻)/.test(text);
+  if (hasHexagramContext && hasWordBoundary) return true;
+  if (/[為是屬取到從世]/.test(before) && /[、，；。：）]|$/.test(after)) return true;
+  return false;
+}
+
+function multiHexagramIsExplicit(text, start, name) {
+  const end = start + name.length;
+  const before = start > 0 ? text[start - 1] : '';
+  const after = end < text.length ? text[end] : '';
+  const nearby = text.slice(Math.max(0, start - 10), Math.min(text.length, end + 10));
+  const following = text.slice(end, end + 8);
+  if (occurrenceInside(text, start, end, hexagramMultiCommonWords)) return false;
+  if (primaryHexagramSymbols.has(hexagramSymbols[name])) return true;
+  if (after === '卦' || after === '宮' || before === '卦') return true;
+  if (/^上[乾坤坎離震巽艮兌](?:、|，)?下[乾坤坎離震巽艮兌]/.test(following)) return true;
+  if (/^(?:初[六九]|[六九][二三四五]|上[六九])/.test(following)) return true;
+  if (/(?:卦象|卦辭|卦名|卦序|卦位|本卦|對卦|互卦|變卦|上卦|下卦|之卦|之象|之義|之用|之辭)/.test(nearby)) return true;
+  if (occurrenceInside(text, start, end, hexagramExplicitPairs)) return true;
+  if (before === '、' || after === '、') return true;
+  if (/[天澤火雷風水山地]/.test(text.slice(Math.max(0, start - 2), start))) return true;
+  const sentenceStart = Math.max(text.lastIndexOf('。', start), text.lastIndexOf('；', start), text.lastIndexOf('\n', start)) + 1;
+  const sentenceEnd = [text.indexOf('。', end), text.indexOf('；', end), text.indexOf('\n', end)]
+    .filter(position => position >= 0).sort((a, b) => a - b)[0] || text.length;
+  const sentence = text.slice(sentenceStart, sentenceEnd);
+  if (/(?:卦|六十四|八宮|爻)/.test(sentence) && (/[與及和]/.test(before + after) || /[，；：（）]/.test(before + after))) return true;
+  return false;
+}
+
+function findHexagramMatches(text) {
+  const matches = [];
+  let position = 0;
+  while (position < text.length) {
+    const name = hexagramNames.find(candidate => text.startsWith(candidate, position));
+    if (!name) {
+      position++;
+      continue;
+    }
+    const end = position + name.length;
+    const explicit = singleHexagramNames.has(name)
+      ? singleHexagramIsExplicit(text, position, name)
+      : multiHexagramIsExplicit(text, position, name);
+    if (explicit) matches.push({ start: position, end, name, symbol: hexagramSymbols[name] });
+    position = explicit ? end : position + 1;
+  }
+  return matches;
+}
+
+function appendHexagramText(parent, value) {
+  const matches = findHexagramMatches(value);
+  let last = 0;
+  matches.forEach(match => {
+    parent.append(document.createTextNode(value.slice(last, match.start)));
+    const wrapper = document.createElement('span');
+    wrapper.className = 'hexagram-name';
+    wrapper.title = `${match.name}卦 ${match.symbol}`;
+    wrapper.append(document.createTextNode(value.slice(match.start, match.end)));
+    const glyph = document.createElement('span');
+    glyph.className = 'hexagram-glyph';
+    glyph.textContent = match.symbol;
+    glyph.setAttribute('aria-hidden', 'true');
+    wrapper.append(glyph);
+    parent.append(wrapper);
+    last = match.end;
+  });
+  parent.append(document.createTextNode(value.slice(last)));
+}
+
+function inferPrimaryHexagramSymbols(article) {
+  const inferred = new Set();
+  const title = cleanTitle(article.title);
+  const bodyHead = article.rows.slice(0, 8)
+    .map(row => `${row.heading || ''}${row.text || ''}`)
+    .join('')
+    .slice(0, 520);
+  for (const name of hexagramNames) {
+    const positionPattern = `${name}(?:卦|初[六九]|[六九][二三四五]|上[六九])`;
+    if (title.includes(`${name}卦`) || new RegExp(positionPattern).test(bodyHead)) {
+      inferred.add(hexagramSymbols[name]);
+      break;
+    }
+  }
+  return inferred;
+}
+
 function appendRichText(parent, value) {
   const tokenPattern = /\[([^\]\r\n]+)\]|〔([^〕\r\n]+)〕/g;
   let last = 0;
@@ -101,7 +266,7 @@ function appendRichText(parent, value) {
     const isSpecial = squareLabel === '特殊圖';
     const hasSourceFigure = sourceLabel && sourceFigureLabels.has(sourceLabel);
     if (!patterns && !isSpecial && !hasSourceFigure) continue;
-    parent.append(document.createTextNode(value.slice(last, match.index)));
+    appendHexagramText(parent, value.slice(last, match.index));
     if (patterns) {
       appendFigure(parent, squareLabel, patterns);
     } else if (isSpecial) {
@@ -116,7 +281,7 @@ function appendRichText(parent, value) {
     }
     last = match.index + match[0].length;
   }
-  parent.append(document.createTextNode(value.slice(last)));
+  appendHexagramText(parent, value.slice(last));
 }
 
 function cleanTitle(title) {
@@ -307,9 +472,9 @@ function renderCurrentPage() {
   content.scrollTop = 0;
   for (const block of articlePages[currentPage] || []) {
     if (block.type === 'title') {
-      appendText('h2', block.text);
+      appendRichText(appendText('h2', ''), block.text);
     } else if (block.type === 'heading') {
-      appendText('h3', block.text);
+      appendRichText(appendText('h3', ''), block.text);
     } else if (block.type === 'paragraph') {
       appendRichText(appendText('p', '', pages, 'paragraph'), block.text);
     } else if (block.type === 'note') {
@@ -339,6 +504,7 @@ function paginate(requestedPage = 0, scrollToPage = false) {
 function renderArticle(requestedPage = 0, scrollToPage = false) {
   pages.replaceChildren();
   chapterSelect.value = String(currentArticle);
+  primaryHexagramSymbols = inferPrimaryHexagramSymbols(articles[currentArticle]);
   paginate(requestedPage, scrollToPage);
 }
 
@@ -448,7 +614,7 @@ async function downloadForOffline() {
   offlineButton.textContent = '正在準備離線下載…';
   offlineStatus.textContent = '請保持此頁開啟，下載完成前不要關閉。';
   try {
-    await navigator.serviceWorker.register('sw.js?v=offline-2', { scope: './', updateViaCache: 'none' });
+    await navigator.serviceWorker.register('sw.js?v=offline-3', { scope: './', updateViaCache: 'none' });
     await navigator.serviceWorker.ready;
     const urls = await offlineAssetUrls();
     const cache = await caches.open(offlineCacheName);
@@ -484,7 +650,7 @@ async function initializeOfflineReading() {
       offlineStatus.textContent = '已可離線閱讀；按此按鈕可重新下載最新內容。';
       offlineButton.disabled = false;
     }
-    const registration = await navigator.serviceWorker.register('sw.js?v=offline-2', { scope: './', updateViaCache: 'none' });
+    const registration = await navigator.serviceWorker.register('sw.js?v=offline-3', { scope: './', updateViaCache: 'none' });
     await registration.update();
   } catch {}
 }
