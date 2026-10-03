@@ -6,6 +6,7 @@ const volumeSelect = document.getElementById('volume');
 const chapterSelect = document.getElementById('chapter');
 const content = document.getElementById('content');
 const status = document.getElementById('status');
+const chartDialog = document.getElementById('chart-dialog');
 const cache = new Map();
 // Each string lists the lines from top to bottom: 1 is an unbroken yang line.
 const figurePatterns = new Map([
@@ -325,4 +326,7 @@ document.getElementById('increase').addEventListener('click', () => {
   textSize = Math.min(2, textSize + .1);
   document.documentElement.style.setProperty('--size', `${textSize}rem`);
 });
+document.getElementById('chart-button').addEventListener('click', () => chartDialog.showModal());
+document.getElementById('chart-close').addEventListener('click', () => chartDialog.close());
+chartDialog.addEventListener('click', event => { if (event.target === chartDialog) chartDialog.close(); });
 openVolume(0);
