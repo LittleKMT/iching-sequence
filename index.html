@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="序卦傳">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="offline.css">
+  <script src="offline.js" defer></script>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=book-2">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=book-2">
   <title>序卦傳・六十四卦記憶</title>
@@ -477,6 +480,18 @@
       </div>
     </nav>
 
+    <details class="offline-panel">
+      <summary>安裝到手機／平板・離線下載</summary>
+      <div class="offline-content">
+        <p>先連網下載，再加入主畫面，之後沒有網路也能開啟。完整版包含主 App、八正道、心法查詢及《易經證釋》兩個閱讀入口的全二十冊與圖檔。</p>
+        <button id="offline-download-all" class="control" type="button" disabled>下載完整離線版</button>
+        <progress id="offline-progress" max="1" value="0" hidden aria-label="離線下載進度"></progress>
+        <p id="offline-message" role="status" aria-live="polite">正在準備離線功能…</p>
+        <button id="install-app" class="control" type="button" hidden>安裝 ICHING SEQUENCE</button>
+        <p>iPhone／iPad：用 Safari 開啟，點「分享」→「加入主畫面」。Android：在瀏覽器選單選「安裝應用程式」或「加入主畫面」。加入後請從主畫面圖示開啟，確認下載狀態。</p>
+        <p class="offline-hint">下載時請保持畫面開啟。清除網站資料或裝置儲存空間不足時，可能需要重新下載；外部影片與連結仍需網路。</p>
+      </div>
+    </details>
     <section id="list-screen" class="screen"></section>
     <section id="picker-screen" class="screen" hidden>
       <h2 class="section-title">六十四卦</h2>

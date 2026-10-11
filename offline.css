@@ -1,0 +1,8 @@
+.offline-panel { margin: 12px 0; border: 1px solid #a8b9ab; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
+.offline-panel summary { padding: 14px 12px; color: #0b4f2c; font-weight: 800; cursor: pointer; }
+.offline-content { padding: 0 12px 12px; font-size: 1rem; line-height: 1.6; }
+.offline-content p { margin: 10px 0; }
+.offline-content button { width: 100%; min-height: 48px; white-space: normal; }
+.offline-content button:disabled { opacity: .6; }
+.offline-content progress { width: 100%; margin-top: 12px; accent-color: #0b4f2c; }
+.offline-hint { color: #526056; font-size: .9rem; }
